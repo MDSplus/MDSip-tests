@@ -80,10 +80,12 @@ int main(int argc, char *argv[])
     std::cout << "Error getting node: " << exc->what() << std::endl;
 	exit(0);
     }
+
     pthread_t threads[MAX_THREADS];
     struct timeval startTime, endTime;
 
     gettimeofday(&startTime, NULL);
+
     int threadIdx;
     for(threadIdx = 0; threadIdx < numThreads; threadIdx++)
      	pthread_create(&threads[threadIdx], NULL, handleChan, (void *)&infos[threadIdx]);

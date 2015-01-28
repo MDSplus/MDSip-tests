@@ -1,21 +1,36 @@
 
+MDSPLUS_DIR=/usr/local/mdsplus
 
-FLAGS=-I/opt/mdsplus/include/ -L/opt/mdsplus/lib/
-LIBS=-lMdsObjectsCppShr -lstdc++
+OPT=-O0 -g
 
-all: PerfTestProc PerfTestThreads PerfTestProcMultipleTrees
+CC=g++
+CFLAGS= -I${MDSPLUS_DIR}/include -Wall ${OPT}
+LDFLAGS=-L${MDSPLUS_DIR}/lib -lMdsObjectsCppShr -lstdc++ -lpthread -lm
 
+SOURCES = FileUtils.cpp TreeUtils.cpp TestContent.cpp TestConnection.cpp
+OBJECTS=$(SOURCES:.cpp=.o)
+
+#$(EXECUTABLE): $(OBJECTS) 
+#	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -c -o $@
+
+all: main
+
+main: ${OBJECTS} main.cpp
+	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
 
 PerfTestProcMultipleTrees: PerfTestProcMultipleTrees.cpp
-	gcc $^ -o $@ ${FLAGS} ${LIBS} -lpthread
+	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
 
 PerfTestProc: PerfTestProc.cpp
-	gcc $^ -o $@ ${FLAGS} ${LIBS}
+	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS}
 
 PerfTestThreads: PerfTestThreads.cpp
-	gcc $^ -o $@ ${FLAGS} ${LIBS} -lpthread
+	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
 
 
 
 clean:
-	rm -rf *.o PerfTestProc PerfTestThreads PerfTestProcMultipleTrees
+	rm -rf *.o PerfTestProc PerfTestThreads PerfTestProcMultipleTrees main
