@@ -1,7 +1,9 @@
 #include <mdsobjects.h>
 
-#include "TestConnection.h"
+#include "DataUtils.h"
 #include "Threads.h"
+
+#include "TestConnection.h"
 
 using namespace MDSplus;
 
@@ -14,7 +16,6 @@ using namespace MDSplus;
 void TestConnection::StartConnection()
 {
     static int pulse = 1;
-    //size_t connection_size = m_connection_size;
 
     // create pulse //
     m_tree = TreeUtils::OpenTree(m_target_name.c_str(),-1);
@@ -26,6 +27,42 @@ void TestConnection::StartConnection()
 
     if(m_tree) delete m_tree;
     pulse++;
+}
+
+void TestConnection::PrintChannelTimes(std::ostream &o)
+{
+    static const char c = ';';
+    //        for(unsigned int i=0; i<m_channels.size(); ++i) {
+    //            Channel *ch = m_channels[i];
+    //            o << m_chtimes.at(ch);
+    //        }
+
+    if(!this->m_channels.size()) return;
+    Channel *first_ch = m_channels[0];
+    TimeHistogram &h0 = m_chtimes[first_ch];
+    size_t nbins = h0.Size();
+
+    o << "time [s]";
+    for (unsigned int i=0; i< m_channels.size(); ++i)
+    {
+        Channel *ch = m_channels[i];
+        TimeHistogram &h = m_chtimes[ch];
+        o << c << h.GetName();
+    }
+    o << "\n";
+
+    for (unsigned int i=0; i< nbins; ++i)
+    {
+        o << h0.operator [](i).first;
+        for (unsigned int j=0; j< m_channels.size(); ++j)
+        {
+            Channel *ch = m_channels[j];
+            TimeHistogram &h = m_chtimes[ch];
+            o << c << h[i].second;
+        }
+        o << "\n";
+    }
+    o << "\n";
 }
 
 
@@ -148,6 +185,9 @@ public:
     {}
 
     void InternalThreadEntry() {
+        Timer timer;
+        TestConnection::TimeHistogram &hist = m_connection->GetChannelTimes(m_channel);
+
         m_channel->Open(m_connection->GetTreeName().c_str());
 
         if( m_content )
@@ -155,7 +195,9 @@ public:
         {
             Content::Element el;
             m_content->GetNextElement(m_channel->Size(), el);
+            timer.Start();
             m_channel->PutSegment(el);
+            hist << timer.StopWatch();
         }
 
         m_channel->Close();
@@ -170,6 +212,11 @@ private:
 
 
 
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // MULTITHREADED CONNECTION  ///////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +224,7 @@ private:
 
 void TestConnectionMT::AddChannel(Content &cnt, Channel *ch)
 {
+    BaseClass::AddChannel(cnt,ch);
     this->m_threads.push_back(new ConnectionThread(this,ch,&cnt));
     this->m_tree->addNode(cnt.GetName().c_str(),(char *)"SIGNAL"); // FIX
     m_tree->write();
@@ -207,8 +255,8 @@ void TestConnectionMT::StartConnection()
     delete m_tree;
 
 
-    struct timeval startTime, endTime;
-    gettimeofday(&startTime, NULL);
+    Timer time;
+    time.Start();
 
     for(size_t i=0; i<m_threads.size(); ++i) {
         Thread * thread = m_threads.at(i);
@@ -220,11 +268,8 @@ void TestConnectionMT::StartConnection()
         thread->WaitForThreadToExit();
     }
 
-    gettimeofday(&endTime, NULL);
-    double timeSec = endTime.tv_sec - startTime.tv_sec +
-            (endTime.tv_usec - startTime.tv_usec)*1E-6;
-
-    std::cout << "elapsed time: " << timeSec << "\n";
+    double timeSec = time.StopWatch();
+    std::cout << "Total connection time: " << timeSec << "\n";
 }
 
 

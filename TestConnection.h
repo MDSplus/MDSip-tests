@@ -4,35 +4,13 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <vector>
+#include <map>
 
 #include <mdsobjects.h>
 
 #include "TreeUtils.h"
 #include "TestContent.h"
-
-
-class TestConnection {
-public:
-
-    TestConnection( std::string name ) :
-        m_target_name(name)
-    {
-        m_tree = TreeUtils::CreateTree(m_target_name.c_str());
-        m_tree->write();
-    }
-
-    virtual void StartConnection();
-
-    mds::Tree * GetTree() const { return m_tree; }
-
-    std::string GetTreeName() { return m_target_name; }
-
-protected:
-
-    mds::Tree * m_tree;
-    std::string m_target_name;
-};
-
+#include "DataUtils.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +37,53 @@ protected:
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  TestConnection Base   //////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+class TestConnection {
+public:
+
+    typedef Histogram<double> TimeHistogram;
+
+    TestConnection( std::string name ) :
+        m_target_name(name)
+    {
+        m_tree = TreeUtils::CreateTree(m_target_name.c_str());
+        m_tree->write();
+    }
+
+    virtual void StartConnection();
+
+    virtual void AddChannel(Content &cnt, Channel *ch) {
+        m_channels.push_back(ch);
+        m_chtimes[ch] =  TimeHistogram(cnt.GetName().c_str(),50,0,0.002);
+    }
+
+    mds::Tree * GetTree() const { return m_tree; }
+
+    std::string GetTreeName() { return m_target_name; }
+
+    TimeHistogram & GetChannelTimes(Channel *ch) { return m_chtimes[ch]; }
+
+    void PrintChannelTimes(std::ostream &o);
+
+
+protected:
+
+    mds::Tree * m_tree;
+    std::string m_target_name;
+
+    std::vector<Channel *> m_channels;
+    std::map< Channel *, TimeHistogram > m_chtimes;
+};
+
+
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +94,8 @@ protected:
 class Thread; // fwd //
 
 class TestConnectionMT : public TestConnection, Lockable {
+
+    typedef TestConnection BaseClass;
 
     friend class ChannelThread;
 

@@ -15,3 +15,7 @@ MDSTest.h
 ProducerConsumer.h
 ProducerConsumer.cpp
 Threads.h
+DataUtils.h
+ClassUtils.h
+StatisticsUtils.h
+StatisticsUtils.cpp

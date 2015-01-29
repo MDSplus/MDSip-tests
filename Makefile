@@ -7,7 +7,7 @@ CC=g++
 CFLAGS= -I${MDSPLUS_DIR}/include -Wall ${OPT}
 LDFLAGS=-L${MDSPLUS_DIR}/lib -lMdsObjectsCppShr -lstdc++ -lpthread -lm
 
-SOURCES = FileUtils.cpp TreeUtils.cpp TestContent.cpp TestConnection.cpp
+SOURCES = FileUtils.cpp TreeUtils.cpp TestContent.cpp TestConnection.cpp StatisticsUtils.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 
 #$(EXECUTABLE): $(OBJECTS) 

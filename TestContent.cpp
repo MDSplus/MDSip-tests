@@ -5,53 +5,11 @@
 
 #include "TreeUtils.h"
 #include "TestContent.h"
+#include "StatisticsUtils.h"
 
 #include <math.h>
 
 using namespace MDSplus;
-
-
-////////////////////////////////////////////////////////////////////////////////
-//  Generator Functions  ///////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-static double box_muller(double x)
-{
-    (void)x;
-    static const double mean = 0;
-    static const double sigma = 1;
-
-    float x1, x2, w, y1;
-    static double y2;
-    static int use_last = 0;
-
-    if (use_last)
-    {
-        y1 = y2;
-        use_last = 0;
-    }
-    else
-    {
-        do {
-            x1 = 2.0 * (double)rand() / RAND_MAX - 1.0;
-            x2 = 2.0 * (double)rand() / RAND_MAX - 1.0;
-            w = x1 * x1 + x2 * x2;
-        } while ( w >= 1.0 );
-
-        w = sqrt( (-2.0 * log( w ) ) / w );
-        y1 = x1 * w;
-        y2 = x2 * w;
-        use_last = 1;
-    }
-    return( mean + y1 * sigma );
-}
-
-
-static double noise_white(double x) {
-    (void)x;
-    return (double)rand() / RAND_MAX;
-}
 
 
 
@@ -72,7 +30,7 @@ ContentFunction::ContentFunction(const char *name, size_t size_MB) :
 }
 
 ContentFunction::~ContentFunction()
-{    
+{
     if(m_subtree) delete m_subtree;
 }
 
@@ -97,6 +55,7 @@ void ContentFunction::SetGenFunction(const ContentFunction::FunctionEnum funt)
 
     }
 }
+
 
 void ContentFunction::SetGenFunction(ContentFunction::GenFunction func)
 {
