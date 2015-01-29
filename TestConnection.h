@@ -42,24 +42,19 @@ protected:
 class Channel {
 
 public:
-    Channel() : m_content(NULL) {}
-    Channel(Content *cnt) : m_content(cnt) {}
 
-    static Channel * NewDC(Content &cnt, int size_KB);
-    static Channel * NewTC(Content &cnt, int size_KB, const char *addr = "localhost");
+    static Channel * NewDC(int size_KB);
+    static Channel * NewTC(int size_KB, const char *addr = "localhost");
 
     virtual void Open(const char *tree) = 0;
     virtual void Close() = 0;
 
-    virtual void SetContent(Content *cnt) { m_content = cnt; }
-    virtual Content * GetContent() const { return m_content; }
     virtual size_t Size() const = 0;
 
     virtual void PutSegment(Content::Element &el) /*const*/ = 0;
 protected:
     virtual ~Channel() {}
 
-    Content *m_content;
 };
 
 
@@ -89,7 +84,7 @@ public:
     }
 
 
-    void AddChannel(Channel *ch);
+    void AddChannel(Content &cnt, Channel *ch);
 
     void ClearChannels();
 

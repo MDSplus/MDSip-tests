@@ -41,8 +41,7 @@ void TestConnection::StartConnection()
 
 class ChannelDC : public Channel {
 public:
-    ChannelDC(Content *cnt, int size) :
-        Channel(cnt),
+    ChannelDC(int size) :
         m_size(size),
         m_tree(NULL)
     {}
@@ -75,8 +74,7 @@ private:
 
 class ChannelTC : public Channel {
 public:
-    ChannelTC(Content *cnt, int size, const char *addr) :
-        Channel(cnt),
+    ChannelTC(int size, const char *addr) :
         m_cnx((char *)addr),
         m_addr(addr),
         m_size(size)
@@ -122,14 +120,14 @@ private:
 };
 
 
-Channel *Channel::NewDC(Content &cnt, int size_KB)
+Channel *Channel::NewDC(int size_KB)
 {
-    return new ChannelDC(&cnt, size_KB);
+    return new ChannelDC(size_KB);
 }
 
-Channel *Channel::NewTC(Content &cnt, int size_KB, const char *addr)
+Channel *Channel::NewTC(int size_KB, const char *addr)
 {
-    return new ChannelTC(&cnt, size_KB,addr);
+    return new ChannelTC(size_KB,addr);
 }
 
 
@@ -143,19 +141,20 @@ Channel *Channel::NewTC(Content &cnt, int size_KB, const char *addr)
 class ConnectionThread : public Thread {
 
 public:
-    ConnectionThread(TestConnectionMT *con, Channel *chn) :
+    ConnectionThread(TestConnectionMT *con, Channel *chn, Content *cnt) :
         m_connection(con),
-        m_channel(chn)
+        m_channel(chn),
+        m_content(cnt)
     {}
 
     void InternalThreadEntry() {
         m_channel->Open(m_connection->GetTreeName().c_str());
 
-        if( Content * cnt = m_channel->GetContent() )
-        while (  cnt->GetSize() > 0 )
+        if( m_content )
+        while (  m_content->GetSize() > 0 )
         {
             Content::Element el;
-            cnt->GetNextElement(m_channel->Size(), el);
+            m_content->GetNextElement(m_channel->Size(), el);
             m_channel->PutSegment(el);
         }
 
@@ -163,9 +162,9 @@ public:
     }
 
 private:
-
     TestConnectionMT * m_connection;
-    Channel * m_channel;
+    Channel *m_channel;
+    Content *m_content;
 };
 
 
@@ -176,10 +175,10 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void TestConnectionMT::AddChannel(Channel *ch)
+void TestConnectionMT::AddChannel(Content &cnt, Channel *ch)
 {
-    this->m_threads.push_back(new ConnectionThread(this,ch));
-    this->m_tree->addNode(ch->GetContent()->GetName().c_str(),(char *)"SIGNAL"); // FIX
+    this->m_threads.push_back(new ConnectionThread(this,ch,&cnt));
+    this->m_tree->addNode(cnt.GetName().c_str(),(char *)"SIGNAL"); // FIX
     m_tree->write();
 }
 
