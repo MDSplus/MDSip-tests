@@ -11,6 +11,11 @@
 using namespace MDSplus;
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  Generator Functions  ///////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
 static double box_muller(double x)
 {
     (void)x;
@@ -42,6 +47,7 @@ static double box_muller(double x)
     return( mean + y1 * sigma );
 }
 
+
 static double noise_white(double x) {
     (void)x;
     return (double)rand() / RAND_MAX;
@@ -50,24 +56,30 @@ static double noise_white(double x) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//  ContentSine  ///////////////////////////////////////////////////////////////
+//  Time Function Generated Content  ///////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
-ContentFunction::ContentFunction(const char *name) :
+ContentFunction::ContentFunction(const char *name, size_t size_MB) :
     Content(name),
-    m_subtree(NULL),
+    m_size(1024*size_MB),
     m_sample_time(1E-3),
-    m_current_time(0),
-    m_func(NULL)
+    m_current_sample(0),
+    m_func(NULL),
+    m_subtree(NULL)
 {
     this->SetGenFunction(Sine);
 }
 
 ContentFunction::~ContentFunction()
 {    
-    m_mutex.lock(); // BUG? mutex must be locked prior to be destroyed.
     if(m_subtree) delete m_subtree;
+}
+
+size_t ContentFunction::GetSize() const
+{
+    MDS_LOCK_SCOPE(*this);
+    return m_size;
 }
 
 void ContentFunction::SetGenFunction(const ContentFunction::FunctionEnum funt)
@@ -86,34 +98,46 @@ void ContentFunction::SetGenFunction(const ContentFunction::FunctionEnum funt)
     }
 }
 
+void ContentFunction::SetGenFunction(ContentFunction::GenFunction func)
+{
+    m_func = func;
+}
 
 
-Content::Element ContentFunction::GetNextElement(size_t size_KB)
+
+bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
 {    
-    float current_time;
-    float end_time;
-    Element el;
-    size_t size = GetKByteSizeIn<float>(size_KB); // number of samples //
+    size_t current_sample;
+    size_t size; // number of samples //
+    float start_time;
+    float end_time;    
 
     {
-        AutoLock al(m_mutex); (void)al;
-        current_time = m_current_time;
-        end_time = current_time + m_sample_time * (size-1);
-        m_current_time = end_time + m_sample_time;
-    } // atomic
+        MDS_LOCK_SCOPE(*this);
+        if(m_size > 0) {
+            size_KB = std::min(m_size, size_KB);
+            m_size -= size_KB;
+            size = GetKByteSizeIn<float>(size_KB);
+        }
+        else
+            return false;
+        current_sample = m_current_sample;
+        m_current_sample += size;
+    }
+
+    start_time = current_sample * m_sample_time;
+    end_time = (current_sample + size - 1) * m_sample_time;
 
     std::vector<float> data(size);
-
-    for(unsigned int i=0; i<size; ++i) {
-        data[i] = m_func(current_time + m_sample_time * i);
+    for(unsigned int i=0; i<size; ++i) {        
+        data[i] = m_func(m_sample_time * current_sample++);
     }
 
     // fill element //
     el.path = m_name;
     el.data = new Float32Array(&data.front(),size);
-    el.dim  = new Range(new Float32(current_time), new Float32(end_time), new Float32(m_sample_time));
-
-    return el;
+    el.dim  = new Range(new Float32(start_time), new Float32(end_time), new Float32(m_sample_time));
+    return true;
 }
 
 

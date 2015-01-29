@@ -1,5 +1,7 @@
-#include "TestConnection.h"
 #include <mdsobjects.h>
+
+#include "TestConnection.h"
+#include "Threads.h"
 
 using namespace MDSplus;
 
@@ -12,7 +14,7 @@ using namespace MDSplus;
 void TestConnection::StartConnection()
 {
     static int pulse = 1;
-    size_t connection_size = m_connection_size;
+    //size_t connection_size = m_connection_size;
 
     // create pulse //
     m_tree = TreeUtils::OpenTree(m_target_name.c_str(),-1);
@@ -22,63 +24,13 @@ void TestConnection::StartConnection()
     // open pulse //
     m_tree = TreeUtils::OpenTree(m_target_name.c_str(),pulse);
 
-    struct timeval startTime, endTime;
-    gettimeofday(&startTime, NULL);
-
-    int seg_id = 0;
-    while(connection_size > 0) {
-        int size = std::min(connection_size, m_segment_size);
-        connection_size -= size;
-
-        Content * cnt = m_contents.at( seg_id++ % m_contents.size() );
-        Content::Element el = cnt->GetNextElement(size);
-        mds::TreeNode *node = m_tree->getNode(el.path.c_str());
-        node->makeSegment(el.dim->getBegin(), el.dim->getEnding(), el.dim, el.data);
-    }
-
-    gettimeofday(&endTime, NULL);
-    double timeSec = endTime.tv_sec - startTime.tv_sec +
-            (endTime.tv_usec - startTime.tv_usec)*1E-6;
-
-    std::cout << "elapsed time: " << timeSec << "\n";
-
     if(m_tree) delete m_tree;
     pulse++;
 }
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// THREAD BASE  ////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
-
-
-class Thread
-{
-public:
-   Thread() {}
-   virtual ~Thread() {}
-
-   bool StartThread() {
-      return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
-   }
-
-   void WaitForThreadToExit() {
-      (void) pthread_join(_thread, NULL);
-   }
-
-protected:
-   virtual void InternalThreadEntry() = 0;
-
-private:
-   static void * InternalThreadEntryFunc(void * This) {
-       ((Thread *)This)->InternalThreadEntry();
-       return NULL;
-   }
-
-   pthread_t _thread;
-};
 
 
 
@@ -89,9 +41,10 @@ private:
 
 class ChannelDC : public Channel {
 public:
-    ChannelDC(int size) :
-        m_tree(NULL),
-        m_size(size)
+    ChannelDC(Content *cnt, int size) :
+        Channel(cnt),
+        m_size(size),
+        m_tree(NULL)
     {}
 
     ~ChannelDC() { Close(); }
@@ -106,10 +59,7 @@ public:
         m_tree = NULL;
     }
 
-    void PutSegment(Content *cnt) /*const*/ {
-        Content::Element el;
-        el = cnt->GetNextElement(m_size);
-        //        std::cout << "D" << std::flush;
+    void PutSegment(Content::Element &el) /*const*/ {
         TreeNode *node = m_tree->getNode(el.path.c_str());
         node->makeSegment(el.dim->getBegin(), el.dim->getEnding(), el.dim, el.data);
     }
@@ -117,15 +67,16 @@ public:
     size_t Size() const { return m_size; }
 
 private:
-    Tree  *m_tree;
     size_t m_size;
+    Tree  *m_tree;
 };
 
 
 
 class ChannelTC : public Channel {
 public:
-    ChannelTC(int size, const char *addr) :
+    ChannelTC(Content *cnt, int size, const char *addr) :
+        Channel(cnt),
         m_cnx((char *)addr),
         m_addr(addr),
         m_size(size)
@@ -143,10 +94,7 @@ public:
         m_cnx.closeAllTrees();
     }
 
-    void PutSegment(Content *cnt) /*const*/ {
-        Content::Element el;
-        el = cnt->GetNextElement(m_size);
-        //        std::cout << "T" << std::flush;
+    void PutSegment(Content::Element &el) /*const*/ {
 
         Data * args[6];
         args[0] = new String(el.path.c_str());
@@ -159,26 +107,29 @@ public:
         // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
         m_cnx.get("MakeSegment($1,$2,$3,$4,$5,,$6)",args,6);
 
+        deleteData(args[0]);
+        deleteData(args[5]);
+
     }
 
     size_t Size() const { return m_size; }
 
 private:
-    Connection m_cnx;
+    mds::Connection m_cnx;
     std::string m_tree_name;
     std::string m_addr;
     size_t m_size;
 };
 
 
-Channel *Channel::NewDC(int size_KB)
+Channel *Channel::NewDC(Content &cnt, int size_KB)
 {
-    return new ChannelDC(size_KB);
+    return new ChannelDC(&cnt, size_KB);
 }
 
-Channel *Channel::NewTC(int size_KB, const char *addr)
+Channel *Channel::NewTC(Content &cnt, int size_KB, const char *addr)
 {
-    return new ChannelTC(size_KB,addr);
+    return new ChannelTC(&cnt, size_KB,addr);
 }
 
 
@@ -186,13 +137,13 @@ Channel *Channel::NewTC(int size_KB, const char *addr)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// THREAD CHANNEL //////////////////////////////////////////////////////////////
+// CONNECTION THREAD  //////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class ChannelThread : public Thread {
+class ConnectionThread : public Thread {
 
 public:
-    ChannelThread(ConnectionMT *con, Channel *chn) :
+    ConnectionThread(TestConnectionMT *con, Channel *chn) :
         m_connection(con),
         m_channel(chn)
     {}
@@ -200,17 +151,20 @@ public:
     void InternalThreadEntry() {
         m_channel->Open(m_connection->GetTreeName().c_str());
 
-        while ( Content * cnt = m_connection->RequestChannel(m_channel->Size()) )
+        if( Content * cnt = m_channel->GetContent() )
+        while (  cnt->GetSize() > 0 )
         {
-            m_channel->PutSegment(cnt);
-            m_connection->ReleaseChannel(cnt);
+            Content::Element el;
+            cnt->GetNextElement(m_channel->Size(), el);
+            m_channel->PutSegment(el);
         }
 
         m_channel->Close();
     }
 
 private:
-    ConnectionMT * m_connection;
+
+    TestConnectionMT * m_connection;
     Channel * m_channel;
 };
 
@@ -218,28 +172,28 @@ private:
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// CONNECTION MULTI THREADED ///////////////////////////////////////////////////
+// MULTITHREADED CONNECTION  ///////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void ConnectionMT::AddChannel(Channel *ch)
+void TestConnectionMT::AddChannel(Channel *ch)
 {
-    this->m_threads.push_back(new ChannelThread(this,ch));
-    this->m_content_lock.push_back(0);
+    this->m_threads.push_back(new ConnectionThread(this,ch));
+    this->m_tree->addNode(ch->GetContent()->GetName().c_str(),(char *)"SIGNAL"); // FIX
+    m_tree->write();
 }
 
 
-void ConnectionMT::ClearChannels()
+void TestConnectionMT::ClearChannels()
 {
     for(size_t i=0; i<m_threads.size(); ++i) {
         delete m_threads[i];
     }
     m_threads.clear();
-    m_content_lock.clear();
 }
 
 
-void ConnectionMT::StartConnection()
+void TestConnectionMT::StartConnection()
 {
     static int pulse = 1;
 
@@ -253,7 +207,6 @@ void ConnectionMT::StartConnection()
     m_tree->setCurrent(m_target_name.c_str(),pulse);
     delete m_tree;
 
-    m_size_consumed = m_connection_size;
 
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
@@ -274,35 +227,6 @@ void ConnectionMT::StartConnection()
 
     std::cout << "elapsed time: " << timeSec << "\n";
 }
-
-
-Content* ConnectionMT::RequestChannel(unsigned int size)
-{
-    Content * cnt = NULL;
-    int seg_size = 0;
-    {
-        AutoLock al(mutex); (void)al;
-        seg_size = std::min(m_size_consumed, size);
-        m_size_consumed -= seg_size;
-        if(seg_size <= 0) return NULL;
-
-        int seg_id;
-        do seg_id = rand() % m_contents.size();
-        while(m_content_lock[seg_id] == 1);
-        cnt = m_contents.at( seg_id );
-        m_content_lock[seg_id] = 1;
-    } // atomic
-    return cnt;
-}
-
-void ConnectionMT::ReleaseChannel(Content *cnt)
-{
-    for (unsigned int i=0; i<m_contents.size(); ++i) {
-        if(m_contents[i] == cnt)
-            m_content_lock[i] = 0;
-    }
-}
-
 
 
 

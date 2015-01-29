@@ -15,42 +15,22 @@ class TestConnection {
 public:
 
     TestConnection( std::string name ) :
-        m_target_name(name),
-        m_connection_size(100),
-        m_segment_size(100)
+        m_target_name(name)
     {
         m_tree = TreeUtils::CreateTree(m_target_name.c_str());
         m_tree->write();
     }
 
-    void AddContent(Content *content) {
-        m_tree->edit();
-        m_contents.push_back(content);
-        m_tree->addNode(content->GetName().c_str(),(char *)"SIGNAL");
-        m_tree->write();
-    }
-
     virtual void StartConnection();
 
-    virtual void SetSegmentSize(unsigned int size) { m_segment_size = size; }
+    mds::Tree * GetTree() const { return m_tree; }
 
-    const size_t & SegmentSize() const { return m_segment_size; }
-
-    virtual void SetConnectionSize(unsigned int size) { m_connection_size = size*1024; }
-
-    const size_t & ConnectionSize() const { return m_connection_size; }
-
-    virtual std::string GetTreeName() { return m_target_name; }
+    std::string GetTreeName() { return m_target_name; }
 
 protected:
 
     mds::Tree * m_tree;
     std::string m_target_name;
-
-    std::vector<Content *> m_contents;
-
-    size_t m_connection_size; // in KB
-    size_t m_segment_size;
 };
 
 
@@ -59,24 +39,31 @@ protected:
 //  Channel  ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class Channel
-{
+class Channel {
+
 public:
-    static Channel * NewDC(int size_KB);
-    static Channel * NewTC(int size_KB, const char *addr = "localhost");
+    Channel() : m_content(NULL) {}
+    Channel(Content *cnt) : m_content(cnt) {}
+
+    static Channel * NewDC(Content &cnt, int size_KB);
+    static Channel * NewTC(Content &cnt, int size_KB, const char *addr = "localhost");
 
     virtual void Open(const char *tree) = 0;
     virtual void Close() = 0;
-    virtual void PutSegment(Content *cnt) /*const*/ = 0;
+
+    virtual void SetContent(Content *cnt) { m_content = cnt; }
+    virtual Content * GetContent() const { return m_content; }
     virtual size_t Size() const = 0;
+
+    virtual void PutSegment(Content::Element &el) /*const*/ = 0;
+protected:
+    virtual ~Channel() {}
+
+    Content *m_content;
 };
 
 
-////////////////////////////////////////////////////////////////////////////////
-//  Thread  ////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
-class Thread; // fwd //
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -84,20 +71,20 @@ class Thread; // fwd //
 ////////////////////////////////////////////////////////////////////////////////
 
 
+class Thread; // fwd //
 
-class ConnectionMT : public TestConnection {
+class TestConnectionMT : public TestConnection, Lockable {
 
     friend class ChannelThread;
 
 public:
 
-    ConnectionMT(std::string name) :
+    TestConnectionMT(std::string name) :
         TestConnection(name)
     {}
 
-    ~ConnectionMT()
+    ~TestConnectionMT()
     {
-        mutex.lock(); // bug di Mutex
         ClearChannels();
     }
 
@@ -108,19 +95,8 @@ public:
 
     void StartConnection();
 
-    mds::Tree * GetTree() const { return m_tree; }
-
 private:
-
-    Content * RequestChannel(unsigned int size);
-
-    void ReleaseChannel(Content *cnt);
-
-private:
-    mds::Mutex mutex;
     std::vector<Thread *> m_threads;
-    std::vector<bool> m_content_lock; // fix with something smarter //
-    unsigned int m_size_consumed;
 };
 
 

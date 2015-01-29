@@ -132,33 +132,24 @@ void read_segment()  {
 int main(int argc, char *argv[])
 {
 
-    ContentFunction cs1("test_c1");
+    ContentFunction cs1("test_c1",10);
     cs1.SetGenFunction(ContentFunction::NoiseW);
 
-    ContentFunction cs2("test_c2");
+    ContentFunction cs2("test_c2",10);
     cs2.SetGenFunction(ContentFunction::NoiseG);
 
-    ContentFunction cs3("test_c3");
-    ContentFunction cs4("test_c4");
+    ContentFunction cs3("test_c3",10);
+    ContentFunction cs4("test_c4",10);
 
-    ConnectionMT dc("test_tree");
-    dc.SetConnectionSize(500); // 100MB;
 
-    dc.AddContent(&cs1);
-    dc.AddContent(&cs2);
-    dc.AddContent(&cs3);
-    dc.AddContent(&cs4);
 
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
-    dc.AddChannel( Channel::NewDC(100) );
+    TestConnectionMT dc("test_tree");
+    dc.AddChannel( Channel::NewDC(cs1, 100) );
+    dc.AddChannel( Channel::NewDC(cs2, 100) );
+//    dc.AddChannel( Channel::NewDC(cs3, 100) );
+//    dc.AddChannel( Channel::NewDC(cs4, 100) );
 
-//    dc.AddChannel( Channel::NewTC(10,"localhost:8000") );
+    dc.AddChannel( Channel::NewTC(cs3,10,"localhost:8000") );
 //    dc.AddChannel( Channel::NewTC(20,"localhost:8000") );
 //    dc.AddChannel( Channel::NewTC(50,"localhost:8000") );
 

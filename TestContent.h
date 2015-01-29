@@ -3,6 +3,8 @@
 
 #include <mdsobjects.h>
 
+#include "Threads.h"
+
 namespace mds = MDSplus;
 
 
@@ -15,27 +17,35 @@ namespace mds = MDSplus;
 class Content {
 public:
 
-    Content(const char *name) : m_name(name) {}
+    Content(const char *name) :
+        m_name(name)
+    {}
 
     struct Element {
+        Element() :
+            data(NULL), dim(NULL) {}
+        ~Element() {
+            if(data) delete data;
+            if(dim)  delete dim;
+        }
+
         std::string         path;
         mds::Float32Array  *data;
         mds::Range         *dim;
     };
 
-
     virtual std::string GetName() const { return m_name; }
 
-    virtual Element GetNextElement(size_t size_KB) = 0;
+    virtual size_t GetSize() const = 0;
+
+    virtual bool GetNextElement(size_t size_KB, Element &el) = 0;
 
     template <typename T>
     static size_t GetKByteSizeIn(size_t KB) { return KB*1024/sizeof(T); }
 
-
-
 protected:
     virtual ~Content() {}
-    std::string m_name;
+    std::string m_name;    
 };
 
 
@@ -55,14 +65,16 @@ operator << (std::ostream &o, Content::Element &el) {
 ////////////////////////////////////////////////////////////////////////////////
 
 
-class ContentFunction : public Content {
+class ContentFunction : public Content, Lockable {
 
     typedef double(*GenFunction)(double);
 
 public:    
-    ContentFunction(const char *name);
+    ContentFunction(const char *name, size_t size_MB = 0);
 
     ~ContentFunction();
+
+    size_t GetSize() const;
 
     enum FunctionEnum {
         Sine,
@@ -71,16 +83,22 @@ public:
     };
     void SetGenFunction(const enum FunctionEnum funt);
 
-    virtual Element GetNextElement(size_t size_KB);
+    void SetGenFunction(GenFunction func);
+
+    virtual bool GetNextElement(size_t size_KB, Element &el);
 
     void SetSampleTime(float time) { m_sample_time = time; }    
 
-private:   
-    mds::Mutex m_mutex;
-    mds::Tree *m_subtree;
-    float m_sample_time;
-    float m_current_time;
+private:
+    //    mds::Mutex & mutex() const { return *m_mutex; }
+
+    size_t m_size;
+    float  m_sample_time; // seconds
+    size_t m_current_sample;
     GenFunction m_func;
+
+    //    mds::Mutex *m_mutex;
+    mds::Tree  *m_subtree;
 };
 
 
