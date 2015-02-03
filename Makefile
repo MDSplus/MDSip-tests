@@ -1,5 +1,5 @@
 
-MDSPLUS_DIR=/usr/local/mdsplus
+MDSPLUS_DIR=${MDS_PATH}/..
 
 OPT=-O0 -g
 
