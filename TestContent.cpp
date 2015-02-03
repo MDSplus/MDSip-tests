@@ -99,6 +99,12 @@ bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
     return true;
 }
 
+void ContentFunction::ResetSize(size_t size_MB)
+{
+    MDS_LOCK_SCOPE(*this);
+    this->m_size = 1024*size_MB;
+}
+
 
 
 

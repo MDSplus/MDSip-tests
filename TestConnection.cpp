@@ -13,34 +13,32 @@ using namespace MDSplus;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void TestConnection::StartConnection()
+double TestConnection::StartConnection()
 {
     static int pulse = 1;
 
     // create pulse //
-    m_tree = TreeUtils::OpenTree(m_target_name.c_str(),-1);
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
     m_tree->createPulse(pulse);
     delete m_tree;
 
     // open pulse //
-    m_tree = TreeUtils::OpenTree(m_target_name.c_str(),pulse);
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
 
     if(m_tree) delete m_tree;
     pulse++;
+
+    return 0;
 }
 
 void TestConnection::PrintChannelTimes(std::ostream &o)
 {
     static const char c = ';';
-    //        for(unsigned int i=0; i<m_channels.size(); ++i) {
-    //            Channel *ch = m_channels[i];
-    //            o << m_chtimes.at(ch);
-    //        }
 
     if(!this->m_channels.size()) return;
     Channel *first_ch = m_channels[0];
     TimeHistogram &h0 = m_chtimes[first_ch];
-    size_t nbins = h0.Size();
+    size_t nbins = h0.BinSize();
 
     o << "time [s]";
     for (unsigned int i=0; i< m_channels.size(); ++i)
@@ -225,7 +223,7 @@ private:
 void TestConnectionMT::AddChannel(Content &cnt, Channel *ch)
 {
     BaseClass::AddChannel(cnt,ch);
-    this->m_threads.push_back(new ConnectionThread(this,ch,&cnt));
+    this->m_threads.push_back(new ConnectionThread(this,ch,&cnt));    
     this->m_tree->addNode(cnt.GetName().c_str(),(char *)"SIGNAL"); // FIX
     m_tree->write();
 }
@@ -240,18 +238,18 @@ void TestConnectionMT::ClearChannels()
 }
 
 
-void TestConnectionMT::StartConnection()
+double TestConnectionMT::StartConnection()
 {
     static int pulse = 1;
 
     // create pulse //
-    m_tree = TreeUtils::OpenTree(m_target_name.c_str(),-1);
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
     m_tree->createPulse(pulse);
     delete m_tree;
 
     // open pulse //
-    m_tree = TreeUtils::OpenTree(m_target_name.c_str(),pulse);
-    m_tree->setCurrent(m_target_name.c_str(),pulse);
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
+    m_tree->setCurrent(m_tname.name.c_str(),pulse);
     delete m_tree;
 
 
@@ -270,6 +268,9 @@ void TestConnectionMT::StartConnection()
 
     double timeSec = time.StopWatch();
     std::cout << "Total connection time: " << timeSec << "\n";
+
+    pulse++;
+    return timeSec;
 }
 
 

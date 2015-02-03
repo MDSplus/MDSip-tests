@@ -56,4 +56,10 @@ void FileUtils::SetEnv(const char *name, const char *value)
     setenv(name,value,true);
 }
 
+void FileUtils::UnsetEnv(const char *name)
+{
+    char *env = getenv(name);
+    if( env ) unsetenv(env);
+}
+
 

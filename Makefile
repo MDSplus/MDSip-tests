@@ -18,7 +18,7 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 all: main
 
-main: ${OBJECTS} main.cpp
+main: ${OBJECTS} main.o
 	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
 
 PerfTestProcMultipleTrees: PerfTestProcMultipleTrees.cpp

@@ -19,12 +19,12 @@ struct CommaInitializer
     {
         this->index = 0;
         container->resize(1);
-        this->container->operator[](0) = s;
+        this->container->operator()(0) = s;
     }
     inline CommaInitializer & operator, (ContentT s) {
         this->index++;
         container->resize(index + 1);
-        this->container->operator[](this->index) = s;
+        this->container->operator()(this->index) = s;
         return *this;
     }
 

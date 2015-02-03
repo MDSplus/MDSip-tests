@@ -47,23 +47,23 @@ public:
 
     typedef Histogram<double> TimeHistogram;
 
-    TestConnection( std::string name ) :
-        m_target_name(name)
+    TestConnection( std::string connection_string )
     {
-        m_tree = TreeUtils::CreateTree(m_target_name.c_str());
+        m_tname = TestTree::GetTreeName(connection_string);
+        m_tree = TestTree::CreateTree(m_tname.name.c_str());
         m_tree->write();
     }
 
-    virtual void StartConnection();
+    virtual double StartConnection();
 
     virtual void AddChannel(Content &cnt, Channel *ch) {
         m_channels.push_back(ch);
-        m_chtimes[ch] =  TimeHistogram(cnt.GetName().c_str(),50,0,0.002);
+        m_chtimes[ch] =  TimeHistogram(cnt.GetName().c_str(),50,0,0.0012);
     }
 
     mds::Tree * GetTree() const { return m_tree; }
 
-    std::string GetTreeName() { return m_target_name; }
+    std::string GetTreeName() { return m_tname.name; }
 
     TimeHistogram & GetChannelTimes(Channel *ch) { return m_chtimes[ch]; }
 
@@ -73,7 +73,7 @@ public:
 protected:
 
     mds::Tree * m_tree;
-    std::string m_target_name;
+    TestTree::TreeName m_tname;
 
     std::vector<Channel *> m_channels;
     std::map< Channel *, TimeHistogram > m_chtimes;
@@ -115,7 +115,7 @@ public:
 
     void ClearChannels();
 
-    void StartConnection();
+    double StartConnection();
 
 private:
     std::vector<Thread *> m_threads;

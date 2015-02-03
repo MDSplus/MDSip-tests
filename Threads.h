@@ -51,9 +51,11 @@ class Lockable
 public:
     Lockable() : m_mutex(new mds::Mutex) {}
     ~Lockable() {
-        // should be locked before delete ? //
+        // should be locked before delete ? //        
         delete m_mutex;
     }
+
+    Lockable(const Lockable & other) : m_mutex(other.m_mutex) {}
 
     void lock() const { m_mutex->lock(); }
     void unlock() const { m_mutex->unlock(); }

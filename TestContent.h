@@ -89,6 +89,8 @@ public:
 
     void SetSampleTime(float time) { m_sample_time = time; }    
 
+    void ResetSize(size_t size_MB);
+
 private:
     //    mds::Mutex & mutex() const { return *m_mutex; }
 
