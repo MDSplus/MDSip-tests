@@ -19,26 +19,6 @@
 using namespace MDSplus;
 
 
-// TEST HISTOGRAM //
-int _main(int argc, char *argv[])
-{
-
-    srand (time(NULL));
-
-
-    Histogram<double> h("test",20,-10,10);
-    for (int i = 0; i< 10000000; ++i) {
-        //        h << (double)rand() / RAND_MAX * 100;
-        h << box_muller(i);
-    }
-    std::cout << "Histogram\n" << h << "\n";
-    std::cout << "mean: " << h.Mean() << "   rms: " << h.Rms() << "\n";
-
-    Plot2D plot("plot");
-    plot.AddCurve(h);
-
-    return 0;
-}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,22 +26,20 @@ int _main(int argc, char *argv[])
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int segment_size_test() {
-
-    Histogram<double> time("test_segment_size",20,0,2);
+int segment_size_test(size_t size_MB, Histogram<double> &time) {
 
     TestConnectionMT conn("test_size");
-    ContentFunction cs1("sine1",1);
+    ContentFunction cs1("sine1",size_MB);
     conn.AddChannel(cs1, Channel::NewDC(100));
 
     for(int i=0; i<100; ++i) {
-        cs1.ResetSize(1);
+        cs1.ResetSize(size_MB);
         time << conn.StartConnection();
     }
 
     std::cout << time << "\n";
-    std::cout << "Mean: " << time.Mean() << "  Rms: " << time.Rms() << "\n";
-
+    std::cout << "time [s]     | Mean: " << time.Mean() << "  Rms: " << time.Rms() << "\n";
+    std::cout << "speed [MB/s] | Mean: " << size_MB/time.Mean() << "  Rms: " << size_MB/time.Rms() << "\n";
 
     return 0;
 }
@@ -73,6 +51,26 @@ int segment_size_test() {
 
 int main(int argc, char *argv[])
 {
+
+
+
+    Histogram<double> time("test_segment_size",20,0,5);
+    segment_size_test(1,time);
+
+
+
+    return 0;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  Examples  //////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+void _examples() {
 
     ContentFunction cs1("test_c1",2);
     ContentFunction cs2("test_c2",2);
@@ -100,13 +98,5 @@ int main(int argc, char *argv[])
     //    dc.PrintChannelTimes(file);
     //    file.close();
 
-
-    segment_size_test();
-
-    return 0;
 }
-
-
-
-
 
