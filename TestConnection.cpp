@@ -133,11 +133,14 @@ public:
         args[0] = new String(el.path.c_str());
         args[1] = el.dim->getBegin();
         args[2] = el.dim->getEnding();
-        args[3] = el.dim->data();
+//        args[3] = el.dim->data();
+        args[3] = el.dim->getDeltaVal();
         args[4] = el.data;
         args[5] = new Int32(el.data->getSize());
 
         // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
+        //        m_cnx.get("MakeSegment($1,$2,$3,$4,$5,,$6)",args,6);
+        // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
         m_cnx.get("MakeSegment($1,$2,$3,$4,$5,,$6)",args,6);
 
         deleteData(args[0]);
