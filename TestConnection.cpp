@@ -120,7 +120,7 @@ public:
     }
 
     void Open(const char *tree) {
-        m_cnx.openTree((char*)tree, 1); // not use 0 cos a race in mdsplus default id
+        m_cnx.openTree((char*)tree, 0); // not use 0 cos a race in mdsplus default id
     }
 
     void Close() {
