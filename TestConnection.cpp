@@ -139,9 +139,9 @@ public:
         args[5] = new Int32(el.data->getSize());
 
         // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-        //        m_cnx.get("MakeSegment($1,$2,$3,$4,$5,,$6)",args,6);
+        m_cnx.get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
         // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
-        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
+        //        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
 
         deleteData(args[0]);
         deleteData(args[5]);
