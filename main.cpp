@@ -26,20 +26,20 @@ using namespace MDSplus;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int segment_size_test(size_t size_MB, Histogram<double> &time) {
+int segment_size_test(size_t size_KB, Histogram<double> &time) {
 
     TestConnectionMT conn("test_size");
-    ContentFunction cs1("sine1",size_MB);
-    conn.AddChannel(cs1, Channel::NewDC(100));
+    ContentFunction cs1("sine1",1024);
+    conn.AddChannel(cs1, Channel::NewDC(size_KB));
 
     for(int i=0; i<100; ++i) {
-        cs1.ResetSize(size_MB);
+        cs1.ResetSize(1024);
         time << conn.StartConnection();
     }
 
-    std::cout << time << "\n";
+    //    std::cout << time << "\n";
     std::cout << "time [s]     | Mean: " << time.Mean() << "  Rms: " << time.Rms() << "\n";
-    std::cout << "speed [MB/s] | Mean: " << size_MB/time.Mean() << "  Rms: " << size_MB/time.Rms() << "\n";
+    std::cout << "speed [MB/s] | Mean: " << size_KB/time.Mean() << "\n";
 
     return 0;
 }
@@ -53,11 +53,29 @@ int main(int argc, char *argv[])
 {
 
 
+    Curve2D speed("speed_vs_segment_size");
+    Curve2D speed_error("speed_vs_segment_size_error");
 
-    Histogram<double> time("test_segment_size",20,0,5);
-    segment_size_test(1,time);
+    for(int i = 32; i < 1024; i += 32 )
+    {
+        Histogram<double> time("test_segment_size",20,0,0.5);
+        segment_size_test(i,time);
+        Point2D<double> pt;
+        pt << i,time.Mean();
+        speed.AddPoint(pt);
+        pt << i,time.Rms();
+        speed_error.AddPoint(pt);
+    }
 
 
+    std::ofstream file;
+    file.open("test_segment_size.csv");
+    file << speed << "\n";
+    file.close();
+
+    file.open("test_segment_size_error.csv");
+    file << speed_error << "\n";
+    file.close();
 
     return 0;
 }

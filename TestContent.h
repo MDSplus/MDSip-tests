@@ -70,7 +70,7 @@ class ContentFunction : public Content, Lockable {
     typedef double(*GenFunction)(double);
 
 public:    
-    ContentFunction(const char *name, size_t size_MB = 0);
+    ContentFunction(const char *name, size_t size_KB = 0);
 
     ~ContentFunction();
 
@@ -89,7 +89,7 @@ public:
 
     void SetSampleTime(float time) { m_sample_time = time; }    
 
-    void ResetSize(size_t size_MB);
+    void ResetSize(size_t size_KB);
 
 private:
     //    mds::Mutex & mutex() const { return *m_mutex; }

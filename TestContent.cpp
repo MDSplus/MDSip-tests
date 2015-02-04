@@ -18,9 +18,9 @@ using namespace MDSplus;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-ContentFunction::ContentFunction(const char *name, size_t size_MB) :
+ContentFunction::ContentFunction(const char *name, size_t size_KB) :
     Content(name),
-    m_size(1024*size_MB),
+    m_size(size_KB),
     m_sample_time(1E-3),
     m_current_sample(0),
     m_func(NULL),
@@ -99,10 +99,10 @@ bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
     return true;
 }
 
-void ContentFunction::ResetSize(size_t size_MB)
+void ContentFunction::ResetSize(size_t size_KB)
 {
     MDS_LOCK_SCOPE(*this);
-    this->m_size = 1024*size_MB;
+    this->m_size = size_KB;
 }
 
 

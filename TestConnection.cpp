@@ -267,7 +267,7 @@ double TestConnectionMT::StartConnection()
     }
 
     double timeSec = time.StopWatch();
-    std::cout << "Total connection time: " << timeSec << "\n";
+    //std::cout << "Total connection time: " << timeSec << "\n";
 
     pulse++;
     return timeSec;
