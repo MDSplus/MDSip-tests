@@ -26,7 +26,7 @@ using namespace MDSplus;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int segment_size_test(size_t size_KB, Histogram<double> &time) {
+int segment_size_test(size_t size_KB, Histogram<double> &speed) {
 
     TestConnectionMT conn("test_size");
     ContentFunction cs1("sine1",1024);
@@ -34,12 +34,12 @@ int segment_size_test(size_t size_KB, Histogram<double> &time) {
 
     for(int i=0; i<100; ++i) {
         cs1.ResetSize(1024);
-        time << conn.StartConnection();
+        speed << 1/conn.StartConnection();
     }
 
-    //    std::cout << time << "\n";
-    std::cout << "time [s]     | Mean: " << time.Mean() << "  Rms: " << time.Rms() << "\n";
-    std::cout << "speed [MB/s] | Mean: " << size_KB/time.Mean() << "\n";
+    std::cout
+            << "--- segment " << size_KB << " [KB] \n"
+            << "speed [MB/s] | Mean: " << speed.Mean() << " Rms: " << speed.Rms() <<  "\n";
 
     return 0;
 }
@@ -58,12 +58,12 @@ int main(int argc, char *argv[])
 
     for(int i = 32; i < 1024; i += 32 )
     {
-        Histogram<double> time("test_segment_size",20,0,0.5);
-        segment_size_test(i,time);
+        Histogram<double> sph("test_segment_size",20,0,0.5);
+        segment_size_test(i,sph);
         Point2D<double> pt;
-        pt << i,time.Mean();
+        pt << i,sph.Mean();
         speed.AddPoint(pt);
-        pt << i,time.Rms();
+        pt << i,sph.Rms();
         speed_error.AddPoint(pt);
     }
 
