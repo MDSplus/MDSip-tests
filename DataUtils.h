@@ -325,7 +325,7 @@ private:
 
     int get_bin(const T data) const {
         T bin_size = get_spacing();
-        return floor( (data-m_limits.first) /bin_size);
+        return (int)floor( (data-m_limits.first) /bin_size);
     }
 
     T get_pos(const int bin) const {
