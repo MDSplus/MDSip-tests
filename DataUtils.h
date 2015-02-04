@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <utility>
 #include <vector>
+#include <algorithm>
 
 #include "ClassUtils.h"
 #include "Threads.h"
@@ -216,6 +217,7 @@ public:
             ++m_bins.at( bin );
             m_stat << data;
         }
+        m_stat_all << data;
     }
 
     inline size_t CollectedSize() const { return m_stat.size(); }
@@ -230,9 +232,35 @@ public:
 
     double Mean() const { return m_stat.mean(); }
 
+    double MeanAll() const { return m_stat_all.mean(); }
+
     double Variance() const { return m_stat.variance(); }
 
+    double VarianceAll() const { return m_stat_all.variance(); }
+
     double Rms() const { return m_stat.rms(); }
+
+    double RmsAll() const { return m_stat_all.rms(); }
+
+    double GetSum() const {
+        double val = 0;
+        for(size_t i=0; i<this->BinSize(); ++i)
+            val += m_bins[i];
+        return val;
+    }
+
+    double GetMax() const {
+        return *std::max_element(m_bins.begin(), m_bins.end());
+    }
+
+    //    Histogram Norm() const {
+    //        Histogram nh = *this;
+    //        double sum = this->GetSum();
+    //        if(sum > 0)
+    //            for(size_t i=0; i<nh.BinSize(); ++i)
+    //                nh.m_bins[i] /= sum;
+    //        return nh;
+    //    }
 
     void PrintSelf(std::ostream &o, const char _c = ';') const {
         o << "Histogram" << _c << this->m_value_name << "\n";
@@ -240,6 +268,18 @@ public:
             o << this->get_pos(i) << _c << this->m_bins[i] << "\n";
     }
 
+    void PrintSelfInline(std::ostream &o) const {
+        static const char *lut = "_,.-'\""; // 6 levels histogram //
+        double max = this->GetMax();
+        o << "histogram: [" << this->BinSize() << "," << m_limits.first << "," << m_limits.second << "]";
+        o << "  " << m_underf << " [";
+        for(size_t i=0; i<this->BinSize(); ++i) {
+            double val = m_bins[i];
+            unsigned int lid = floor(val/max * 6);
+            o << lut[lid];
+        }
+        o << "] " << m_overf << " ";
+    }
 
     /// Convert to a Curve object
     operator Curve2D () {
@@ -263,7 +303,8 @@ public:
     /// Print to ostreem
     friend std::ostream &
     operator << (std::ostream &o, const Histogram<T> &_this) {
-        _this.PrintSelf(o);
+        //        _this.PrintSelf(o);
+        _this.PrintSelfInline(o);
         return o;
     }
 
@@ -297,6 +338,7 @@ private:
     std::pair<T,T> m_limits;
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
+    StatUtils::IncrementalOrder2 m_stat_all;
 };
 
 

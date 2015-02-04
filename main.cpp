@@ -32,14 +32,18 @@ int segment_size_test(size_t size_KB, Histogram<double> &speed) {
     ContentFunction cs1("sine1",1024);
     conn.AddChannel(cs1, Channel::NewDC(size_KB));
 
+    std::cout << "[";
     for(int i=0; i<100; ++i) {
+        std::cout << "." << std::flush;
         cs1.ResetSize(1024);
-        speed << 1/conn.StartConnection();
+        speed << (double)1./conn.StartConnection();
     }
+    std::cout << "]\n";
 
-    std::cout
-            << "--- segment " << size_KB << " [KB] \n"
-            << "speed [MB/s] | Mean: " << speed.Mean() << " Rms: " << speed.Rms() <<  "\n";
+    std::cout << "--- segment " << size_KB << " [KB] ";
+    std::cout << "histogram: " << speed << "\n";
+
+    std::cout << "speed [MB/s] | Mean: " << speed.MeanAll() << " Rms: " << speed.RmsAll() <<  "\n\n";
 
     return 0;
 }
@@ -58,7 +62,7 @@ int main(int argc, char *argv[])
 
     for(int i = 32; i < 1024; i += 32 )
     {
-        Histogram<double> sph("test_segment_size",20,0,0.5);
+        Histogram<double> sph("test_segment_size",40,0,1);
         segment_size_test(i,sph);
         Point2D<double> pt;
         pt << i,sph.Mean();
