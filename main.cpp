@@ -41,7 +41,8 @@ int segment_size_test(size_t size_KB, Histogram<double> &speed) {
     std::cout << "]\n";
 
     std::cout << "--- segment " << size_KB << " [KB] ";
-    std::cout << "histogram: " << speed << "\n";
+
+    std::cout  << speed << "\n";
 
     std::cout << "speed [MB/s] | Mean: " << speed.MeanAll() << " Rms: " << speed.RmsAll() <<  "\n\n";
 

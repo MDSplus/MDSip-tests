@@ -249,7 +249,7 @@ public:
         return val;
     }
 
-    double GetMax() const {
+    size_t GetMax() const {
         return *std::max_element(m_bins.begin(), m_bins.end());
     }
 
@@ -269,13 +269,13 @@ public:
     }
 
     void PrintSelfInline(std::ostream &o) const {
-        static const char *lut = "_,.-'\""; // 6 levels histogram //
+        static const char *lut = "_,.-''"; // 5 levels histogram //
         double max = this->GetMax();
         o << "histogram: [" << this->BinSize() << "," << m_limits.first << "," << m_limits.second << "]";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
-            double val = m_bins[i];
-            unsigned int lid = (int)floor(val/max * 6);
+            double val = (double)m_bins[i];
+            unsigned int lid = (int)floor(val/max * 5);
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
