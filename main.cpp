@@ -30,7 +30,7 @@ int segment_size_test(size_t size_KB, Histogram<double> &speed) {
 
     TestConnectionMT conn("test_size");
     ContentFunction cs1("sine1",1024);
-    conn.AddChannel(cs1, Channel::NewDC(size_KB));
+    conn.AddChannel(cs1, Channel::NewTC(size_KB,"localhost:8000"));
 
     std::cout << "[";
     for(int i=0; i<100; ++i) {

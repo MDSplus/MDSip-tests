@@ -275,7 +275,7 @@ public:
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
-            unsigned int lid = (int)floor(val/max * 5);
+            unsigned int lid = max > 0 ? (int)floor(val/max * 5) : 0;
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
