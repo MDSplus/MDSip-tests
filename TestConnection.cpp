@@ -124,7 +124,7 @@ public:
     }
 
     void Close() {
-        m_cnx.closeAllTrees();
+        m_cnx.closeAllTrees();        
     }
 
     void PutSegment(Content::Element &el) /*const*/ {
@@ -233,11 +233,12 @@ void TestConnectionMT::AddChannel(Content &cnt, Channel *ch)
 
 
 void TestConnectionMT::ClearChannels()
-{
+{    
     for(size_t i=0; i<m_threads.size(); ++i) {
         delete m_threads[i];
     }
     m_threads.clear();
+    BaseClass::ClearChannels();
 }
 
 

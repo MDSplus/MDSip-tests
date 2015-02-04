@@ -20,6 +20,7 @@
 class Channel {
 
 public:
+    virtual ~Channel() {}
 
     static Channel * NewDC(int size_KB);
     static Channel * NewTC(int size_KB, const char *addr = "localhost");
@@ -31,8 +32,7 @@ public:
 
     virtual void PutSegment(Content::Element &el) /*const*/ = 0;
 protected:
-    virtual ~Channel() {}
-
+    Channel() {}
 };
 
 
@@ -54,11 +54,19 @@ public:
         m_tree->write();
     }
 
+    ~TestConnection() { this->ClearChannels(); }
+
     virtual double StartConnection();
 
     virtual void AddChannel(Content &cnt, Channel *ch) {
         m_channels.push_back(ch);
         m_chtimes[ch] =  TimeHistogram(cnt.GetName().c_str(),50,0,0.0012);
+    }
+
+    virtual void ClearChannels() {
+        for(unsigned int i=0; i<m_channels.size(); ++i)
+            delete m_channels[i];
+        m_channels.clear();
     }
 
     mds::Tree * GetTree() const { return m_tree; }
@@ -101,13 +109,13 @@ class TestConnectionMT : public TestConnection, Lockable {
 
 public:
 
-    TestConnectionMT(std::string name) :
+    explicit TestConnectionMT(std::string name) :
         TestConnection(name)
     {}
 
     ~TestConnectionMT()
-    {
-        ClearChannels();
+    {        
+        this->ClearChannels();
     }
 
 
