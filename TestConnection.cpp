@@ -1,3 +1,7 @@
+
+#include <unistd.h>
+#include <sys/ipc.h>
+
 #include <mdsobjects.h>
 
 #include "DataUtils.h"
@@ -29,6 +33,26 @@ double TestConnection::StartConnection()
     pulse++;
 
     return 0;
+}
+
+void TestConnection::ResetTimes()
+{
+    for(unsigned int i=0; i< m_channels.size(); ++i)
+    {
+        Channel *ch = m_channels[i];
+        m_chtimes[ch].Clear();
+    }
+}
+
+double TestConnection::GetTotalTime()/* const*/
+{
+    double time = 0;
+    for(unsigned int i=0; i< m_channels.size(); ++i)
+    {
+        Channel *ch = m_channels[i];
+        time += m_chtimes[ch].MeanAll();
+    }
+    return time;
 }
 
 void TestConnection::PrintChannelTimes(std::ostream &o)
@@ -116,7 +140,7 @@ public:
     {}
 
     ~ChannelTC() {
-        Close();
+        // Close();
     }
 
     void Open(const char *tree) {
@@ -280,4 +304,35 @@ double TestConnectionMT::StartConnection()
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  MUTIPROCESS CONNECTION  ////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
+
+
+double TestConnectionMP::StartConnection()
+{
+    for(unsigned int i = 0; i < m_pids.size(); ++i)
+    {
+        if( (m_pids[i] = fork()) == 0)
+        {
+            Timer timer;
+
+//            m_channel->Open(m_connection->GetTreeName().c_str());
+
+//            if( m_content )
+//            while (  m_content->GetSize() > 0 )
+//            {
+//                Content::Element el;
+//                m_content->GetNextElement(m_channel->Size(), el);
+//                timer.Start();
+//                m_channel->PutSegment(el);
+//                hist << timer.StopWatch();
+//            }
+
+//            m_channel->Close();
+
+            exit(0);
+        }
+    }
+}

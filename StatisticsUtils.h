@@ -67,7 +67,7 @@ private:
 
 
 
-class incremental_statistic /*: Lockable*/ {
+class incremental_statistic {
 public:
 
     incremental_statistic() :
@@ -76,7 +76,6 @@ public:
         m_M2(0) {}
 
     void add(const double data) {
-//        MDS_LOCK_SCOPE(*this);
         ++m_count;
         double delta = data - m_mean;
         m_mean += delta/m_count;

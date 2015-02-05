@@ -19,6 +19,8 @@
 
 class Channel {
 
+    typedef Histogram<double> TimeHistogram;
+
 public:
     virtual ~Channel() {}
 
@@ -47,10 +49,10 @@ public:
 
     typedef Histogram<double> TimeHistogram;
 
-    TestConnection( std::string connection_string )
+    TestConnection( const char *connection_string )
     {
-        m_tname = TestTree::GetTreeName(connection_string);
-        m_tree = TestTree::CreateTree(m_tname.name.c_str());
+        m_tname = TestTree::GetTreeName( std::string(connection_string) );
+        m_tree  = TestTree::CreateTree(m_tname.name.c_str());
         m_tree->write();
     }
 
@@ -74,6 +76,10 @@ public:
     std::string GetTreeName() { return m_tname.name; }
 
     TimeHistogram & GetChannelTimes(Channel *ch) { return m_chtimes[ch]; }
+
+    void ResetTimes();
+
+    double GetTotalTime();
 
     void PrintChannelTimes(std::ostream &o);
 
@@ -109,7 +115,7 @@ class TestConnectionMT : public TestConnection, Lockable {
 
 public:
 
-    explicit TestConnectionMT(std::string name) :
+    explicit TestConnectionMT(const char *name) :
         TestConnection(name)
     {}
 
@@ -128,6 +134,33 @@ public:
 private:
     std::vector<Thread *> m_threads;
 };
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  TestConnectionMP  //////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+class TestConnectionMP : public TestConnection
+{
+public:
+    TestConnectionMP(const char *name) : TestConnection(name) {}
+
+
+    void AddChannel(Content &cnt, Channel *ch);
+
+    void ClearChannels();
+
+    double StartConnection();
+
+private:
+    std::vector<pid_t> m_pids;
+};
+
 
 
 

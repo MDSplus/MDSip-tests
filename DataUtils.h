@@ -220,6 +220,13 @@ public:
         m_stat_all << data;
     }
 
+    void Clear() {
+        std::fill(m_bins.begin(), m_bins.end(), 0);
+        m_overf = m_underf = 0;
+        m_stat = StatUtils::IncrementalOrder2();
+        m_stat_all = StatUtils::IncrementalOrder2();
+    }
+
     inline size_t CollectedSize() const { return m_stat.size(); }
 
     inline size_t BinSize() const { return m_bins.size(); }

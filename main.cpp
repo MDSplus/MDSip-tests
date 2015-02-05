@@ -28,16 +28,21 @@ using namespace MDSplus;
 
 int segment_size_test(size_t size_KB, Histogram<double> &speed) {
 
+    static const int tot_size = 1024; // KB
+
     TestConnectionMT conn("test_size");
-    ContentFunction cs1("sine1",1024);
+    ContentFunction cs1("sine1",tot_size);
     conn.AddChannel(cs1, Channel::NewTC(size_KB,"localhost:8000"));
 
     std::cout << "[";
-    for(int i=0; i<100; ++i) {
+    for(int i=0; i<10; ++i) {
         std::cout << "." << std::flush;
-        cs1.ResetSize(1024);
-        speed << (double)1./conn.StartConnection();
+        cs1.ResetSize(tot_size);
+        conn.ResetTimes();
+        conn.StartConnection();
+        speed << ((double)tot_size)/1024 / conn.GetTotalTime();
     }
+
     std::cout << "]\n";
 
     std::cout << "--- segment " << size_KB << " [KB] ";
