@@ -186,6 +186,52 @@ private:
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  Accumulator  ///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+template < typename T >
+class Accumulator : public Named
+{
+public:
+    Accumulator() {}
+
+    Accumulator(const char *name) :
+        Named(name),
+        m_min(0),
+        m_max(0),
+        m_sum(0)
+    {}
+
+
+    void Push(const T data) {
+        m_min = std::min(m_min,data);
+        m_max = std::max(m_max,data);
+        m_sum += data;
+        m_stat << data;
+    }
+
+    void Clear() {
+        m_min = m_max = m_sum = 0;
+        m_stat = StatUtils::IncrementalOrder2();
+    }
+
+    T Max() const { return m_max; }
+    T Min() const { return m_min; }
+    T Sum() const { return m_sum; }
+
+    size_t Size() const { return m_stat.size(); }
+    double Mean() const { return m_stat.mean(); }
+    double Variance() const { return m_stat.variance(); }
+    double Rms() const { return m_stat.rms(); }
+
+private:
+    T m_min,m_max,m_sum;
+    StatUtils::IncrementalOrder2 m_stat;
+};
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Histogram  /////////////////////////////////////////////////////////////////
@@ -193,14 +239,17 @@ private:
 
 
 template < typename T >
-class Histogram : public Named
+class Histogram : public Accumulator<T>
 {
+
+    typedef Accumulator<T> BaseClass;
+
 public:
 
     Histogram() {} // required by map container //
 
     Histogram(const char *name, size_t nbin, const T min, const T max) :
-        Named(name),        
+        BaseClass(name),
         m_value_name(name),
         m_bins(nbin),
         m_limits(min,max),
@@ -217,14 +266,14 @@ public:
             ++m_bins.at( bin );
             m_stat << data;
         }
-        m_stat_all << data;
+        BaseClass::Push(data);
     }
 
     void Clear() {
         std::fill(m_bins.begin(), m_bins.end(), 0);
         m_overf = m_underf = 0;
         m_stat = StatUtils::IncrementalOrder2();
-        m_stat_all = StatUtils::IncrementalOrder2();
+        BaseClass::Clear();
     }
 
     inline size_t CollectedSize() const { return m_stat.size(); }
@@ -239,35 +288,16 @@ public:
 
     double Mean() const { return m_stat.mean(); }
 
-    double MeanAll() const { return m_stat_all.mean(); }
+    double MeanAll() const { return BaseClass::Mean(); }
 
     double Variance() const { return m_stat.variance(); }
 
-    double VarianceAll() const { return m_stat_all.variance(); }
+    double VarianceAll() const { return BaseClass::Variance(); }
 
     double Rms() const { return m_stat.rms(); }
 
-    double RmsAll() const { return m_stat_all.rms(); }
+    double RmsAll() const { return BaseClass::Rms(); }
 
-    double GetSum() const {
-        double val = 0;
-        for(size_t i=0; i<this->BinSize(); ++i)
-            val += m_bins[i];
-        return val;
-    }
-
-    size_t GetMax() const {
-        return *std::max_element(m_bins.begin(), m_bins.end());
-    }
-
-    //    Histogram Norm() const {
-    //        Histogram nh = *this;
-    //        double sum = this->GetSum();
-    //        if(sum > 0)
-    //            for(size_t i=0; i<nh.BinSize(); ++i)
-    //                nh.m_bins[i] /= sum;
-    //        return nh;
-    //    }
 
     void PrintSelf(std::ostream &o, const char _c = ';') const {
         o << "Histogram" << _c << this->m_value_name << "\n";
@@ -277,7 +307,7 @@ public:
 
     void PrintSelfInline(std::ostream &o) const {
         static const char *lut = "_,.-''"; // 5 levels histogram //
-        double max = this->GetMax();
+        double max = *std::max_element(m_bins.begin(), m_bins.end());
         o << "histogram: [" << this->BinSize() << "," << m_limits.first << "," << m_limits.second << "]";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
@@ -345,7 +375,7 @@ private:
     std::pair<T,T> m_limits;
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
-    StatUtils::IncrementalOrder2 m_stat_all;
+//    StatUtils::IncrementalOrder2 m_stat_all;
 };
 
 

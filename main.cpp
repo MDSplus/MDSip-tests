@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 
     for(int i = 32; i < 1024; i += 32 )
     {
-        Histogram<double> sph("test_segment_size",40,80,110);
+        Histogram<double> sph("test_segment_size",40,0,5);
         segment_size_test(i,sph);
         Point2D<double> pt;
         pt << i,sph.Mean();

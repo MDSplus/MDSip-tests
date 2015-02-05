@@ -50,7 +50,7 @@ double TestConnection::GetTotalTime()/* const*/
     for(unsigned int i=0; i< m_channels.size(); ++i)
     {
         Channel *ch = m_channels[i];
-        time += m_chtimes[ch].MeanAll();
+        time += m_chtimes[ch].Sum();
     }
     return time;
 }
