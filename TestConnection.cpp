@@ -1,6 +1,10 @@
 
 #include <unistd.h>
 #include <sys/ipc.h>
+#include <sys/wait.h>
+
+#include <sys/mman.h>
+#include <sys/shm.h>
 
 #include <mdsobjects.h>
 
@@ -247,12 +251,10 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void TestConnectionMT::AddChannel(Content &cnt, Channel *ch)
+void TestConnectionMT::AddChannel(Content *cnt, Channel *ch)
 {
     BaseClass::AddChannel(cnt,ch);
-    this->m_threads.push_back(new ConnectionThread(this,ch,&cnt));    
-    this->m_tree->addNode(cnt.GetName().c_str(),(char *)"SIGNAL"); // FIX
-    m_tree->write();
+    this->m_threads.push_back(new ConnectionThread(this,ch,cnt));
 }
 
 
@@ -309,30 +311,96 @@ double TestConnectionMT::StartConnection()
 ////////////////////////////////////////////////////////////////////////////////
 
 
+// static TestConnection::TimeHistogram *shm_histogram;
+
+
+void TestConnectionMP::AddChannel(Content *cnt, Channel *ch)
+{
+    this->m_pids.push_back(-1);
+    BaseCLass::AddChannel(cnt,ch);
+}
+
+void TestConnectionMP::ClearChannels()
+{
+    this->m_pids.clear();
+    BaseCLass::ClearChannels();
+}
+
+#include <cstring>
 
 double TestConnectionMP::StartConnection()
 {
+    static int pulse = 1;
+
+    // create pulse //
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
+    m_tree->createPulse(pulse);
+    delete m_tree;
+
+    // open pulse //
+    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
+    m_tree->setCurrent(m_tname.name.c_str(),pulse);
+    delete m_tree;
+
+    Timer conn_timer;
+    conn_timer.Start();
+
+//    Channel *channel = this->m_channels[0]; // remove
+//    shm_histogram = (TimeHistogram*)mmap(NULL, sizeof(this->GetChannelTimes(channel)), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+//    *shm_histogram = this->GetChannelTimes(channel);
+
+//    int shm_id = shmget(IPC_PRIVATE, sizeof(this->GetChannelTimes(channel))*100, SHM_R | SHM_W );
+//    assert(shm_id != -1);
+//    shm_histogram = (TimeHistogram*)shmat(shm_id, NULL, 0);
+//    assert(shm_histogram != (void*)-1);
+//    *shm_histogram = this->GetChannelTimes(channel);
+
+
+//    memccpy(shm_histogram,&h,)
+
+
     for(unsigned int i = 0; i < m_pids.size(); ++i)
     {
-        if( (m_pids[i] = fork()) == 0)
+        if( (m_pids[i] = fork()) == 0 )
         {
+            if(i >= m_channels.size() || i >= m_contents.size()) exit(0);
+
+            Channel *channel = this->m_channels[i];
+            Content *content = this->m_contents[i];
             Timer timer;
 
-//            m_channel->Open(m_connection->GetTreeName().c_str());
 
-//            if( m_content )
-//            while (  m_content->GetSize() > 0 )
-//            {
-//                Content::Element el;
-//                m_content->GetNextElement(m_channel->Size(), el);
-//                timer.Start();
-//                m_channel->PutSegment(el);
-//                hist << timer.StopWatch();
-//            }
+            TestConnection::TimeHistogram &hist = this->GetChannelTimes(channel);
 
-//            m_channel->Close();
+            channel->Open(this->GetTreeName().c_str());
 
+            while (  content->GetSize() > 0 )
+            {
+                Content::Element el;
+                content->GetNextElement(channel->Size(), el);
+                timer.Start();
+                channel->PutSegment(el);
+                hist << timer.StopWatch();
+            }
+
+            channel->Close();
             exit(0);
         }
     }
+    for(unsigned int i = 0; i < m_pids.size(); ++i)
+        waitpid(m_pids[i], NULL, 0);
+
+    //    this->GetChannelTimes(channel) = *shm_histogram;
+    //    munmap(shm_histogram,sizeof *shm_histogram);
+
+    pulse++;
+    return conn_timer.StopWatch();
 }
+
+
+
+
+
+
+
+

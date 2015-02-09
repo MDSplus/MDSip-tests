@@ -21,35 +21,51 @@ using namespace MDSplus;
 
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 //  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int segment_size_test(size_t size_KB, Histogram<double> &speed) {
+int segment_size_testMP(size_t size_KB, Histogram<double> &speed, int nch = 1, size_t tot_size = 1024) {
 
-    static const int tot_size = 1024; // KB
+    //    static const int tot_size = 1024; // KB
 
-    TestConnectionMT conn("test_size");
-    ContentFunction cs1("sine1",tot_size);
-    conn.AddChannel(cs1, Channel::NewTC(size_KB,"localhost:8000"));
+    std::vector<ContentFunction *> functions;
+    std::vector<Channel *>         channels;
 
-    std::cout << "[";
-    for(int i=0; i<10; ++i) {
-        std::cout << "." << std::flush;
-        cs1.ResetSize(tot_size);
-        conn.ResetTimes();
-        conn.StartConnection();
-        speed << ((double)tot_size)/1024 / conn.GetTotalTime();
+    TestConnectionMP conn("test_size");
+    for(int i=0; i<nch; ++i) {
+        std::stringstream name;
+        name << "sine" << i;
+        functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
+        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        conn.AddChannel(functions[i],channels[i]);
     }
 
-    std::cout << "]\n";
+    for(int i=0; i<10; ++i) {
+        std::cout << "connecting: -> " << std::flush;
 
-    std::cout << "--- segment " << size_KB << " [KB] ";
 
+        for(unsigned int i=0; i<functions.size(); ++i)
+            functions[i]->ResetSize(tot_size);
+
+        conn.ResetTimes();
+
+        speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
+        // conn.StartConnection();
+        // speed << ((double)tot_size)/1024 / conn.GetTotalTime();
+    }
+
+    std::cout << "--- connection segment size: " << size_KB << " [KB] ";
     std::cout  << speed << "\n";
-
     std::cout << "speed [MB/s] | Mean: " << speed.MeanAll() << " Rms: " << speed.RmsAll() <<  "\n\n";
+
+    for(unsigned int i=0; i<channels.size(); ++i) {
+        delete channels[i];
+        delete functions[i];
+    }
+
 
     return 0;
 }
@@ -61,30 +77,65 @@ int segment_size_test(size_t size_KB, Histogram<double> &speed) {
 
 int main(int argc, char *argv[])
 {
+    static const int n_channels = 4;
+    static const int seg_step   = 32;
+    static const int seg_max    = 1024;
 
+    std::vector<Curve2D> speeds;
+    std::vector<Curve2D> speed_errors;
 
-    Curve2D speed("speed_vs_segment_size");
-    Curve2D speed_error("speed_vs_segment_size_error");
-
-    for(int i = 32; i < 1024; i += 32 )
+    for(int nch = 1; nch <= n_channels; nch++ )
     {
-        Histogram<double> sph("test_segment_size",40,0,5);
-        segment_size_test(i,sph);
-        Point2D<double> pt;
-        pt << i,sph.Mean();
-        speed.AddPoint(pt);
-        pt << i,sph.Rms();
-        speed_error.AddPoint(pt);
-    }
+        std::stringstream curve_name;
+        curve_name << "ch" << nch;
+        speeds.push_back(Curve2D(curve_name.str().c_str()));
+        curve_name << "_err";
+        speed_errors.push_back(Curve2D(curve_name.str().c_str()));
+        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
+        {
+            unsigned int seg_size = seg_step*(sid+1);
+            Histogram<double> sph("test_segment_size",40,0,2);
+            segment_size_testMP(seg_size,sph,nch);
 
+            Curve2D &speed = speeds.back();
+            Curve2D &speed_error = speed_errors.back();
+
+            Point2D<double> pt;
+            pt << seg_size,sph.MeanAll();
+            speed.AddPoint(pt);
+            pt << seg_size,sph.RmsAll();
+            speed_error.AddPoint(pt);
+        }
+    }
 
     std::ofstream file;
     file.open("test_segment_size.csv");
-    file << speed << "\n";
-    file.close();
+    static const char sep = ';';
 
-    file.open("test_segment_size_error.csv");
-    file << speed_error << "\n";
+    std::cout << " ---- COLLECTED SPEEDS  ------ \n";
+    file << "segment size";
+    for(unsigned int nch=0; nch<n_channels; ++nch)
+    {
+        Curve2D &speed = speeds[nch];
+        Curve2D &speed_error = speed_errors[nch];
+
+        std::cout << speed << "\n";
+        file << sep << speed.GetName() << sep << speed_error.GetName();
+    }
+    file << std::endl;
+
+    for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
+    {
+        unsigned int seg_size = seg_step*(sid+1);
+        file << seg_size;
+        for(unsigned int nch=0; nch<n_channels; ++nch ) {
+            Curve2D &speed = speeds[nch];
+            Curve2D &speed_error = speed_errors[nch];
+            file << sep << speed[sid](1) << sep << speed_error[sid](1);
+        }
+        file << std::endl;
+    }
+
     file.close();
 
     return 0;
@@ -93,38 +144,93 @@ int main(int argc, char *argv[])
 
 
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
-//  Examples  //////////////////////////////////////////////////////////////////
+//  TEST SERIALIZATION  ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
-void _examples() {
-
-    ContentFunction cs1("test_c1",2);
-    ContentFunction cs2("test_c2",2);
-    ContentFunction cs3("test_c3",2);
-    ContentFunction cs4("test_c4",2);
-
-    TestConnectionMT dc("test_tree");
-
-    dc.AddChannel( cs1, Channel::NewDC(160) );
-    dc.AddChannel( cs2, Channel::NewDC(80) );
-    dc.AddChannel( cs3, Channel::NewDC(40) );
-    dc.AddChannel( cs4, Channel::NewDC(20) );
-
-    //    dc.AddChannel( cs4, Channel::NewDC(20) );
-    //    dc.AddChannel( cs3, Channel::NewTC(100,"localhost:8000") );
-    //    dc.AddChannel( cs4, Channel::NewTC(100,"localhost:8000") );
-    //    dc.AddChannel( cs4, Channel::NewTC(100,"ra22.igi.cnr.it:8001") );
 
 
 
-    dc.StartConnection();
+struct MyObj {
+    int i;
+    float f;
+    std::string str;
+};
 
-    //    std::ofstream file;
-    //    file.open("test_tree.csv");
-    //    dc.PrintChannelTimes(file);
-    //    file.close();
 
+template < class Archive >
+void  serialize(Archive &ar, MyObj &obj) {
+    ar & obj.f & obj.i/* & obj.str*/;
 }
+
+
+
+struct MyOb2 {
+    MyObj ob1,ob2;
+};
+
+template < class Archive >
+void  serialize(Archive &ar, MyOb2 &obj) {
+    ar & obj.ob1 & obj.ob2;
+}
+
+
+
+
+int _main(int argc, char *argv[])
+{
+    SerializeToBin ser;
+
+    MyObj ob;
+    ob.i = 5552368;
+    ob.f = 5.55;
+    ob.str = "ciao";
+
+    ser.Write() & ob;
+
+    ob.i = 123;
+    ob.f = 12;
+    ob.str = "no";
+
+    ser.Read() & ob;
+
+    std::cout << ob.f << " " << ob.i << " " << ob.str << "\n";
+
+
+
+    MyOb2 ob2;
+
+
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

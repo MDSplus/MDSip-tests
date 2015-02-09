@@ -42,6 +42,12 @@ void FileUtils::CreateDir(const char *name, const char *path)
     }
 }
 
+char * FileUtils::GetEnv(const char *name)
+{
+    return getenv(name);
+}
+
+
 
 ///
 /// \brief FileUtils::SetEnv

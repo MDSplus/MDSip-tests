@@ -23,9 +23,11 @@ public:
     Named() : m_name("") {}
 
     Named(const std::string name) :
-    m_name(name) {}
+        m_name(name)
+    {}
 
     std::string & operator()() { return m_name; }
+
     const std::string & operator()() const { return m_name; }
 
     void SetName(std::string name) { m_name = name; }
@@ -118,7 +120,7 @@ private:
 
 // FINIRE //
 
-class Curve2D : Lockable, public Named
+class Curve2D : /*Lockable,*/ public Named
 {
     typedef Point2D<double> Point;
 
@@ -141,6 +143,7 @@ public:
         double ticks;
     };
 
+    Curve2D() {}
 
     Curve2D(const char *name) :
         Named(name)
@@ -148,7 +151,7 @@ public:
 
     template < typename _T >
     void AddPoint( const Point2D<_T> &pt ) {
-        MDS_LOCK_SCOPE(*this);
+        //MDS_LOCK_SCOPE(*this);
         m_data.push_back ( (Point)pt );
     }
 
@@ -177,6 +180,9 @@ public:
     inline Axis & YAxis() { return GetAxis(1); }
 
     std::vector<Point> &Points() { return m_data; }
+    Point & operator[](size_t id) { return m_data[id]; }
+    const Point & operator[](size_t id) const { return m_data[id]; }
+
 
 private:
     std::vector<Point> m_data;
@@ -195,6 +201,8 @@ class Accumulator : public Named
 {
 public:
     Accumulator() {}
+
+    Accumulator(const Accumulator &other) : Named(other) {}
 
     Accumulator(const char *name) :
         Named(name),
@@ -252,9 +260,9 @@ public:
         BaseClass(name),
         m_value_name(name),
         m_bins(nbin),
-        m_limits(min,max),
+//        m_limits(min,max),
         m_underf(0), m_overf(0)
-    {}
+    { m_limits[0] = min, m_limits[1] = max; }
 
     void Push(const T data) {        
         int bin = this->get_bin(data);
@@ -308,7 +316,7 @@ public:
     void PrintSelfInline(std::ostream &o) const {
         static const char *lut = "_,.-''"; // 5 levels histogram //
         double max = *std::max_element(m_bins.begin(), m_bins.end());
-        o << "histogram: [" << this->BinSize() << "," << m_limits.first << "," << m_limits.second << "]";
+        o << "histogram: [" << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << "]";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
@@ -354,28 +362,28 @@ public:
     }
 
 
+
 private:
 
     T get_spacing() const {
-        return (m_limits.second - m_limits.first) / this->BinSize();
+        return (m_limits[1] - m_limits[0]) / this->BinSize();
     }
 
     int get_bin(const T data) const {
         T bin_size = get_spacing();
-        return (int)floor( (data-m_limits.first) /bin_size);
+        return (int)floor( (data-m_limits[0]) /bin_size);
     }
 
     T get_pos(const int bin) const {
         T bin_size = get_spacing();
-        return m_limits.first + (bin_size) * bin;
+        return m_limits[0] + (bin_size) * bin;
     }
 
     std::string m_value_name;
     std::vector<size_t> m_bins;
-    std::pair<T,T> m_limits;
+    T m_limits[2];
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
-//    StatUtils::IncrementalOrder2 m_stat_all;
 };
 
 

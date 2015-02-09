@@ -60,14 +60,16 @@ public:
 
     virtual double StartConnection();
 
-    virtual void AddChannel(Content &cnt, Channel *ch) {
-        m_channels.push_back(ch);
-        m_chtimes[ch] =  TimeHistogram(cnt.GetName().c_str(),50,0,0.0012);
+    virtual void AddChannel(Content *cnt, Channel *chn) {
+        m_channels.push_back(chn);
+        m_contents.push_back(cnt);
+        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,0.0012);
+
+        this->m_tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL"); // FIX
+        m_tree->write();
     }
 
     virtual void ClearChannels() {
-        for(unsigned int i=0; i<m_channels.size(); ++i)
-            delete m_channels[i];
         m_channels.clear();
     }
 
@@ -90,6 +92,7 @@ protected:
     TestTree::TreeName m_tname;
 
     std::vector<Channel *> m_channels;
+    std::vector<Content *> m_contents;
     std::map< Channel *, TimeHistogram > m_chtimes;
 };
 
@@ -125,7 +128,7 @@ public:
     }
 
 
-    void AddChannel(Content &cnt, Channel *ch);
+    void AddChannel(Content *cnt, Channel *ch);
 
     void ClearChannels();
 
@@ -147,11 +150,13 @@ private:
 
 class TestConnectionMP : public TestConnection
 {
+    typedef TestConnection BaseCLass;
+
 public:
     TestConnectionMP(const char *name) : TestConnection(name) {}
 
 
-    void AddChannel(Content &cnt, Channel *ch);
+    void AddChannel(Content *cnt, Channel *ch);
 
     void ClearChannels();
 
