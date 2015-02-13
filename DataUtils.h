@@ -98,7 +98,7 @@ struct Point2D {
     }
 
     friend std::ostream &
-    operator << (std::ostream &o, Point2D<_Scalar> &pt) {
+    operator << (std::ostream &o, const Point2D<_Scalar> &pt) {
         return o << pt(0) << "," << pt(1);
     }
 

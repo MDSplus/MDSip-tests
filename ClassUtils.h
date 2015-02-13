@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <cstring>
 #include <vector>
+#include <deque>
 #include <string>
 
 
@@ -87,50 +88,129 @@ private:
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  Unique Ptr  ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+template < typename T >
+class unique_ptr {
+    unique_ptr(const T &ref) : ptr(new T(ref)) {}
+    T *ptr;
+public:
+
+    unique_ptr(unique_ptr &other) : ptr(other.ptr)
+    { other.ptr = NULL; }
+
+    unique_ptr(T *ref) : ptr(ref) {}
+
+    ~unique_ptr() { if(ptr) delete ptr; }
+
+    T * operator ->() { return ptr; }
+    const T * operator ->() const { return ptr; }
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  Raw Buffer  ////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+struct RawBuffer {
+
+    template < typename T >
+    friend RawBuffer & operator << (RawBuffer &r, const T &data) {
+        const byte_t *pos = &data;
+        const byte_t *end = &data + sizeof(data);
+        while(pos < end) {
+            r.m_data.push_back(*pos);
+        }
+        return r;
+    }
+
+    std::vector<byte_t> m_data;
+};
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //  SerializeToBin  ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-
 class SerializeToBin
 {
-public:
+
+    typedef unsigned char byte_t;
 
     struct pod {
 
-        pod() : len(0), ptr(NULL) {}
+        pod() : len(0), ptr(0), del(0) {}
 
-        pod & operator = ( const pod &other) {
-            if(ptr && len == other.len) memcpy(ptr, other.ptr, len);
-            else {
-                len = other.len;
-                ptr = malloc(len);
-                memcpy(ptr, other.ptr, len);
+        ~pod() {
+            if(del) { delete ptr; }
+        }
+
+        pod(const pod &other) : len(other.len), ptr(other.ptr), del(other.del) { const_cast<pod&>(other).del = false; }
+        pod(pod &other) : len(other.len), ptr(other.ptr), del(other.del) { other.del = false; }
+
+        template <typename T >
+        explicit pod(T *t) : len(sizeof(T)), ptr((byte_t*)t), del(0) { if(t==0) len=0; }
+
+        template <typename T >
+        pod(T &t) : len(sizeof(T)), ptr((byte_t*)&t), del(0) {}
+
+        void copy_from(const pod &p) {
+            len = p.len;
+            memcpy(ptr,p.ptr,len);
+        }
+
+        void alloc(const size_t size) {
+            try {
+                ptr = new byte_t[size];
+                len = size;
+                del = true;
             }
-            return *this;
+            catch(std::bad_alloc e) {
+                throw e;
+            }
         }
-
-        template < typename _T >
-        pod(const _T &data) :
-            len(sizeof(_T)),
-            ptr((void*)&data)
-        {}
-
-        pod clone() const {
-            pod other;
-            other.len = len;
-            other.ptr = malloc(len);
-            memcpy(other.ptr, ptr, len); // remove?
-            return other;
-        }
-
-        void free() { std::free(ptr); }
 
         size_t  len;
-        void   *ptr;
-    };
+        byte_t *ptr;
+        bool del;
+    };    
 
+public:
+
+    struct raw : pod {
+
+        raw() {}
+        raw(const pod &p) : pod(p) {}
+        raw(pod &p) : pod(p) {}
+
+        operator pod () {
+            pod p;
+            p.alloc(m_data.size());
+            std::copy(m_data.begin(),m_data.end(),p.ptr);
+            p.del = true;
+            return p;
+        }
+
+        template < typename T >
+        friend raw & operator << (raw &r, const T &data) {
+            const byte_t *pos = &data;
+            const byte_t *end = &data + sizeof(data);
+            while(pos < end) {
+                r.m_data.push_back(*pos);
+            }
+            return r;
+        }
+
+        std::vector<byte_t> m_data;
+    };
 
     struct _Write {
         SerializeToBin &archive;
@@ -145,9 +225,33 @@ public:
     };
 
     template < typename T >
+    friend _Write & operator & ( _Write &ser, T *&data )
+    {
+        if(data) serialize(ser,*data);
+        return ser;
+    }
+
+    template < typename T >
     friend _Write & operator & ( _Write &ser, T &data )
     {
         serialize(ser,data);
+        return ser;
+    }
+
+    friend void serialize ( _Write &ser, pod data )
+    {
+        ser.archive.push(data);
+    }
+
+    friend void serialize ( _Write &ser, raw &data )
+    {
+        ser.archive.push(data.operator pod());
+    }
+
+    template < typename T >
+    friend const _Read & operator & ( const _Read &ser, T *&data )
+    {
+        if(data) serialize(const_cast<_Read&>(ser),*data);
         return ser;
     }
 
@@ -158,56 +262,112 @@ public:
         return ser;
     }
 
-    friend void serialize ( _Write &ser, pod data )
-    {
-        ser.archive.m_pods.push_back( data.clone() );
-    }
-
     friend void serialize ( _Read &ser, pod data )
     {
-        std::vector<pod> &v = ser.archive.m_pods;
+        pod p = ser.archive.pop();
+        data.copy_from(p);
+    }
 
-        data = v.front();
-
-        std::swap(v.front(),v.back());
-        v.back().free();
-        v.pop_back();
+    friend void serialize ( _Read &ser, raw &data )
+    {
+        data = ser.archive.pop();
     }
 
 
     template < class Archive >
     friend void serialize(Archive &ar, std::string &str) {
         if(ar.is_writing()) {
-            pod p;
-            p.len = str.length() + 2;
-            p.ptr = (void *)str.c_str();
-            ar.archive.m_pods.push_back( p.clone() );
-            std::cout << "write str\n";
+            raw data;
+            for(size_t i=0;i<str.length()+1;++i) {
+                data.m_data.push_back( str.c_str()[i] );
+            }
+            serialize( ar, data );
         }
         else {
-            std::vector<pod> &v = ar.archive.m_pods;
-            pod p = v.front();
-            std::swap(v.front(),v.back());
-            v.back().free();
-            v.pop_back();
-            str = std::string( (const char *)p.ptr );
-            std::cout << "read str\n";
+            raw data;
+            serialize( ar, data );
+            str = std::string( (const char *)data.ptr );
         }
     }
 
     SerializeToBin() :
         m_write(*this),
-        m_read(*this) {}
+        m_read(*this),
+        m_buf(0), m_buf_size(0)
+    {}
+
+    ~SerializeToBin() {
+        if(m_buf) delete m_buf;
+    }
 
     _Write & Write() { return m_write; }
 
     const _Read  & Read()  { return m_read; }
 
+    void print() const {
+        std::cout << "PODS:\n";
+        for(size_t i=0; i< m_pods.size(); ++i) {
+            const pod &p = m_pods[i];
+            std::cout << " len:" << p.len << " ptr:" << (void*)p.ptr << "  cast<float>:" << *(float*)p.ptr << "\n";
+        }
+    }
+
+protected:
+
+    void push(const pod &p) {
+        m_pods.push_back(p);
+    }
+
+    pod pop() {
+        pod p = m_pods.front();
+        m_pods.pop_front();
+        return p;
+    }
+
+public:
+
+    void store() {
+        // push into contiguous memory segment //
+        size_t tot_len = 0;
+        for(std::deque<pod>::iterator it=m_pods.begin(); it<m_pods.end();++it)
+            tot_len += it->len + sizeof(size_t);
+
+        if(m_buf) delete m_buf;
+        m_buf = new byte_t[tot_len];
+        byte_t *pos = m_buf;
+        for(std::deque<pod>::iterator it=m_pods.begin(); it<m_pods.end();++it) {
+            memcpy(pos,&it->len,sizeof(size_t));
+            pos += sizeof(size_t);
+            memcpy(pos,(byte_t*)it->ptr, it->len);
+            pos += it->len;
+        }
+        m_pods.clear();
+        m_buf_size = tot_len;
+    }
+
+    void resume() {
+        // read memory back into pods //
+        byte_t *pos = m_buf;
+        byte_t *end = m_buf + m_buf_size;
+        while (pos < end)
+        {
+            pod p;
+            p.len = *(size_t*)pos;
+            p.ptr =  (byte_t *)(pos + sizeof(size_t));
+            pos += sizeof(size_t) + sizeof(byte_t) * p.len;
+            push( p );
+        }
+    }
+
 private:
-    std::vector< pod > m_pods;
+    std::deque< pod > m_pods;
+
     _Write m_write;
     _Read  m_read;
+    byte_t *m_buf;
+    size_t m_buf_size;
 };
+
 
 
 

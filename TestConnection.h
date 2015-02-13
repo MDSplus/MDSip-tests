@@ -66,7 +66,7 @@ public:
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,0.0012);
 
         this->m_tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL"); // FIX
-        m_tree->write();
+        m_tree->write();        
     }
 
     virtual void ClearChannels() {
@@ -154,7 +154,6 @@ class TestConnectionMP : public TestConnection
 
 public:
     TestConnectionMP(const char *name) : TestConnection(name) {}
-
 
     void AddChannel(Content *cnt, Channel *ch);
 

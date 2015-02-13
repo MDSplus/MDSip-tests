@@ -1,7 +1,7 @@
 
 MDSPLUS_DIR=${MDS_PATH}/..
 
-OPT=-O0 -g3
+OPT=-O0 -g3 -Wall
 
 CC=g++
 CFLAGS= -I${MDSPLUS_DIR}/include -Wall ${OPT}
@@ -21,8 +21,8 @@ OBJECTS=$(SOURCES:.cpp=.o)
 
 all: main
 
-main: ${OBJECTS} main.o
-	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
+main: ${OBJECTS} main.o ${HEADERS}
+	gcc ${OBJECTS} main.o -o $@ ${CFLAGS} ${LDFLAGS} -lpthread
 
 PerfTestProcMultipleTrees: PerfTestProcMultipleTrees.cpp
 	gcc $^ -o $@ ${CFLAGS} ${LDFLAGS} -lpthread

@@ -27,18 +27,32 @@ using namespace MDSplus;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-int segment_size_testMP(size_t size_KB, Histogram<double> &speed, int nch = 1, size_t tot_size = 1024) {
-
-    //    static const int tot_size = 1024; // KB
-
-    std::vector<ContentFunction *> functions;
-    std::vector<Channel *>         channels;
+/// \param size_KB size of segment to be sent
+/// \param speed a reference to histogram to collect speed
+/// \param nch number of forked channels (sine) to be used
+/// \param tot_size total size per channel to be sent
+/// \return 0
+///
+/// Test for segment size in Multi Process using Thin Client connection.
+/// In histogram a value of equivalent data troughput is added in MB/s
+/// This is not the actual line speed becouse reflects the time to sent actual
+/// data into the channel.
+///
+int segment_size_testMP(size_t size_KB,
+                        Histogram<double> &speed,
+                        int nch = 1,
+                        size_t tot_size = 1024)
+{
+    std::vector<ContentFunction *> functions; // function generators //
+    std::vector<Channel *>         channels;  // forked channels //
 
     TestConnectionMP conn("test_size");
+
     for(int i=0; i<nch; ++i) {
         std::stringstream name;
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
+        // << FIX: server name is hard coded !
         channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
         conn.AddChannel(functions[i],channels[i]);
     }
@@ -48,11 +62,14 @@ int segment_size_testMP(size_t size_KB, Histogram<double> &speed, int nch = 1, s
 
 
         for(unsigned int i=0; i<functions.size(); ++i)
-            functions[i]->ResetSize(tot_size);
+            functions[i]->ResetSize(tot_size); // reset time of generator //
+        conn.ResetTimes();             // reset per channel distributions //
 
-        conn.ResetTimes();
-
+        // speed is total size in MB [tot_size/1024] multiplied per number of
+        // channels (as each channel send tot_size data) and divided  by  the
+        // total connection time.
         speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
+
         // conn.StartConnection();
         // speed << ((double)tot_size)/1024 / conn.GetTotalTime();
     }
@@ -65,8 +82,6 @@ int segment_size_testMP(size_t size_KB, Histogram<double> &speed, int nch = 1, s
         delete channels[i];
         delete functions[i];
     }
-
-
     return 0;
 }
 
@@ -75,7 +90,7 @@ int segment_size_testMP(size_t size_KB, Histogram<double> &speed, int nch = 1, s
 
 
 
-int main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
     static const int n_channels = 4;
     static const int seg_step   = 32;
@@ -155,61 +170,98 @@ int main(int argc, char *argv[])
 
 
 
+
+
+
+
+
+
+
+
 struct MyObj {
-    int i;
-    float f;
+    float i;
+    float f[2];
+    Point2D<float> p;
     std::string str;
+    MyObj *next;
+
+    MyObj() : next(0) {}
+
+    friend std::ostream &
+    operator << (std::ostream &o, const MyObj &ob) {
+        o << "i:" << ob.i << " "
+          << "f[0]:" << ob.f[0] << " "
+          << "f[1]:" << ob.f[1] << " "
+          << "p:" << ob.p << " "
+          << "str:" << ob.str << " "
+          << "next:" << ob.next << "\n";
+        return o;
+    }
+
 };
 
-
 template < class Archive >
-void  serialize(Archive &ar, MyObj &obj) {
-    ar & obj.f & obj.i/* & obj.str*/;
+void  serialize(Archive &ar, MyObj &ob) {
+    ar & ob.i;
+    ar & ob.f;
+    ar & ob.p;
+    ar & ob.str;
+    ar & ob.next;
 }
 
 
-
-struct MyOb2 {
-    MyObj ob1,ob2;
-};
-
-template < class Archive >
-void  serialize(Archive &ar, MyOb2 &obj) {
-    ar & obj.ob1 & obj.ob2;
-}
-
-
-
-
-int _main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    SerializeToBin ser;
 
-    MyObj ob;
-    ob.i = 5552368;
-    ob.f = 5.55;
-    ob.str = "ciao";
-
-    ser.Write() & ob;
-
-    ob.i = 123;
-    ob.f = 12;
-    ob.str = "no";
-
-    ser.Read() & ob;
-
-    std::cout << ob.f << " " << ob.i << " " << ob.str << "\n";
+    {
 
 
 
-    MyOb2 ob2;
+        MyObj ob;
+        ob.i = 368;
+        ob.f[0] = 1.23;
+        ob.f[1] = 4.56;
+        ob.p << 55,2368;
+        ob.str = "ciao";
+
+        MyObj ob2 = ob;
+        ob.next = &ob2;
+        ob2.str = "ciao2";
+
+
+        SerializeToBin sr;
+        sr.Write() & ob;
+
+
+        sr.store();
+        sr.resume();
+
+        ob.i = 0;
+        ob.f[0] = 0;
+        ob.f[1] = 0;
+        ob.p << 0,0;
+        ob.str = "no";
+
+        ob2.i = 0;
+        ob2.f[0] = 0;
+        ob2.f[1] = 0;
+        ob2.p << 0,0;
+        ob2.str = "no";
+
+
+        sr.Read() & ob;
+
+        std::cout << ob << "\n";
+        std::cout << ob2 << "\n";
+
+
+
+    }
 
 
 
     return 0;
 }
-
-
 
 
 

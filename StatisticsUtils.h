@@ -118,36 +118,36 @@ class StatUtils {
 
 public:
 
-    template < class _Cnt >
-    static typename _Cnt::value_Type mean(const _Cnt &cnt) {
-        typename _Cnt::value_type value = 0;
-        for(typename _Cnt::iterator it= cnt.begin(); it != cnt.end(); ++it) {
-            value += *it;
-        }
-        return value / cnt.size();
-    }
+//    template < class _Cnt >
+//    static typename _Cnt::value_Type mean(const _Cnt &cnt) {
+//        typename _Cnt::value_type value = 0;
+//        for(typename _Cnt::iterator it= cnt.begin(); it != cnt.end(); ++it) {
+//            value += *it;
+//        }
+//        return value / cnt.size();
+//    }
 
-    template < class _Cnt >
-    static typename _Cnt::value_Type rms(const _Cnt &cnt, typename _Cnt::value_type mean) {
-        typename _Cnt::value_type value = 0;
-        for(typename _Cnt::iterator it= cnt.begin(); it != cnt.end(); ++it) {
-            value += pow(*it - mean, 2) / (cnt.size() - 1);
-        }
-        return sqrt( value );
-    }
+//    template < class _Cnt >
+//    static typename _Cnt::value_Type rms(const _Cnt &cnt, typename _Cnt::value_type mean) {
+//        typename _Cnt::value_type value = 0;
+//        for(typename _Cnt::iterator it= cnt.begin(); it != cnt.end(); ++it) {
+//            value += pow(*it - mean, 2) / (cnt.size() - 1);
+//        }
+//        return sqrt( value );
+//    }
 
-    template < class _Cnt >
-    static double expectation(const _Cnt &cnt) {
-        typedef typename _Cnt::value_type Point;
-        double value = 0;
-        double sum = 0;
-        for(typename _Cnt::const_iterator it = cnt.begin(); it != cnt.end(); ++it) {
-            const Point &pt = *it;
-            sum += pt(1);
-            value += pt(0) * pt(1) ;
-        }
-        return value / sum ;
-    }
+//    template < class _Cnt >
+//    static double expectation(const _Cnt &cnt) {
+//        typedef typename _Cnt::value_type Point;
+//        double value = 0;
+//        double sum = 0;
+//        for(typename _Cnt::const_iterator it = cnt.begin(); it != cnt.end(); ++it) {
+//            const Point &pt = *it;
+//            sum += pt(1);
+//            value += pt(0) * pt(1) ;
+//        }
+//        return value / sum ;
+//    }
 
     typedef detail::incremental_statistic IncrementalOrder2;
 

@@ -326,7 +326,6 @@ void TestConnectionMP::ClearChannels()
     BaseCLass::ClearChannels();
 }
 
-#include <cstring>
 
 double TestConnectionMP::StartConnection()
 {
