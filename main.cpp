@@ -210,12 +210,10 @@ void  serialize(Archive &ar, MyObj &ob) {
 }
 
 
-int main(int argc, char *argv[])
+int test_ser(int argc, char *argv[])
 {
 
     {
-
-
 
         MyObj ob;
         ob.i = 368;
@@ -233,8 +231,7 @@ int main(int argc, char *argv[])
         sr.Write() & ob;
 
 
-        sr.store();
-        sr.resume();
+        sr.Store();
 
         ob.i = 0;
         ob.f[0] = 0;
@@ -264,6 +261,38 @@ int main(int argc, char *argv[])
 }
 
 
+int test_histogram_serialization(int argc, char *argv[])
+{
+    Histogram<float> h("test",40,0,10);
+    for (int i=0; i<100000; ++i) {
+        float data = box_muller(0) + 5;
+        h << data;
+    }
+
+    SerializeToBin sr;
+    sr.Write() & h;
+    sr.Store();
+
+    h.Clear();
+    h.SetName("error");
+
+    sr.Read() & h;
+    std::cout << h.GetName() << " " << h << "\n";
+
+    return 0;
+}
+
+
+
+
+int main(int argc, char *argv[])
+{
+    SerializeToShm sh;
+
+
+
+    return 0;
+}
 
 
 

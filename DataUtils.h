@@ -34,6 +34,11 @@ public:
 
     std::string GetName() const { return m_name; }
 
+    template < class Archive >
+    friend void serialize(Archive &ar, Named &n) {
+        ar & n.m_name;
+    }
+
 private:
     std::string m_name;
 };
@@ -233,6 +238,12 @@ public:
     double Variance() const { return m_stat.variance(); }
     double Rms() const { return m_stat.rms(); }
 
+
+    template < class Archive >
+    friend void serialize(Archive &ar, Accumulator &h) {
+        ar & (Named &)h;
+    }
+
 private:
     T m_min,m_max,m_sum;
     StatUtils::IncrementalOrder2 m_stat;
@@ -361,7 +372,16 @@ public:
         return o;
     }
 
-
+    template < class Archive >
+    friend void serialize(Archive &ar, Histogram &h) {
+        ar
+                & (Accumulator<T> &)h
+                & h.m_value_name
+                & h.m_bins
+                & h.m_limits
+                & h.m_underf & h.m_overf
+                & h.m_stat;
+    }
 
 private:
 
@@ -385,7 +405,6 @@ private:
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
 };
-
 
 
 
