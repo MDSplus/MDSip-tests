@@ -53,13 +53,16 @@ int segment_size_testMP(size_t size_KB,
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         // << FIX: server name is hard coded !
-        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        //        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        channels.push_back( Channel::NewTC(size_KB,"rat.rfx.local:8200") );
         conn.AddChannel(functions[i],channels[i]);
     }
 
-    for(int i=0; i<10; ++i) {
-        std::cout << "connecting: -> " << std::flush;
+    speed.Clear();
+    Accumulator<double> tot_speed("overall speed");
 
+    for(int i=0; i<4; ++i) {
+        std::cout << "connecting: -> " << std::flush;
 
         for(unsigned int i=0; i<functions.size(); ++i)
             functions[i]->ResetSize(tot_size); // reset time of generator //
@@ -68,16 +71,23 @@ int segment_size_testMP(size_t size_KB,
         // speed is total size in MB [tot_size/1024] multiplied per number of
         // channels (as each channel send tot_size data) and divided  by  the
         // total connection time.
-        speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
+        //        speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
 
-        //        conn.StartConnection();
-        //        Channel *ch = channels[0];
-        //        TestConnection::TimeHistogram &h = conn.GetChannelTimes(ch);
-        //        std::cout << "----> " << h << "\n";
-        //        speed << ((double)tot_size)/ 1024 / conn.GetTotalTime() * nch;
+        double tot_time = conn.StartConnection();
+        double cnx_time = conn.GetWorstChannelTime();
+
+//        std::cout << "connection times: tot=" << tot_time << " cnx=" << cnx_time << "\n";
+
+//        std::cout <<  "tot speed: " << ((double)tot_size) / 1024 / tot_time * nch;
+//        std::cout <<  "cnx speed: " << ((double)tot_size) / 1024 / cnx_time * nch;
+
+        tot_speed << ((double)tot_size) / 1024 / tot_time * nch;
+        speed << ((double)tot_size) / 1024 / cnx_time * nch;
     }
 
-    std::cout << "--- connection segment size: " << size_KB << " [KB] ";
+    std::cout << "--- connection segment size: " << size_KB << " [KB] \n";
+
+    std::cout  << tot_speed << "\n";
     std::cout  << speed << "\n";
     std::cout << "speed [MB/s] | Mean: " << speed.MeanAll() << " Rms: " << speed.RmsAll() <<  "\n\n";
 
@@ -95,9 +105,9 @@ int segment_size_testMP(size_t size_KB,
 
 int main(int argc, char *argv[])
 {
-    static const int n_channels = 4;
-    static const int seg_step   = 3200;
-    static const int seg_max    = 102400;
+    static const int n_channels = 2;
+    static const int seg_step   = 128;
+    static const int seg_max    = 1024;
 
     std::vector<Curve2D> speeds;
     std::vector<Curve2D> speed_errors;
@@ -113,7 +123,7 @@ int main(int argc, char *argv[])
         {
             unsigned int seg_size = seg_step*(sid+1);
             Histogram<double> sph("test_segment_size",40,0,30);
-            segment_size_testMP(seg_size,sph,nch,102400);
+            segment_size_testMP(seg_size,sph,nch);
 
             Curve2D &speed = speeds.back();
             Curve2D &speed_error = speed_errors.back();
@@ -164,155 +174,6 @@ int main(int argc, char *argv[])
 
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-//  TEST SERIALIZATION  ////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-struct MyObj {
-    float i;
-    float f[2];
-    Point2D<float> p;
-    std::string str;
-    MyObj *next;
-
-    MyObj() : next(0) {}
-
-    friend std::ostream &
-    operator << (std::ostream &o, const MyObj &ob) {
-        o << "i:" << ob.i << " "
-          << "f[0]:" << ob.f[0] << " "
-          << "f[1]:" << ob.f[1] << " "
-          << "p:" << ob.p << " "
-          << "str:" << ob.str << " "
-          << "next:" << ob.next << "\n";
-        return o;
-    }
-
-};
-
-template < class Archive >
-void  serialize(Archive &ar, MyObj &ob) {
-    ar & ob.i;
-    ar & ob.f;
-    ar & ob.p;
-    ar & ob.str;
-    ar & ob.next;
-}
-
-
-int test_ser(int argc, char *argv[])
-{
-
-    {
-
-        MyObj ob;
-        ob.i = 368;
-        ob.f[0] = 1.23;
-        ob.f[1] = 4.56;
-        ob.p << 55,2368;
-        ob.str = "ciao";
-
-        MyObj ob2 = ob;
-        ob.next = &ob2;
-        ob2.str = "ciao2";
-
-
-        SerializeToBin sr;
-        sr.Write() & ob;
-
-
-        sr.Store();
-
-        ob.i = 0;
-        ob.f[0] = 0;
-        ob.f[1] = 0;
-        ob.p << 0,0;
-        ob.str = "no";
-
-        ob2.i = 0;
-        ob2.f[0] = 0;
-        ob2.f[1] = 0;
-        ob2.p << 0,0;
-        ob2.str = "no";
-
-        sr.Read() & ob;
-
-        std::cout << ob << "\n";
-        std::cout << ob2 << "\n";
-
-    }
-
-
-
-    return 0;
-}
-
-
-int test_histogram_serialization()
-{
-    Histogram<float> h("test",40,0,10);
-    for (int i=0; i<100000; ++i) {
-        float data = box_muller(0) + 5;
-        h << data;
-    }
-
-    SerializeToBin sr;
-    sr.Write() & h;
-    sr.Store();
-
-
-    h.Clear();
-    h << 5 << 6 << 7;
-    //    h.SetName("error");
-
-    sr.Clear();
-    sr.Write() & h;
-    sr.Store();
-
-    h.Clear();
-
-    sr.Read() & h;
-    std::cout << h.GetName() << " " << h << "\n";
-
-    return 0;
-}
-
-
-
-
-int test_shm_serialize(int argc, char *argv[])
-{
-    Histogram<float> h("test",40,0,10);
-    for (int i=0; i<100000; ++i) {
-        float data = box_muller(0) + 5;
-        h << data;
-    }
-
-    SerializeToShm sr;
-    sr.Write() & h;
-    sr.Store();
-
-    h.Clear();
-    h.SetName("error");
-
-    sr.Read() & h;
-    std::cout << h.GetName() << " " << h << "\n";
-
-    return 0;
-}
 
 
 

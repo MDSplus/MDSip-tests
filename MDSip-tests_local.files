@@ -1,8 +1,15 @@
+recipes/Makefile.am
+recipes/MDSipTestMP.cpp
+src/testing/BuildTest.cpp
+src/testing/Makefile.am
+src/testing/SerializeToBinTest.cpp
+src/testing/testing-prototype.h
 src/ClassUtils.h
 src/DataUtils.h
 src/FileUtils.cpp
 src/FileUtils.h
-src/main.cpp
+src/Makefile.am
+src/MDSipTest.h
 src/MDSTest.h
 src/PerfTestProc.cpp
 src/PerfTestProcMultipleTrees.cpp
@@ -22,8 +29,5 @@ Common.am
 configure.ac
 Makefile.am
 README.md
-src/Makefile.am
-src/MDSipTest.h
-src/testing/Makefile.am
-src/testing/BuildTest.cpp
-src/testing/testing-prototype.h
+src/testing/SerializeToShmTest.cpp
+src/ClassUtils.cpp

@@ -19,10 +19,8 @@
 
 class Named
 {
-public:
-    Named() : m_name("") {}
-
-    Named(const std::string name) :
+public:    
+    Named(const char *name = "") :
         m_name(name)
     {}
 
@@ -205,7 +203,7 @@ template < typename T >
 class Accumulator : public Named
 {
 public:
-    Accumulator() {}
+    Accumulator() : Named() {}
 
     Accumulator(const Accumulator &other) : Named(other) {}
 
@@ -224,6 +222,8 @@ public:
         m_stat << data;
     }
 
+    inline void operator<<(const T data) { Push(data); }
+
     void Clear() {
         m_min = m_max = m_sum = 0;
         m_stat = StatUtils::IncrementalOrder2();
@@ -238,9 +238,24 @@ public:
     double Variance() const { return m_stat.variance(); }
     double Rms() const { return m_stat.rms(); }
 
+    void PrintSelfInline(std::ostream &o) const {
+        o << "Accumulator(\"" << this->GetName() << "\") [" << m_min << "," << m_max << "]"
+          << " tot:" << m_sum << " mean:" << Mean() << " rms:" << Rms();
+    }
+
+
+
+
+    /// Print to ostreem
+    friend std::ostream &
+    operator << (std::ostream &o, const Accumulator<T> &_this) {
+        _this.PrintSelfInline(o);
+        return o;
+    }
 
     template < class Archive >
     friend void serialize(Archive &ar, Accumulator &h) {
+        ar & h.m_min & h.m_max & h.m_sum & h.m_stat;
         ar & (Named &)h;
     }
 
@@ -271,7 +286,6 @@ public:
         BaseClass(name),
         m_value_name(name),
         m_bins(nbin),
-//        m_limits(min,max),
         m_underf(0), m_overf(0)
     { m_limits[0] = min, m_limits[1] = max; }
 
@@ -326,8 +340,8 @@ public:
 
     void PrintSelfInline(std::ostream &o) const {
         static const char *lut = "_,.-''"; // 5 levels histogram //
-        double max = *std::max_element(m_bins.begin(), m_bins.end());
-        o << "histogram: [" << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << "]";
+        double max = *std::max_element(m_bins.begin(), m_bins.end());        
+        o << "Histogram(\"" << this->GetName() << "\"," << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << ")";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
@@ -335,6 +349,7 @@ public:
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
+        o << " visible -> mean:" << this->Mean() << " rms:" << this->Rms();
     }
 
     /// Convert to a Curve object

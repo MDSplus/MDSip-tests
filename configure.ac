@@ -179,6 +179,7 @@ AC_CONFIG_FILES([
         Makefile
         src/Makefile
         src/testing/Makefile
+        recipes/Makefile
 	])
 AC_OUTPUT
 

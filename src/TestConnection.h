@@ -71,6 +71,7 @@ public:
 
     virtual void ClearChannels() {
         m_channels.clear();
+        m_chtimes.clear();
     }
 
     mds::Tree * GetTree() const { return m_tree; }
@@ -82,6 +83,8 @@ public:
     void ResetTimes();
 
     double GetTotalTime();
+
+    double GetWorstChannelTime();
 
     void PrintChannelTimes(std::ostream &o);
 

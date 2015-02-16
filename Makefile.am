@@ -1,4 +1,4 @@
-SUBDIRS = src .
+SUBDIRS = src . recipes
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -6,13 +6,10 @@ include Common.am
 
 
 #library_includedir = $(includedir)/libMDSipTest
-#library_include_HEADERS =
-#config.h
-
-test_SOURCES = src/main.cpp
-
-bin_PROGRAMS = test
-test_LDADD = libMDSipTest.la
+#library_include_HEADERS = config.h
+#test_SOURCES = src/main.cpp
+#bin_PROGRAMS = test
+#test_LDADD = libMDSipTest.la
 
 
 ##PACKAGE_MAJOR=@PACKAGE_MAJOR@

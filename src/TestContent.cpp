@@ -12,6 +12,16 @@
 using namespace MDSplus;
 
 
+static inline double _box_muller(double x) {
+    (void)x;
+    return box_muller();
+}
+
+
+static inline double _noise_white(double x) {
+    (void)x;
+    return noise_white();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Time Function Generated Content  ///////////////////////////////////////////
@@ -47,10 +57,10 @@ void ContentFunction::SetGenFunction(const ContentFunction::FunctionEnum funt)
         m_func = &sin;
         break;
     case ContentFunction::NoiseG:
-        m_func = &box_muller;
+        m_func = &_box_muller;
         break;
     case ContentFunction::NoiseW:
-        m_func = &noise_white;
+        m_func = &_noise_white;
         break;
 
     }

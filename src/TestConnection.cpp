@@ -54,11 +54,24 @@ double TestConnection::GetTotalTime()/* const*/
     for(unsigned int i=0; i< m_channels.size(); ++i)
     {
         Channel *ch = m_channels[i];
-        TimeHistogram &h = m_chtimes[ch];
         time += m_chtimes[ch].Sum();
     }
     return time;
 }
+
+double TestConnection::GetWorstChannelTime()
+{
+    double time = 0;
+    for(unsigned int i=0; i< m_channels.size(); ++i)
+    {
+        Channel *ch = m_channels[i];
+        time = std::max(time, m_chtimes[ch].Sum());
+    }
+    return time;
+}
+
+
+
 
 void TestConnection::PrintChannelTimes(std::ostream &o)
 {
@@ -332,7 +345,6 @@ void TestConnectionMP::ClearChannels()
 // GLOBAL SHARED TIMINGS //
 SerializeToShm g_shm_timings[20];
 
-
 ///
 /// \brief TestConnectionMP::StartConnection
 /// \return the total time of connection (comprise of open channel time)
@@ -361,13 +373,10 @@ double TestConnectionMP::StartConnection()
         Channel *channel = this->m_channels[i];
         TimeHistogram &hist = this->GetChannelTimes(channel);
         SerializeToShm &shm = g_shm_timings[i];
-//        shm.AllocateBuffer(5000);
         shm.Write() & hist;
         shm.Store();
-        shm.Clear();
     }
 
-//    unsigned int i =0;
     for(unsigned int i = 0; i < m_pids.size(); ++i)
     {
         if( (m_pids[i] = fork()) == 0 )
@@ -378,12 +387,9 @@ double TestConnectionMP::StartConnection()
             Content *content = this->m_contents[i];
             Timer timer;
 
-            //  TimeHistogram &hist = this->GetChannelTimes(channel);
             TimeHistogram &hist = this->GetChannelTimes(channel);
-            SerializeToShm &shm = g_shm_timings[i];
-            shm.Resume();
-            shm.Read() & hist;
-            //shm.Clear(); // FIX: remove this call should be done automatically //
+            SerializeToShm &shm = g_shm_timings[i];            
+            hist.Clear();
 
             channel->Open(this->GetTreeName().c_str());
 
@@ -396,6 +402,7 @@ double TestConnectionMP::StartConnection()
                 hist << timer.StopWatch();
             }            
 
+            shm.Clear();
             shm.Write() & hist;
             shm.Store();
 
@@ -412,6 +419,7 @@ double TestConnectionMP::StartConnection()
         SerializeToShm &shm = g_shm_timings[i];
         shm.Resume();
         shm.Read() & hist;
+        shm.Clear();
     }
 
     pulse++;

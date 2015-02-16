@@ -5,9 +5,8 @@
 #include "StatisticsUtils.h"
 
 
-double box_muller(double x)
+double box_muller()
 {
-    (void)x;
     static const double mean = 0;
     static const double sigma = 1;
 
@@ -37,8 +36,7 @@ double box_muller(double x)
 }
 
 
-double noise_white(double x) {
-    (void)x;
+double noise_white() {
     return (double)rand() / RAND_MAX;
 }
 

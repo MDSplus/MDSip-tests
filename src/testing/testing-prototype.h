@@ -25,6 +25,8 @@
 
 
 
+#include <cmath>
+#include <limits>
 #include <stdio.h>
 
 #define BEGIN_TESTING(name)                \
@@ -33,5 +35,11 @@ printf("..:: Testing " #name " ::..\n");
 
 #define TEST1(val) _fail += (val)==0
 #define TEST0(val) _fail += (val)!=0
+
+template < typename T >
+bool AreSame(T a, T b) {
+    return std::fabs(a - b) < std::numeric_limits<T>::epsilon();
+}
+
 #define END_TESTING return _fail;
 

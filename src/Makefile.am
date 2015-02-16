@@ -19,6 +19,7 @@ library_include_HEADERS = \
 
 
 _CORE_SOURCES = \
+ClassUtils.cpp \
 FileUtils.cpp \
 ProducerConsumer.cpp \
 StatisticsUtils.cpp \
