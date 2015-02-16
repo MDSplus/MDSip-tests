@@ -4,12 +4,12 @@ ACLOCAL_AMFLAGS = -I m4
 
 include Common.am
 
-_MDSip-tests_SOURCES =
 
-library_includedir = $(includedir)/libMDSipTest
-library_include_HEADERS =
+#library_includedir = $(includedir)/libMDSipTest
+#library_include_HEADERS =
 #config.h
 
+test_SOURCES = src/main.cpp
 
 bin_PROGRAMS = test
 test_LDADD = libMDSipTest.la

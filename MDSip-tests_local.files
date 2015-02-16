@@ -24,3 +24,6 @@ Makefile.am
 README.md
 src/Makefile.am
 src/MDSipTest.h
+src/testing/Makefile.am
+src/testing/BuildTest.cpp
+src/testing/testing-prototype.h

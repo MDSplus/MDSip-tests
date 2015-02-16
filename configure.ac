@@ -22,7 +22,7 @@ AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_MACRO_DIR([m4])
 
 
-AC_CONFIG_SRCDIR([MDSipTest.h])
+AC_CONFIG_SRCDIR([Common.am])
 AC_CONFIG_HEADERS([config.h])
 
 # Checks for programs.
@@ -176,7 +176,9 @@ dnl AC_DEFINE_UNQUOTED(BOOST_PP_VARIADICS,1,[Compiler must have variadic macros]
 
 
 AC_CONFIG_FILES([
-	Makefile
+        Makefile
+        src/Makefile
+        src/testing/Makefile
 	])
 AC_OUTPUT
 

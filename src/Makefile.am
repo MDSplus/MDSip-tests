@@ -1,4 +1,4 @@
-SUBDIRS = .
+SUBDIRS = . testing
 
 include $(top_srcdir)/Common.am
 
@@ -20,9 +20,6 @@ library_include_HEADERS = \
 
 _CORE_SOURCES = \
 FileUtils.cpp \
-PerfTestProc.cpp \
-PerfTestProcMultipleTrees.cpp \
-PerfTestThreads.cpp \
 ProducerConsumer.cpp \
 StatisticsUtils.cpp \
 TestConnection.cpp \
