@@ -63,7 +63,7 @@ public:
     virtual void AddChannel(Content *cnt, Channel *chn) {
         m_channels.push_back(chn);
         m_contents.push_back(cnt);
-        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,0.0012);
+        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,5);
 
         this->m_tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL"); // FIX
         m_tree->write();        

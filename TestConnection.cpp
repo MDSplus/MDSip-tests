@@ -54,6 +54,7 @@ double TestConnection::GetTotalTime()/* const*/
     for(unsigned int i=0; i< m_channels.size(); ++i)
     {
         Channel *ch = m_channels[i];
+        TimeHistogram &h = m_chtimes[ch];
         time += m_chtimes[ch].Sum();
     }
     return time;
@@ -311,7 +312,6 @@ double TestConnectionMT::StartConnection()
 ////////////////////////////////////////////////////////////////////////////////
 
 
-// static TestConnection::TimeHistogram *shm_histogram;
 
 
 void TestConnectionMP::AddChannel(Content *cnt, Channel *ch)
@@ -320,6 +320,7 @@ void TestConnectionMP::AddChannel(Content *cnt, Channel *ch)
     BaseCLass::AddChannel(cnt,ch);
 }
 
+
 void TestConnectionMP::ClearChannels()
 {
     this->m_pids.clear();
@@ -327,6 +328,17 @@ void TestConnectionMP::ClearChannels()
 }
 
 
+
+// GLOBAL SHARED TIMINGS //
+SerializeToShm g_shm_timings[20];
+
+
+///
+/// \brief TestConnectionMP::StartConnection
+/// \return the total time of connection (comprise of open channel time)
+///
+/// Main Test Connection MP routine
+///
 double TestConnectionMP::StartConnection()
 {
     static int pulse = 1;
@@ -341,23 +353,21 @@ double TestConnectionMP::StartConnection()
     m_tree->setCurrent(m_tname.name.c_str(),pulse);
     delete m_tree;
 
-    Timer conn_timer;
-    conn_timer.Start();
+    // TOTAL CONNECTION TIMER //
+    Timer conn_timer; conn_timer.Start();
 
-//    Channel *channel = this->m_channels[0]; // remove
-//    shm_histogram = (TimeHistogram*)mmap(NULL, sizeof(this->GetChannelTimes(channel)), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-//    *shm_histogram = this->GetChannelTimes(channel);
+    // SHARED MEMORY TIMINGS SERIALIZATION //
+    for(unsigned int i = 0; i < m_pids.size(); ++i) {
+        Channel *channel = this->m_channels[i];
+        TimeHistogram &hist = this->GetChannelTimes(channel);
+        SerializeToShm &shm = g_shm_timings[i];
+//        shm.AllocateBuffer(5000);
+        shm.Write() & hist;
+        shm.Store();
+        shm.Clear();
+    }
 
-//    int shm_id = shmget(IPC_PRIVATE, sizeof(this->GetChannelTimes(channel))*100, SHM_R | SHM_W );
-//    assert(shm_id != -1);
-//    shm_histogram = (TimeHistogram*)shmat(shm_id, NULL, 0);
-//    assert(shm_histogram != (void*)-1);
-//    *shm_histogram = this->GetChannelTimes(channel);
-
-
-//    memccpy(shm_histogram,&h,)
-
-
+//    unsigned int i =0;
     for(unsigned int i = 0; i < m_pids.size(); ++i)
     {
         if( (m_pids[i] = fork()) == 0 )
@@ -368,8 +378,12 @@ double TestConnectionMP::StartConnection()
             Content *content = this->m_contents[i];
             Timer timer;
 
-
-            TestConnection::TimeHistogram &hist = this->GetChannelTimes(channel);
+            //  TimeHistogram &hist = this->GetChannelTimes(channel);
+            TimeHistogram &hist = this->GetChannelTimes(channel);
+            SerializeToShm &shm = g_shm_timings[i];
+            shm.Resume();
+            shm.Read() & hist;
+            //shm.Clear(); // FIX: remove this call should be done automatically //
 
             channel->Open(this->GetTreeName().c_str());
 
@@ -380,7 +394,10 @@ double TestConnectionMP::StartConnection()
                 timer.Start();
                 channel->PutSegment(el);
                 hist << timer.StopWatch();
-            }
+            }            
+
+            shm.Write() & hist;
+            shm.Store();
 
             channel->Close();
             exit(0);
@@ -389,8 +406,13 @@ double TestConnectionMP::StartConnection()
     for(unsigned int i = 0; i < m_pids.size(); ++i)
         waitpid(m_pids[i], NULL, 0);
 
-    //    this->GetChannelTimes(channel) = *shm_histogram;
-    //    munmap(shm_histogram,sizeof *shm_histogram);
+    for(unsigned int i = 0; i < m_pids.size(); ++i) {
+        Channel *channel = this->m_channels[i];
+        TimeHistogram &hist = this->GetChannelTimes(channel);
+        SerializeToShm &shm = g_shm_timings[i];
+        shm.Resume();
+        shm.Read() & hist;
+    }
 
     pulse++;
     return conn_timer.StopWatch();

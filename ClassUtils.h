@@ -116,11 +116,11 @@ public:
 //  Raw Buffer  ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+typedef unsigned char byte_t;
 
 // WARNING: keep endianes in mind, this works only within the same machine //
 struct RawBuffer {
 
-    typedef unsigned char byte_t;
 
     template < typename T >
     friend RawBuffer & operator << (RawBuffer &r, const T &data) {
@@ -158,9 +158,6 @@ struct RawBuffer {
 
 class SerializeToBin
 {
-
-    typedef unsigned char byte_t;
-
 
     ///
     /// \brief The pod struct
@@ -313,15 +310,20 @@ public:
     const _Read  & Read()  { return m_read; }
 
 
+    byte_t * GetBinary() const { return m_buf; }
 
+    void Clear() { m_pods.clear(); /*this->ClearBuffer(); */}
+
+    /// push into contiguous memory segment
     void Store() {
-        // push into contiguous memory segment //
+        // allocate buffer //
         size_t tot_len = 0;
         for(std::deque<pod>::iterator it=m_pods.begin(); it<m_pods.end();++it)
             tot_len += it->len + sizeof(size_t);
 
-        if(m_buf) delete m_buf;
-        m_buf = new byte_t[tot_len];
+        AllocateBuffer(tot_len);
+
+        // fill memory segment //
         byte_t *pos = m_buf;
         for(std::deque<pod>::iterator it=m_pods.begin(); it<m_pods.end();++it) {
             memcpy(pos,&it->len,sizeof(size_t));
@@ -331,13 +333,10 @@ public:
         }
         m_pods.clear();
         m_buf_size = tot_len;
-        resume();
+        Resume();
     }
 
-
-protected:
-
-    void resume() {
+    void Resume() {
         // read memory back into pods //
         byte_t *pos = m_buf;
         byte_t *end = m_buf + m_buf_size;
@@ -350,6 +349,19 @@ protected:
             push( p );
         }
     }
+
+protected:
+
+    virtual void ClearBuffer() {
+        if(m_buf) delete[] m_buf;
+        m_buf = NULL;
+    }
+
+    virtual void AllocateBuffer(size_t size) {
+        ClearBuffer();
+        m_buf = new byte_t[size];
+    }
+
 
     void push(const pod &p) {
         m_pods.push_back(p);
@@ -367,6 +379,7 @@ private:
     _Write m_write;
     _Read  m_read;
 
+protected:
     byte_t *m_buf;
     size_t m_buf_size;
 };
@@ -387,23 +400,27 @@ class SerializeToShm : public SerializeToBin
 {
 
 public:
-    SerializeToShm() : m_shm(0) {}
+    SerializeToShm() {}
 
-    ~SerializeToShm() { if (m_shm) Free(); }
+    ~SerializeToShm() { ClearBuffer(); }
 
 
-    void Alloc(size_t size) {
+    void AllocateBuffer(size_t size) {
+        if(m_buf) return;
+
         int shm_id = shmget(IPC_PRIVATE, size, SHM_R|SHM_W);
-        if(shm_id<0) return;
+        if(shm_id<0) throw new std::bad_alloc;
 
-        void *shm = shmat(shm_id,NULL,0);
-        m_shm = shm;
+        m_buf = (byte_t *)shmat(shm_id,NULL,0);
+        m_buf_size = size;
     }
 
-    void Free() {
-        if (m_shm) shmdt(m_shm);
-        m_shm = NULL;
+    void ClearBuffer() {
+        if (m_buf) shmdt(m_buf);
+        m_buf = NULL;
     }
+
+
 
 private:
 
@@ -458,7 +475,7 @@ private:
 
 private:
 
-    void *m_shm;
+
 };
 
 
@@ -476,7 +493,7 @@ template < class Archive >
 void serialize(Archive &ar, std::string &str) {
     RawBuffer data;
     if(ar.is_writing()) {    
-        for(size_t i=0;i<str.length()+1;++i) {
+        for(size_t i=0;i<str.length();++i) {
             data.m_data.push_back( str.c_str()[i] );
         }
         serialize( ar, data );
@@ -484,7 +501,7 @@ void serialize(Archive &ar, std::string &str) {
     else {
         serialize( ar, data );
         std::stringstream ss;
-        while ( data.size()-1 ) {
+        while ( data.size() ) {
             char c;
             data >> c;
             ss << c;

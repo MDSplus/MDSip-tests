@@ -70,8 +70,11 @@ int segment_size_testMP(size_t size_KB,
         // total connection time.
         speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
 
-        // conn.StartConnection();
-        // speed << ((double)tot_size)/1024 / conn.GetTotalTime();
+        //        conn.StartConnection();
+        //        Channel *ch = channels[0];
+        //        TestConnection::TimeHistogram &h = conn.GetChannelTimes(ch);
+        //        std::cout << "----> " << h << "\n";
+        //        speed << ((double)tot_size)/ 1024 / conn.GetTotalTime() * nch;
     }
 
     std::cout << "--- connection segment size: " << size_KB << " [KB] ";
@@ -90,11 +93,11 @@ int segment_size_testMP(size_t size_KB,
 
 
 
-int _main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     static const int n_channels = 4;
-    static const int seg_step   = 32;
-    static const int seg_max    = 1024;
+    static const int seg_step   = 3200;
+    static const int seg_max    = 102400;
 
     std::vector<Curve2D> speeds;
     std::vector<Curve2D> speed_errors;
@@ -109,8 +112,8 @@ int _main(int argc, char *argv[])
         for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
         {
             unsigned int seg_size = seg_step*(sid+1);
-            Histogram<double> sph("test_segment_size",40,0,2);
-            segment_size_testMP(seg_size,sph,nch);
+            Histogram<double> sph("test_segment_size",40,0,30);
+            segment_size_testMP(seg_size,sph,nch,102400);
 
             Curve2D &speed = speeds.back();
             Curve2D &speed_error = speed_errors.back();
@@ -245,13 +248,10 @@ int test_ser(int argc, char *argv[])
         ob2.p << 0,0;
         ob2.str = "no";
 
-
         sr.Read() & ob;
 
         std::cout << ob << "\n";
         std::cout << ob2 << "\n";
-
-
 
     }
 
@@ -261,7 +261,7 @@ int test_ser(int argc, char *argv[])
 }
 
 
-int test_histogram_serialization(int argc, char *argv[])
+int test_histogram_serialization()
 {
     Histogram<float> h("test",40,0,10);
     for (int i=0; i<100000; ++i) {
@@ -273,8 +273,16 @@ int test_histogram_serialization(int argc, char *argv[])
     sr.Write() & h;
     sr.Store();
 
+
     h.Clear();
-    h.SetName("error");
+    h << 5 << 6 << 7;
+    //    h.SetName("error");
+
+    sr.Clear();
+    sr.Write() & h;
+    sr.Store();
+
+    h.Clear();
 
     sr.Read() & h;
     std::cout << h.GetName() << " " << h << "\n";
@@ -285,11 +293,23 @@ int test_histogram_serialization(int argc, char *argv[])
 
 
 
-int main(int argc, char *argv[])
+int test_shm_serialize(int argc, char *argv[])
 {
-    SerializeToShm sh;
+    Histogram<float> h("test",40,0,10);
+    for (int i=0; i<100000; ++i) {
+        float data = box_muller(0) + 5;
+        h << data;
+    }
 
+    SerializeToShm sr;
+    sr.Write() & h;
+    sr.Store();
 
+    h.Clear();
+    h.SetName("error");
+
+    sr.Read() & h;
+    std::cout << h.GetName() << " " << h << "\n";
 
     return 0;
 }
