@@ -12,7 +12,7 @@ TESTS = BuildTest
 # TEST =
 # endif
 
-LDADD = $(top_builddir)/libMDSipTest.la
+LDADD = ../libMDSipTest.la
 
 check_PROGRAMS = $(TESTS)
 
