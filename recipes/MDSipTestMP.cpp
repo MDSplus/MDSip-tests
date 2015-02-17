@@ -112,9 +112,7 @@ Point2D<double> segment_size_troughput(size_t size_KB,
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         // << FIX: server name is hard coded !
-        //        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
-        Channel *ch = Channel::NewTC(size_KB,"rat.rfx.local:8200");
-        channels.push_back(ch);
+        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
         conn.AddChannel(functions[i],channels[i]);
         // conn.ChannelTime(ch) = time; // set the same time for all channels //
     }
@@ -141,8 +139,6 @@ Point2D<double> segment_size_troughput(size_t size_KB,
         time(1) += time_h.VarianceAll();
         speed(0) += speed_h.MeanAll();
         speed(1) += speed_h.VarianceAll();
-        delete channels[i];
-        delete functions[i];
     }
     time(0) /= nch;
     time(1) = sqrt( time(1)/nch );

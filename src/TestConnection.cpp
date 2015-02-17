@@ -228,8 +228,11 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer timer;
-        TestConnection::TimeHistogram &hist = m_connection->ChannelTime(m_channel);
+        Timer timer;        
+        TestConnection::TimeHistogram &time = m_connection->ChannelTime(m_channel);
+        TestConnection::TimeHistogram &speed = m_connection->ChannelSpeed(m_channel);
+        time.Clear();
+        speed.Clear();
 
         m_channel->Open(m_connection->GetTreeName().c_str());
 
@@ -240,7 +243,10 @@ public:
             m_content->GetNextElement(m_channel->Size(), el);
             timer.Start();
             m_channel->PutSegment(el);
-            hist << timer.StopWatch();
+            double t = timer.StopWatch();
+            time << t;
+            speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
+            // FIX: the actual size of el may not be of this size //
         }
 
         m_channel->Close();
@@ -281,7 +287,12 @@ void TestConnectionMT::ClearChannels()
     BaseClass::ClearChannels();
 }
 
-
+///
+/// \brief TestConnectionMT::StartConnection
+/// \return the total time of connection (comprise of open channel time)
+///
+/// Main Test Connection MT routine
+///
 double TestConnectionMT::StartConnection()
 {
     static int pulse = 1;
@@ -297,8 +308,8 @@ double TestConnectionMT::StartConnection()
     delete m_tree;
 
 
-    Timer time;
-    time.Start();
+    Timer conn_timer;
+    conn_timer.Start();
 
     for(size_t i=0; i<m_threads.size(); ++i) {
         Thread * thread = m_threads.at(i);
@@ -310,11 +321,8 @@ double TestConnectionMT::StartConnection()
         thread->WaitForThreadToExit();
     }
 
-    double timeSec = time.StopWatch();
-    //std::cout << "Total connection time: " << timeSec << "\n";
-
     pulse++;
-    return timeSec;
+    return conn_timer.StopWatch();
 }
 
 
