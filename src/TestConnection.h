@@ -19,7 +19,7 @@
 
 class Channel {
 
-    typedef Histogram<double> TimeHistogram;
+    //    typedef Histogram<double> TimeHistogram;
 
 public:
     virtual ~Channel() {}
@@ -64,6 +64,7 @@ public:
         m_channels.push_back(chn);
         m_contents.push_back(cnt);
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,5);
+        m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,5);
 
         this->m_tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL"); // FIX
         m_tree->write();        
@@ -72,13 +73,16 @@ public:
     virtual void ClearChannels() {
         m_channels.clear();
         m_chtimes.clear();
+        m_chspeed.clear();
     }
 
     mds::Tree * GetTree() const { return m_tree; }
 
     std::string GetTreeName() { return m_tname.name; }
 
-    TimeHistogram & GetChannelTimes(Channel *ch) { return m_chtimes[ch]; }
+    TimeHistogram & ChannelTime(Channel *ch) { return m_chtimes[ch]; }
+
+    TimeHistogram & ChannelSpeed(Channel *ch) { return m_chspeed[ch]; }
 
     void ResetTimes();
 
@@ -97,6 +101,7 @@ protected:
     std::vector<Channel *> m_channels;
     std::vector<Content *> m_contents;
     std::map< Channel *, TimeHistogram > m_chtimes;
+    std::map< Channel *, TimeHistogram > m_chspeed;
 };
 
 

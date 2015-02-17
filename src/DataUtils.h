@@ -226,7 +226,7 @@ public:
 
     void Clear() {
         m_min = m_max = m_sum = 0;
-        m_stat = StatUtils::IncrementalOrder2();
+        m_stat.clear();
     }
 
     T Max() const { return m_max; }
@@ -319,6 +319,7 @@ public:
 
     inline size_t operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
 
+
     double Mean() const { return m_stat.mean(); }
 
     double MeanAll() const { return BaseClass::Mean(); }
@@ -329,8 +330,7 @@ public:
 
     double Rms() const { return m_stat.rms(); }
 
-    double RmsAll() const { return BaseClass::Rms(); }
-
+    double RmsAll() const { return BaseClass::Rms(); }    
 
     void PrintSelf(std::ostream &o, const char _c = ';') const {
         o << "Histogram" << _c << this->m_value_name << "\n";
@@ -386,6 +386,19 @@ public:
         plot.PrintSelf(o,_c);
         return o;
     }
+
+
+    //    friend Histogram merge(const Histogram &h1, const Histogram &h2) {
+    //        // TODO: add assertions ... //
+    //        Histogram out = h1;
+    //        for(unsigned int i=0; i<h1.BinSize(); ++i) {
+    //            out.m_bins[i] += h2.m_bins[i];
+    //        }
+    //        out.BaseClass::Clear();
+    //        out.m_stat.clear();
+    //        out.m_underf += h2.m_underf;
+    //        out.m_overf += h2.m_overf;
+    //    }
 
     template < class Archive >
     friend void serialize(Archive &ar, Histogram &h) {

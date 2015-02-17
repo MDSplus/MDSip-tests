@@ -92,15 +92,13 @@ public:
     void ResetSize(size_t size_KB);
 
 private:
-    //    mds::Mutex & mutex() const { return *m_mutex; }
 
     size_t m_size;
     float  m_sample_time; // seconds
     size_t m_current_sample;
     GenFunction m_func;
 
-    //    mds::Mutex *m_mutex;
-    mds::Tree  *m_subtree;
+    mds::Tree  *m_subtree; // not used at the moment //
 };
 
 

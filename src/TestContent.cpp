@@ -12,15 +12,17 @@
 using namespace MDSplus;
 
 
+// UNARY GENERATORS //
+
 static inline double _box_muller(double x) {
     (void)x;
-    return box_muller();
+    return StatisticGen::boxMuller();
 }
 
 
 static inline double _noise_white(double x) {
     (void)x;
-    return noise_white();
+    return StatisticGen::noiseWhite();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

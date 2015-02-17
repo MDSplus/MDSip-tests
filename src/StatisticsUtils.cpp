@@ -5,10 +5,10 @@
 #include "StatisticsUtils.h"
 
 
-double box_muller()
+double StatisticGen::boxMuller(const double mean, const double sigma)
 {
-    static const double mean = 0;
-    static const double sigma = 1;
+    //    static const double mean = 0;
+    //    static const double sigma = 1;
 
     float x1, x2, w, y1;
     static double y2;
@@ -36,7 +36,7 @@ double box_muller()
 }
 
 
-double noise_white() {
+double StatisticGen::noiseWhite()
+{
     return (double)rand() / RAND_MAX;
 }
-

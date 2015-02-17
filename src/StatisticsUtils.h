@@ -15,10 +15,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-double box_muller();
+class StatisticGen {
+public:
 
-double noise_white();
+    static double boxMuller(const double mean = 0, const double sigma = 1);
 
+    static double noiseWhite();
+
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,6 +89,8 @@ public:
         m_mean += delta/m_count;
         m_M2 += delta*(data - m_mean);
     }
+
+    void clear() { *this = incremental_statistic(); }
 
     size_t size() const { return m_count; }
 

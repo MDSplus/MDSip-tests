@@ -485,17 +485,19 @@ void serialize(Archive &ar, std::vector<T> &cnt) {
 }
 
 
+namespace std {
+
 template < typename T >
-inline std::ostream &
-operator << (std::ostream &o, const std::vector<T> &v) {
-    typedef typename std::vector<T>::const_iterator iterator;
+inline ostream &
+operator << (ostream &o, const vector<T> &v) {
+    typedef typename vector<T>::const_iterator iterator;
     for(iterator it = v.begin(); it < v.end(); ++it) {
         o << *it << " ";
     }
     return o;
 }
 
-
+} // std
 
 
 #endif // CLASSUTILS_H
