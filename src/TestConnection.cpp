@@ -70,6 +70,11 @@ double TestConnection::GetWorstChannelTime()
     return time;
 }
 
+double TestConnection::GetMeanChannelTime()
+{
+    return GetTotalTime() / m_chtimes.size();
+}
+
 
 
 

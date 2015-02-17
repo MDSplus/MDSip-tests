@@ -44,6 +44,9 @@ AC_PROG_CXX
 #AS_IF([test HAVE_GEANT4=1],[AC_DEFINE([HAVE_GEANT4],[1],[])] )
 
 ######### LIBTOOL ########################################
+
+AM_PROG_CC_C_O
+
 AC_PROG_LIBTOOL
 LIBADD_DL="-ldl"
 AC_SUBST(LIBADD_DL)

@@ -1,4 +1,5 @@
-SUBDIRS = . testing
+SUBDIRS = .
+# testing
 
 include $(top_srcdir)/Common.am
 

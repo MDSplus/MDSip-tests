@@ -62,7 +62,7 @@ int segment_size_testMP(size_t size_KB,
     Accumulator<double> tot_speed("overall speed");
 
     for(int i=0; i<10; ++i) {
-        std::cout << "connecting: -> " << std::flush;
+        std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
 
         for(unsigned int i=0; i<functions.size(); ++i)
             functions[i]->ResetSize(tot_size); // reset time of generator //
@@ -74,7 +74,8 @@ int segment_size_testMP(size_t size_KB,
         //        speed << ((double)tot_size) / 1024 / conn.StartConnection() * nch;
 
         double tot_time = conn.StartConnection();
-        double cnx_time = conn.GetWorstChannelTime();
+        // double cnx_time = conn.GetWorstChannelTime();
+        double cnx_time = conn.GetMeanChannelTime();
         tot_speed << ((double)tot_size) / 1024 / tot_time * nch;
         speed << ((double)tot_size) / 1024 / cnx_time * nch;
     }
@@ -95,7 +96,7 @@ int segment_size_testMP(size_t size_KB,
 
 
 
-Point2D<double> segment_size_troughput(size_t size_KB,
+Point2D<double> segment_size_troughputMP(size_t size_KB,
                                        int nch = 1,
                                        int nseg = 50)
 {
@@ -112,9 +113,9 @@ Point2D<double> segment_size_troughput(size_t size_KB,
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         // << FIX: server name is hard coded !
-        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        //        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        channels.push_back( Channel::NewTC(size_KB,"rat.rfx.local:8200") );
         conn.AddChannel(functions[i],channels[i]);
-        // conn.ChannelTime(ch) = time; // set the same time for all channels //
     }
 
 
@@ -158,7 +159,7 @@ Point2D<double> segment_size_troughput(size_t size_KB,
 int main(int argc, char *argv[])
 {
     static const int n_channels = 4;
-    static const int seg_step   = 8;
+    static const int seg_step   = 128;
     static const int seg_max    = 128;
 
     std::vector<Curve2D> speeds;
@@ -171,33 +172,39 @@ int main(int argc, char *argv[])
         speeds.push_back(Curve2D(curve_name.str().c_str()));
         curve_name << "_err";
         speed_errors.push_back(Curve2D(curve_name.str().c_str()));
+
+        // 1 //
+        if( false )
+        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
+        {
+            unsigned int seg_size = seg_step*(sid+1);
+            Histogram<double> sph("test_segment_size",50,0,5);
+            segment_size_testMP(seg_size,sph,nch);
+
+            Point2D<double> pt;
+            Curve2D &speed = speeds.back();
+            Curve2D &speed_error = speed_errors.back();
+
+            pt << seg_size,sph.MeanAll();
+            speed.AddPoint(pt);
+            pt << seg_size,sph.RmsAll();
+            speed_error.AddPoint(pt);
+        }
+
+        // 2 //
+        if( true )
         for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
         {
             unsigned int seg_size = seg_step*(sid+1);
             Point2D<double> pt;
-            pt = segment_size_troughput(seg_size,nch);
+            pt = segment_size_troughputMP(seg_size,nch);
 
             Curve2D &speed = speeds.back();
             Curve2D &speed_error = speed_errors.back();
-            speed.AddPoint(pt);
-            speed_error.AddPoint(pt);
+
+            speed.AddPoint( Point2D<double>(seg_size,pt(0)) );
+            speed_error.AddPoint( Point2D<double>(seg_size,pt(1)) );
         }
-
-        //        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
-        //        {
-        //            unsigned int seg_size = seg_step*(sid+1);
-        //            Histogram<double> sph("test_segment_size",40,0,30);
-        //            segment_size_testMP(seg_size,sph,nch);
-
-        //            Point2D<double> pt;
-        //            Curve2D &speed = speeds.back();
-        //            Curve2D &speed_error = speed_errors.back();
-
-        //            pt << seg_size,sph.MeanAll();
-        //            speed.AddPoint(pt);
-        //            pt << seg_size,sph.RmsAll();
-        //            speed_error.AddPoint(pt);
-        //        }
 
     }
 

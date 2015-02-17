@@ -90,6 +90,8 @@ public:
 
     double GetWorstChannelTime();
 
+    double GetMeanChannelTime();
+
     void PrintChannelTimes(std::ostream &o);
 
 
