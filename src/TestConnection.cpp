@@ -157,7 +157,8 @@ private:
 class ChannelTC : public Channel {
 public:
     ChannelTC(int size, const char *addr) :
-        m_cnx((char *)addr),
+        //        m_cnx((char *)addr),
+        m_cnx(0),
         m_addr(addr),
         m_size(size)
     {}
@@ -167,11 +168,17 @@ public:
     }
 
     void Open(const char *tree) {
-        m_cnx.openTree((char*)tree, 0); // not use 0 cos a race in mdsplus default id
+        if(m_cnx) Close();
+        m_cnx = new mds::Connection((char *)m_addr.c_str());
+        m_cnx->openTree((char*)tree, 0); // not use 0 cos a race in mdsplus default id
     }
 
     void Close() {
-        m_cnx.closeAllTrees();        
+        if(m_cnx) {
+            m_cnx->closeAllTrees();
+            delete m_cnx;
+            m_cnx = NULL;
+        }
     }
 
     void PutSegment(Content::Element &el) /*const*/ {
@@ -186,7 +193,7 @@ public:
         args[5] = new Int32(el.data->getSize());
 
         // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-        m_cnx.get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
+        m_cnx->get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
         // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
         //        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
 
@@ -198,7 +205,7 @@ public:
     size_t Size() const { return m_size; }
 
 private:
-    mds::Connection m_cnx;
+    mds::Connection *m_cnx;
     std::string m_tree_name;
     std::string m_addr;
     size_t m_size;
@@ -382,66 +389,108 @@ double TestConnectionMP::StartConnection()
     // TOTAL CONNECTION TIMER //
     Timer conn_timer; conn_timer.Start();
 
-    // SHARED MEMORY TIMINGS SERIALIZATION //
-    for(unsigned int i = 0; i < m_pids.size(); ++i) {
-        Channel *channel = this->m_channels[i];
+
+
+    if(m_pids.size() == 1)
+    {
+
+        Channel *channel = this->m_channels[0];
+        Content *content = this->m_contents[0];
+
+        Timer timer;
+
         TimeHistogram &time = this->ChannelTime(channel);
         TimeHistogram &speed = this->ChannelSpeed(channel);
-        SerializeToShm &shm = g_shm_timings[i];
-        shm.Write() & time & speed;
-        shm.Store();
-    }
 
-    for(unsigned int i = 0; i < m_pids.size(); ++i)
-    {
-        if( (m_pids[i] = fork()) == 0 )
+        channel->Open(this->GetTreeName().c_str());
+
+        while (  content->GetSize() > 0 )
         {
-            if(i >= m_channels.size() || i >= m_contents.size()) exit(0);
+            Content::Element el;
+            content->GetNextElement(channel->Size(), el);
+            timer.Start();
+            channel->PutSegment(el);
+            double t = timer.StopWatch();
+            std::cout << "." << std::flush;
+            time << t;
+            speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+            // FIX: the actual size of el may not be of this size //
+        }
 
+        std::cout << "\n";
+
+        channel->Close();
+    }
+    else
+    {
+        // SHARED MEMORY TIMINGS SERIALIZATION //
+        for(unsigned int i = 0; i < m_pids.size(); ++i) {
             Channel *channel = this->m_channels[i];
-            Content *content = this->m_contents[i];
-            Timer timer;
-
             TimeHistogram &time = this->ChannelTime(channel);
             TimeHistogram &speed = this->ChannelSpeed(channel);
-            SerializeToShm &shm = g_shm_timings[i];            
-            time.Clear();
-            speed.Clear();
-
-            channel->Open(this->GetTreeName().c_str());
-
-            while (  content->GetSize() > 0 )
-            {
-                Content::Element el;
-                content->GetNextElement(channel->Size(), el);                
-                timer.Start();
-                channel->PutSegment(el);
-                double t = timer.StopWatch();
-                time << t;
-                speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
-                // FIX: the actual size of el may not be of this size //
-            }            
-
-            shm.Clear();
+            SerializeToShm &shm = g_shm_timings[i];
             shm.Write() & time & speed;
             shm.Store();
-
-            channel->Close();
-            exit(0);
         }
-    }
-    for(unsigned int i = 0; i < m_pids.size(); ++i)
-        waitpid(m_pids[i], NULL, 0);
 
-    for(unsigned int i = 0; i < m_pids.size(); ++i) {
-        Channel *channel = this->m_channels[i];
-        TimeHistogram &time = this->ChannelTime(channel);
-        TimeHistogram &speed = this->ChannelSpeed(channel);
-        SerializeToShm &shm = g_shm_timings[i];
-        shm.Resume();
-        shm.Read() & time & speed;
-        shm.Clear();
-    }
+        for(unsigned int i = 0; i < m_pids.size(); ++i)
+        {
+
+            if( (m_pids[i] = fork()) == 0 )
+            {
+                if(i >= m_channels.size() || i >= m_contents.size()) exit(0);
+
+                Channel *channel = this->m_channels[i];
+                Content *content = this->m_contents[i];
+                Timer timer;
+
+                TimeHistogram &time = this->ChannelTime(channel);
+                TimeHistogram &speed = this->ChannelSpeed(channel);
+                SerializeToShm &shm = g_shm_timings[i];
+                time.Clear();
+                speed.Clear();
+
+
+
+                channel->Open(this->GetTreeName().c_str());
+
+                while (  content->GetSize() > 0 )
+                {
+                    Content::Element el;
+                    content->GetNextElement(channel->Size(), el);
+                    timer.Start();
+                    channel->PutSegment(el);
+                    double t = timer.StopWatch();
+                    std::cout << "." << std::flush;
+                    time << t;
+                    speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+                    // FIX: the actual size of el may not be of this size //
+                }
+
+                std::cout << "\n";
+
+                shm.Clear();
+                shm.Write() & time & speed;
+                shm.Store();
+
+                channel->Close();
+                exit(0);
+            }
+        }
+        for(unsigned int i = 0; i < m_pids.size(); ++i)
+            waitpid(m_pids[i], NULL, 0);
+
+        for(unsigned int i = 0; i < m_pids.size(); ++i) {
+            Channel *channel = this->m_channels[i];
+            TimeHistogram &time = this->ChannelTime(channel);
+            TimeHistogram &speed = this->ChannelSpeed(channel);
+            SerializeToShm &shm = g_shm_timings[i];
+            shm.Resume();
+            shm.Read() & time & speed;
+            shm.Clear();
+        }
+
+    } // END MULTIPLE PIDS //
 
     pulse++;
     return conn_timer.StopWatch();

@@ -6,7 +6,8 @@ include $(top_srcdir)/Common.am
 TESTS = \
  BuildTest \
  SerializeToBinTest \
- SerializeToShmTest
+ SerializeToShmTest \
+ TreeUtilsTest
 
 
 # UuidTest

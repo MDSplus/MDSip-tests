@@ -31,3 +31,4 @@ Makefile.am
 README.md
 src/testing/SerializeToShmTest.cpp
 src/ClassUtils.cpp
+src/testing/TreeUtilsTest.cpp

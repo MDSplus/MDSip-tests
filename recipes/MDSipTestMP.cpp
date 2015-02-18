@@ -38,10 +38,10 @@ using namespace MDSplus;
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-int segment_size_testMP(size_t size_KB,
-                        Histogram<double> &speed,
-                        int nch = 1,
-                        size_t tot_size = 1024)
+int segment_size_throughput1MP(size_t size_KB,
+                               Histogram<double> &speed,
+                               int nch = 1,
+                               size_t tot_size = 1024)
 {
     std::vector<ContentFunction *> functions; // function generators //
     std::vector<Channel *>         channels;  // forked channels //
@@ -95,10 +95,20 @@ int segment_size_testMP(size_t size_KB,
 
 
 
-
-Point2D<double> segment_size_troughputMP(size_t size_KB,
-                                       int nch = 1,
-                                       int nseg = 50)
+///
+/// \param size_KB size of segment to be sent
+/// \param nch number of forked channels (sine) to be used
+/// \param nseg total number of segment per channel
+/// \return mean and rms of average speed for all channels togheter
+///
+/// Test for segment size in Multi Process using Thin Client connection.
+/// In histogram a value of equivalent data troughput is added in MB/s
+/// This is not the actual line speed becouse reflects the time to sent actual
+/// data into the channel.
+///
+Point2D<double> segment_size_throughput2MP(size_t size_KB,
+                                           int nch = 1,
+                                           int nseg = 50)
 {
 
     TestConnectionMP conn("test_size");
@@ -114,7 +124,7 @@ Point2D<double> segment_size_troughputMP(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         // << FIX: server name is hard coded !
         //        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
-        channels.push_back( Channel::NewTC(size_KB,"rat.rfx.local:8200") );
+        channels.push_back( Channel::NewTC(size_KB,"udt://rat.rfx.local:8200") );
         conn.AddChannel(functions[i],channels[i]);
     }
 
@@ -179,7 +189,7 @@ int main(int argc, char *argv[])
         {
             unsigned int seg_size = seg_step*(sid+1);
             Histogram<double> sph("test_segment_size",50,0,5);
-            segment_size_testMP(seg_size,sph,nch);
+            segment_size_throughput1MP(seg_size,sph,nch);
 
             Point2D<double> pt;
             Curve2D &speed = speeds.back();
@@ -197,7 +207,7 @@ int main(int argc, char *argv[])
         {
             unsigned int seg_size = seg_step*(sid+1);
             Point2D<double> pt;
-            pt = segment_size_troughputMP(seg_size,nch);
+            pt = segment_size_throughput2MP(seg_size,nch);
 
             Curve2D &speed = speeds.back();
             Curve2D &speed_error = speed_errors.back();

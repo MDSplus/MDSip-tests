@@ -1,5 +1,5 @@
 SUBDIRS = .
-# testing
+#testing
 
 include $(top_srcdir)/Common.am
 
