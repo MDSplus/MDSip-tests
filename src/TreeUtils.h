@@ -51,60 +51,57 @@ public:
         }
     }
 
-    bool Create(const TreeName &tn) throw() {
-        try {
-            m_tn = tn;
-            SetEnvPath(m_tn);
-            m_tree = new mds::Tree(m_tn.name.c_str(),-1,"NEW");
+//    bool CreateDC(const TreeName &tn) {
+//        m_tn = tn;
+//        SetEnvPath(m_tn);
+//        m_tree = new mds::Tree(m_tn.name.c_str(),-1,"NEW");
 
-            m_tree->write();
-            delete m_tree;
-            m_tree = NULL;
-        } catch (mds::MdsException e) {
-            return false;
-        }
-        return true;
-    }
+//        m_tree->write();
+//        delete m_tree;
+//        m_tree = NULL;
+//    }
 
-    bool Create(const char *tree_path) {
-        return this->Create(GetTreeName(tree_path));
-    }
+//    bool Create(const char *tree_path) {
+//        return this->Create(GetTreeName(tree_path));
+//    }
 
-    int CreatePulse() {
-        if(!m_tree) return false;
-        else { m_tree->createPulse(m_pulse++); }
-    }
+//    int CreatePulse() {
+//        if(!m_tree) return false;
+//        else { m_tree->createPulse(m_pulse++); }
+//    }
 
+//    bool Open(const TreeName &tn, int shot = 1) {
+//        if(m_tree) Close();
 
-    bool Open(const TreeName &tn, int shot = 1) {
-        if(m_tree) Close();
+//        Create(tn);
+//        try {
+//            m_tree = new mds::Tree(tn.name.c_str(),shot);
+//            m_tn = tn;
+//        } catch (mds::MdsException e) {
+//            // try to create and recursively open //
+//            if(! Create(tn) ) return false;
+//            else return Open(tn);
+//        }
+//        m_pulse = shot;
+//        return true;
+//    }
 
-        Create(tn);
-        try {
-            m_tree = new mds::Tree(tn.name.c_str(),shot);
-            m_tn = tn;
-        } catch (mds::MdsException e) {
-            // try to create and recursively open //
-            if(! Create(tn) ) return false;
-            else return Open(tn);
-        }
-        m_pulse = shot;
-        return true;
-    }
-
-    bool Open(const char *tree_path, int shot = 1) {
-        return this->Open(GetTreeName(tree_path),shot);
-    }
+//    bool Open(const char *tree_path, int shot = 1) {
+//        return this->Open(GetTreeName(tree_path),shot);
+//    }
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+private:
+    mds::Tree *m_tree;
+    TreeName   m_tn;
+    int m_pulse;
 
 
 
 
-
-
+public:
 
     friend std::ostream &
     operator << (std::ostream &o, const TreeName &tn) {
@@ -145,10 +142,6 @@ public:
 
     static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);
 
-private:
-    mds::Tree *m_tree;
-    TreeName   m_tn;
-    int m_pulse;
 
 };
 
