@@ -19,7 +19,7 @@ class TestTree
 public:
     struct TreeName;
 
-    static TreeName GetTreeName(const std::string str);
+    static TreeName GetTreeName(std::string str);
     static std::string GetTreePath(const TreeName &tn);
 
 public:
@@ -27,10 +27,12 @@ public:
         std::string name;
         std::string server;
         std::string port;
+        std::string protocol;
 
         TreeName() {}
         TreeName(const char *tree_path) { *this = GetTreeName(tree_path); }
-        operator std::string() { return GetTreePath(*this); }
+        operator std::string () { return GetTreePath(*this); }
+
     };
 
 
@@ -41,71 +43,65 @@ public:
 
     TestTree() : m_tree(NULL) , m_pulse(0) {}
 
+    TestTree(const char *name) : m_tn(name), m_tree(NULL) , m_pulse(0) {
+        // if env take server and port from it //
+        if( char * env_path = GetEnvPath(m_tn) ) {
+            std::cout << "taking target from env variable: " << env_path << "\n";
+            m_tn = env_path;
+        }
+        SetEnvPath(m_tn);
+    }
+
     ~TestTree() { Close(); }
 
     void Close() {
-        if(m_tree) {
-            UnsetEnvPath(m_tn);
+        if(m_tree) {            
             delete m_tree;
             m_tree = NULL;
         }
     }
 
-//    bool CreateDC(const TreeName &tn) {
-//        m_tn = tn;
-//        SetEnvPath(m_tn);
-//        m_tree = new mds::Tree(m_tn.name.c_str(),-1,"NEW");
+    mds::Tree * Create() {
 
-//        m_tree->write();
-//        delete m_tree;
-//        m_tree = NULL;
-//    }
+        // DC connection to create tree //
+        mds::Tree * tree = new mds::Tree(m_tn.name.c_str(),-1,"NEW");
+        tree->write();
+        delete tree;
 
-//    bool Create(const char *tree_path) {
-//        return this->Create(GetTreeName(tree_path));
-//    }
+    }
 
-//    int CreatePulse() {
-//        if(!m_tree) return false;
-//        else { m_tree->createPulse(m_pulse++); }
-//    }
+    int CreatePulse() {
 
-//    bool Open(const TreeName &tn, int shot = 1) {
-//        if(m_tree) Close();
+        // DC create pulse //
+        unique_ptr<mds::Tree> tree = this->Open(-1);
+        tree->createPulse(++m_pulse); // create from model //
+        return m_pulse;
+    }
 
-//        Create(tn);
-//        try {
-//            m_tree = new mds::Tree(tn.name.c_str(),shot);
-//            m_tn = tn;
-//        } catch (mds::MdsException e) {
-//            // try to create and recursively open //
-//            if(! Create(tn) ) return false;
-//            else return Open(tn);
-//        }
-//        m_pulse = shot;
-//        return true;
-//    }
+    mds::Tree * Open(int shot = 0) {
+        return new mds::Tree(m_tn.name.c_str(),shot);
+    }
 
-//    bool Open(const char *tree_path, int shot = 1) {
-//        return this->Open(GetTreeName(tree_path),shot);
-//    }
+    mds::Tree * Edit(int shot = -1) {
+        return new mds::Tree(m_tn.name.c_str(),shot,"EDIT");
+    }
+
+
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-private:
-    mds::Tree *m_tree;
-    TreeName   m_tn;
-    int m_pulse;
 
 
-
-
-public:
 
     friend std::ostream &
     operator << (std::ostream &o, const TreeName &tn) {
         return o << GetTreePath(tn);
+    }
+
+    static char * GetEnvPath(const TreeName &tn) {
+        std::string env_name = std::string(tn.name) + "_path";
+        return FileUtils::GetEnv(env_name.c_str());
     }
 
     static void SetEnvPath(const TreeName &tn) {
@@ -117,7 +113,6 @@ public:
         std::string env_name = std::string(tn.name) + "_path";
         FileUtils::UnsetEnv( env_name.c_str() );
     }
-
 
 
     static mds::Tree * CreateTree(const char *name) {
@@ -135,13 +130,16 @@ public:
         return new mds::Tree(name,shot,"EDIT");
     }
 
-    static std::string GetRootFromName(const char *tree_name) {
+    static std::string GetRootFromPath(const char *tree_name) {
         return std::string("\\") + std::string(tree_name) + "::TOP";
     }
 
-
     static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);
 
+private:
+    mds::Tree *m_tree;
+    TreeName   m_tn;
+    int m_pulse;
 
 };
 

@@ -28,6 +28,7 @@ public:
     static Channel * NewTC(int size_KB, const char *addr = "localhost");
 
     virtual void Open(const char *tree) = 0;
+
     virtual void Close() = 0;
 
     virtual size_t Size() const = 0;

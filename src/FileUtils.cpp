@@ -42,12 +42,13 @@ void FileUtils::CreateDir(const char *name, const char *path)
     }
 }
 
+///
+/// \return NULL if doesn't exist
+///
 char * FileUtils::GetEnv(const char *name)
 {
     return getenv(name);
 }
-
-
 
 ///
 /// \brief FileUtils::SetEnv

@@ -123,7 +123,7 @@ Point2D<double> segment_size_throughput2MP(size_t size_KB,
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         // << FIX: server name is hard coded !
-        //        channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
+        // channels.push_back( Channel::NewTC(size_KB,"localhost:8000") );
         channels.push_back( Channel::NewTC(size_KB,"udt://rat.rfx.local:8200") );
         conn.AddChannel(functions[i],channels[i]);
     }
@@ -136,7 +136,6 @@ Point2D<double> segment_size_throughput2MP(size_t size_KB,
     conn.ResetTimes();                           // reset per channel distributions //
 
     double tot_time = conn.StartConnection();
-
 
     std::cout << "CHANNELS TIMES:\n";
     Point2D<double> time, speed;

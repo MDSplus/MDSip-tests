@@ -106,9 +106,14 @@ public:
     unique_ptr(unique_ptr &other) : ptr(other.ptr)
     { other.ptr = NULL; }
 
+    unique_ptr(const unique_ptr &other) : ptr(other.ptr)
+    { const_cast<unique_ptr&>(other).ptr = NULL; }
+
     unique_ptr(T *ref) : ptr(ref) {}
 
     ~unique_ptr() { if(ptr) delete ptr; }
+
+    operator bool() { return ptr; }
 
     T * operator ->() { return ptr; }
     const T * operator ->() const { return ptr; }

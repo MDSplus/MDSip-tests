@@ -1,5 +1,4 @@
-SUBDIRS = .
-#testing
+SUBDIRS = . testing
 
 include $(top_srcdir)/Common.am
 
@@ -31,3 +30,4 @@ TreeUtils.cpp
 
 noinst_LTLIBRARIES = libMDSipTest.la
 libMDSipTest_la_SOURCES = ${_CORE_SOURCES}
+

@@ -206,7 +206,6 @@ public:
 
 private:
     mds::Connection *m_cnx;
-    std::string m_tree_name;
     std::string m_addr;
     size_t m_size;
 };
@@ -393,6 +392,8 @@ double TestConnectionMP::StartConnection()
 
     if(m_pids.size() == 1)
     {
+
+        // FIX: use BaseClass for single channel //
 
         Channel *channel = this->m_channels[0];
         Content *content = this->m_contents[0];
