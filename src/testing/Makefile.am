@@ -7,7 +7,10 @@ TESTS = \
  BuildTest \
  SerializeToBinTest \
  SerializeToShmTest \
- TreeUtilsTest
+ TreeUtilsTest \
+ ContentProducerTest \
+ ClassUtilsTest \
+ DataUtilsTest
 
 
 # UuidTest

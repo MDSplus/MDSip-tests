@@ -3,6 +3,7 @@
 
 #include <mdsobjects.h>
 
+#include "ClassUtils.h"
 #include "Threads.h"
 
 namespace mds = MDSplus;
@@ -22,16 +23,9 @@ public:
     {}
 
     struct Element {
-        Element() :
-            data(NULL), dim(NULL) {}
-        ~Element() {
-            if(data) delete data;
-            if(dim)  delete dim;
-        }
-
         std::string         path;
-        mds::Float32Array  *data;
-        mds::Range         *dim;
+        unique_ptr<mds::Float32Array> data;
+        unique_ptr<mds::Range> dim;
     };
 
     virtual std::string GetName() const { return m_name; }
@@ -49,13 +43,13 @@ protected:
 };
 
 
-inline std::ostream &
-operator << (std::ostream &o, Content::Element &el) {
-    o << "path:  " << el.path << "\n"
-      << "data:  " << el.data << "\n"
-      << "dim:   " << el.dim  << "\n";
-    return o;
-}
+//inline std::ostream &
+//operator << (std::ostream &o, Content::Element &el) {
+//    o << "path:  " << el.path << "\n"
+//      << "data:  " << el.data << "\n"
+//      << "dim:   " << el.dim  << "\n";
+//    return o;
+//}
 
 
 

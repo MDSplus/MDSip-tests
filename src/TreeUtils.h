@@ -16,130 +16,103 @@ namespace mds = MDSplus;
 /// Utility for testing MDSip generating a proper tree for tests
 class TestTree
 {       
-public:
-    struct TreeName;
 
-    static TreeName GetTreeName(std::string str);
-    static std::string GetTreePath(const TreeName &tn);
 
 public:
-    struct TreeName {
-        std::string name;
+
+
+    struct TreePath {
+        std::string path;
         std::string server;
         std::string port;
         std::string protocol;
 
-        TreeName() {}
-        TreeName(const char *tree_path) { *this = GetTreeName(tree_path); }
-        operator std::string () { return GetTreePath(*this); }
+        TreePath() {}
+        TreePath(const char *tree_path) {
+            if(tree_path) *this = getTreePath(tree_path);
+        }
+        operator std::string () { return toString(*this); }
 
+        operator bool () { return !path.empty(); }
+
+        static TreePath getTreePath(std::string str);
+        static std::string toString(const TreePath &tn);
     };
 
-
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    // NOT USED FOR NOW //
 
-    TestTree() : m_tree(NULL) , m_pulse(0) {}
+    enum ClientType { DC,TC };
 
-    TestTree(const char *name) : m_tn(name), m_tree(NULL) , m_pulse(0) {
-        // if env take server and port from it //
-        if( char * env_path = GetEnvPath(m_tn) ) {
-            std::cout << "taking target from env variable: " << env_path << "\n";
-            m_tn = env_path;
-        }
-        SetEnvPath(m_tn);
-    }
 
-    ~TestTree() { Close(); }
+    TestTree() {}
 
-    void Close() {
-        if(m_tree) {            
-            delete m_tree;
-            m_tree = NULL;
-        }
-    }
+    TestTree(const char *name, const char *path = NULL, const ClientType cl=DC);
 
-    mds::Tree * Create() {
-
-        // DC connection to create tree //
-        mds::Tree * tree = new mds::Tree(m_tn.name.c_str(),-1,"NEW");
-        tree->write();
-        delete tree;
-
-    }
-
-    int CreatePulse() {
-
-        // DC create pulse //
-        unique_ptr<mds::Tree> tree = this->Open(-1);
-        tree->createPulse(++m_pulse); // create from model //
-        return m_pulse;
-    }
+    void Create();
 
     mds::Tree * Open(int shot = 0) {
-        return new mds::Tree(m_tn.name.c_str(),shot);
+        return new mds::Tree(m_name.c_str(),shot);
     }
 
     mds::Tree * Edit(int shot = -1) {
-        return new mds::Tree(m_tn.name.c_str(),shot,"EDIT");
+        return  new mds::Tree(m_name.c_str(),shot,"EDIT");
     }
 
+    void SetClientType(const ClientType cl) { m_client = cl; }
 
+    void CreatePulse(int pulse);
+
+    void SetCurrentPulse(int pulse);
+
+    int GetCurrentPulse() {
+        unique_ptr<mds::Tree> tree = this->Open();
+        return tree->getCurrent(m_name.c_str());
+    }
+
+    void AddNode(const char *name, const char *usage);
+
+    TreePath & Path() { return m_path; }
+    const TreePath & Path() const { return m_path; }
+
+    std::string & Name() { return m_name; }
+    const std::string & Name() const { return m_name; }
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-
-
 
 
     friend std::ostream &
-    operator << (std::ostream &o, const TreeName &tn) {
-        return o << GetTreePath(tn);
+    operator << (std::ostream &o, const TreePath &tn) {
+        return o << TreePath::toString(tn);
     }
 
-    static char * GetEnvPath(const TreeName &tn) {
-        std::string env_name = std::string(tn.name) + "_path";
+    /// \return NULL if path doesn't exist
+    static char * GetEnvPath(const char *name) {
+        std::string env_name = std::string(name) + "_path";
         return FileUtils::GetEnv(env_name.c_str());
     }
 
-    static void SetEnvPath(const TreeName &tn) {
-        std::string env_name = std::string(tn.name) + "_path";
-        FileUtils::SetEnv(env_name.c_str(), GetTreePath(tn).c_str() );
+    static void SetEnvPath(const char *name, const TreePath &tn) {
+        std::string env_name = std::string(name) + "_path";
+        FileUtils::SetEnv(env_name.c_str(), TreePath::toString(tn).c_str() );
     }
 
-    static void UnsetEnvPath(const TreeName &tn) {
-        std::string env_name = std::string(tn.name) + "_path";
+    static void UnsetEnvPath(const char *name) {
+        std::string env_name = std::string(name) + "_path";
         FileUtils::UnsetEnv( env_name.c_str() );
-    }
-
-
-    static mds::Tree * CreateTree(const char *name) {
-        // SetEnvPath(name);
-        return new mds::Tree(name,-1,"NEW");
-    }
-
-    static mds::Tree * OpenTree(const char *name, int shot = 0) {
-        // SetEnvPath(name);
-        return new mds::Tree(name,shot);
-    }
-
-    static mds::Tree * OpenTreeForEdit(const char *name, int shot = 0) {
-        // SetEnvPath(name);
-        return new mds::Tree(name,shot,"EDIT");
     }
 
     static std::string GetRootFromPath(const char *tree_name) {
         return std::string("\\") + std::string(tree_name) + "::TOP";
     }
 
-    static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);
+    static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);    
 
 private:
-    mds::Tree *m_tree;
-    TreeName   m_tn;
-    int m_pulse;
+    ClientType  m_client;
+    std::string m_name;
+    TreePath    m_path;
 
 };
 
@@ -155,6 +128,16 @@ operator << (std::ostream &o, mds::TreeNodeArray *array) {
     }
     return o;
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

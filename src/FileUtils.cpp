@@ -6,6 +6,7 @@
 
 #include <mdsobjects.h>
 
+#include "ClassUtils.h"
 #include "FileUtils.h"
 
 using namespace MDSplus;
@@ -18,16 +19,19 @@ using namespace MDSplus;
 ///
 bool FileUtils::FindDir(const char *name, const char *path)
 {
-    // TODO: manage wildchards and search for dir onbly not files
-    DIR *dr = opendir(path);
-    //    dirent *dren = NULL;
+    // TODO: manage wildchards and search for dir only not files
+    DIR * dr = opendir(path);
+    if(!dr) return false;
 
+    bool found = false;
     while ( dirent *dren = readdir(dr) ) {
         //  std::cout << dren->d_name << "\n";
-        if( strcmp(dren->d_name,name) == 0 )
-            return true;
+        if( strcmp(dren->d_name,name) == 0 ) {
+            found = true; break;
+        }
     }
-    return false;
+    closedir(dr);
+    return found;
 }
 
 ///

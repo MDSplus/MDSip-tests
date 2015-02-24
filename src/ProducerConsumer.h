@@ -3,8 +3,11 @@
 
 #include <unistd.h>
 #include <queue>
+#include <deque>
 
 #include <mdsobjects.h>
+
+#include <Threads.h>
 
 namespace mds = MDSplus;
 
@@ -20,18 +23,13 @@ class Queue : private std::queue<T>
 {
     typedef std::queue<T> BaseClass;
 public:
-    Queue(const size_t size) : BaseClass(size) {}
 
-    inline size_type Size() const { return size(); }
+    inline size_t Size() const { return this->size(); }
 
-    inline void Push(const T &data) { push(data); }
-    inline T Pop() { return pop(); }
+    inline void Push(const T &data) { this->push(data); }
 
-    inline T & Front() { return front(); }
-    inline const T & Front() const { return front(); }
+    inline T Pop() { T data = this->front(); this->pop(); return data; }
 
-    inline T & Back() { return back(); }
-    inline const T & Back() const { return back(); }
 };
 
 
@@ -46,25 +44,23 @@ public:
 /// Thread safe FIFO buffer
 ///
 template < typename T >
-class Pool : protected Queue<T> {
+class Pool : protected Queue<T>, Lockable {
     typedef Queue<T> Q;
 public:
-    Pool(const size_t size = 10, const unsigned int spin_time ) :
-        Q(size),
+    Pool(const size_t size = 10, const unsigned int spin_time = 60 ) :
         m_size(size),
         m_spin_time(spin_time)
     {}
 
     ~Pool();
 
-    size_type Size();
+    size_t Size();
 
     void Push(const T &data);
 
     T Pop();
 
 private:
-    mds::Mutex m_mutex;
     size_t m_size;
     unsigned int m_spin_time;
 };
@@ -72,9 +68,9 @@ private:
 
 
 template < typename T >
-inline Pool::~Pool()
+inline Pool<T>::~Pool()
 {
-    mds::AutoLock al(m_mutex); (void)al;
+    MDS_LOCK_SCOPE(*this);
     while ( Q::Size() ) {
         Q::Pop();
     }
@@ -82,33 +78,33 @@ inline Pool::~Pool()
 
 
 template < typename T >
-inline std::queue::size_type Pool::Size()
+inline size_t Pool<T>::Size()
 {
-    mds::AutoLock al(m_mutex); (void)al;
+    MDS_LOCK_SCOPE(*this);
     return Q::Size();
 }
 
 
 template < typename T >
-inline void Pool::Push(const T &data)
+inline void Pool<T>::Push(const T &data)
 {
     while( this->Size() >= m_size  ) {
         usleep(m_spin_time); // leaving unlocked pool //
     }
-    m_mutex.lock();
+    lock();
     Q::Push(data);
-    m_mutex.unlock();
+    unlock();
 }
 
 template < typename T >
-inline T Pool::Pop()
+inline T Pool<T>::Pop()
 {
     while( this->Size() <= 0  ) {
         usleep(m_spin_time); // leaving unlocked pool //
     }
-    m_mutex.lock();
+    lock();
     T data = Q::Pop();
-    m_mutex.unlock();
+    unlock();
     return data;
 }
 

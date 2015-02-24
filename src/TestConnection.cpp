@@ -23,18 +23,11 @@ using namespace MDSplus;
 
 double TestConnection::StartConnection()
 {
-    static int pulse = 1;
+    static int pulse = 0;
+    m_tree.CreatePulse(++pulse);
+    m_tree.SetCurrentPulse(pulse);
 
-    // create pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
-    m_tree->createPulse(pulse);
-    delete m_tree;
-
-    // open pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
-
-    if(m_tree) delete m_tree;
-    pulse++;
+    // DO NOTHING //
 
     return 0;
 }
@@ -130,9 +123,9 @@ public:
 
     ~ChannelDC() { Close(); }
 
-    void Open(const char *tree) {
+    void Open(TestTree &tree) {
         Close();
-        m_tree = new Tree(tree,1); // not use 0 cos a race in mdsplus default id
+        m_tree = tree.Open();
     }
 
     void Close() {
@@ -149,17 +142,15 @@ public:
 
 private:
     size_t m_size;
-    Tree  *m_tree;
+    Tree  *m_tree;    
 };
 
 
 
 class ChannelTC : public Channel {
 public:
-    ChannelTC(int size, const char *addr) :
-        //        m_cnx((char *)addr),
+    ChannelTC(int size) :
         m_cnx(0),
-        m_addr(addr),
         m_size(size)
     {}
 
@@ -167,10 +158,11 @@ public:
         // Close();
     }
 
-    void Open(const char *tree) {
-        if(m_cnx) Close();
-        m_cnx = new mds::Connection((char *)m_addr.c_str());
-        m_cnx->openTree((char*)tree, 0); // not use 0 cos a race in mdsplus default id
+    void Open(TestTree &tree) {
+        if(m_cnx) Close();       
+        std::string cnx_path = TestTree::TreePath::toString(tree.Path());
+        m_cnx = new mds::Connection((char *)cnx_path.c_str());
+        m_cnx->openTree((char*)tree.Name().c_str(), 0);
     }
 
     void Close() {
@@ -199,14 +191,12 @@ public:
 
         deleteData(args[0]);
         deleteData(args[5]);
-
     }
 
     size_t Size() const { return m_size; }
 
 private:
     mds::Connection *m_cnx;
-    std::string m_addr;
     size_t m_size;
 };
 
@@ -216,9 +206,9 @@ Channel *Channel::NewDC(int size_KB)
     return new ChannelDC(size_KB);
 }
 
-Channel *Channel::NewTC(int size_KB, const char *addr)
+Channel *Channel::NewTC(int size_KB)
 {
-    return new ChannelTC(size_KB,addr);
+    return new ChannelTC(size_KB);
 }
 
 
@@ -245,7 +235,7 @@ public:
         time.Clear();
         speed.Clear();
 
-        m_channel->Open(m_connection->GetTreeName().c_str());
+        m_channel->Open(m_connection->Tree());
 
         if( m_content )
         while (  m_content->GetSize() > 0 )
@@ -306,18 +296,7 @@ void TestConnectionMT::ClearChannels()
 ///
 double TestConnectionMT::StartConnection()
 {
-    static int pulse = 1;
-
-    // create pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
-    m_tree->createPulse(pulse);
-    delete m_tree;
-
-    // open pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
-    m_tree->setCurrent(m_tname.name.c_str(),pulse);
-    delete m_tree;
-
+    BaseClass::StartConnection();
 
     Timer conn_timer;
     conn_timer.Start();
@@ -332,9 +311,16 @@ double TestConnectionMT::StartConnection()
         thread->WaitForThreadToExit();
     }
 
-    pulse++;
+    //    pulse++;
     return conn_timer.StopWatch();
 }
+
+
+
+
+
+
+
 
 
 
@@ -344,26 +330,23 @@ double TestConnectionMT::StartConnection()
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
-
 void TestConnectionMP::AddChannel(Content *cnt, Channel *ch)
 {
     this->m_pids.push_back(-1);
-    BaseCLass::AddChannel(cnt,ch);
+    BaseClass::AddChannel(cnt,ch);
 }
 
 
 void TestConnectionMP::ClearChannels()
 {
     this->m_pids.clear();
-    BaseCLass::ClearChannels();
+    BaseClass::ClearChannels();
 }
 
 
 
 // GLOBAL SHARED TIMINGS //
 SerializeToShm g_shm_timings[20];
-
 
 ///
 /// \brief TestConnectionMP::StartConnection
@@ -373,22 +356,10 @@ SerializeToShm g_shm_timings[20];
 ///
 double TestConnectionMP::StartConnection()
 {
-    static int pulse = 1;
-
-    // create pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),-1);
-    m_tree->createPulse(pulse);
-    delete m_tree;
-
-    // open pulse //
-    m_tree = TestTree::OpenTree(m_tname.name.c_str(),pulse);
-    m_tree->setCurrent(m_tname.name.c_str(),pulse);
-    delete m_tree;
+    BaseClass::StartConnection();
 
     // TOTAL CONNECTION TIMER //
     Timer conn_timer; conn_timer.Start();
-
-
 
     if(m_pids.size() == 1)
     {
@@ -403,7 +374,7 @@ double TestConnectionMP::StartConnection()
         TimeHistogram &time = this->ChannelTime(channel);
         TimeHistogram &speed = this->ChannelSpeed(channel);
 
-        channel->Open(this->GetTreeName().c_str());
+        channel->Open(this->Tree());
 
         while (  content->GetSize() > 0 )
         {
@@ -453,7 +424,7 @@ double TestConnectionMP::StartConnection()
 
 
 
-                channel->Open(this->GetTreeName().c_str());
+                channel->Open(this->Tree());
 
                 while (  content->GetSize() > 0 )
                 {
@@ -463,7 +434,7 @@ double TestConnectionMP::StartConnection()
                     channel->PutSegment(el);
                     double t = timer.StopWatch();
                     std::cout << "." << std::flush;
-                    time << t;
+                    time  << t;
                     speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
                     // FIX: the actual size of el may not be of this size //
                 }
@@ -493,7 +464,6 @@ double TestConnectionMP::StartConnection()
 
     } // END MULTIPLE PIDS //
 
-    pulse++;
     return conn_timer.StopWatch();
 }
 

@@ -16,54 +16,56 @@ int main(int argc, char *argv[])
 
 
     { // TEST STRING PARSING //
-        TestTree::TreeName tn;
+        TestTree::TreePath tn;
 
-        tn = "my_path";
-        TEST1( tn.name == "my_path" );
-        TEST1( tn.server == "" );
+        tn = "server";
+        TEST1( tn.path == "" );
+        TEST1( tn.server == "server" );
         std::cout << tn << "\n";
 
         tn = "server::my_path";
-        TEST1( tn.name == "my_path" );
+        TEST1( tn.path == "my_path" );
         TEST1( tn.server == "server" );
         TEST1( tn.port == "" );
         TEST1( tn.protocol == "" );
         std::cout << tn << "\n";
 
         tn = "server:8000::my_path";
-        TEST1( tn.name == "my_path" );
+        TEST1( tn.path == "my_path" );
         TEST1( tn.server == "server" );
         TEST1( tn.port == "8000" );
         TEST1( tn.protocol == "" );
         std::cout << tn << "\n";
 
         tn = "tcp://server:8000::my_path";
-        TEST1( tn.name == "my_path" );
+        TEST1( tn.path == "my_path" );
         TEST1( tn.server == "server" );
         TEST1( tn.port == "8000" );
         TEST1( tn.protocol == "tcp" );
         std::cout << tn << "\n";
 
         tn = "tcp://server::my_path";
-        TEST1( tn.name == "my_path" );
+        TEST1( tn.path == "my_path" );
         TEST1( tn.server == "server" );
         TEST1( tn.port == "" );
         TEST1( tn.protocol == "tcp" );
         std::cout << tn << "\n";
+
+        tn = "server:8000";
+        TEST1( tn.path == "" );
+        TEST1( tn.server == "server" );
+        TEST1( tn.port == "8000" );
+        TEST1( tn.protocol == "" );
+        std::cout << tn << "\n";
     }
 
-    {
+    if(0){
         // CREATE AND POPULATE TREE //
 
-        TestTree tree("testing_tree");
-        FileUtils::CreateDir("testing_tree");
+        TestTree tree("testing_tree","udt://localhost:8000",TestTree::TC);
         tree.Create();
-
-        {
-            unique_ptr<mds::Tree> mdst = tree.Edit();
-            mdst->addNode("sig1","SIGNAL");
-        }
-
+        tree.AddNode("sig01","SIGNAL");
+        tree.CreatePulse(1);
     }
 
 

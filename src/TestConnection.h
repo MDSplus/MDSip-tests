@@ -25,9 +25,9 @@ public:
     virtual ~Channel() {}
 
     static Channel * NewDC(int size_KB);
-    static Channel * NewTC(int size_KB, const char *addr = "localhost");
+    static Channel * NewTC(int size_KB);
 
-    virtual void Open(const char *tree) = 0;
+    virtual void Open(TestTree &tree) = 0;
 
     virtual void Close() = 0;
 
@@ -50,12 +50,13 @@ public:
 
     typedef Histogram<double> TimeHistogram;
 
-    TestConnection( const char *connection_string )
-    {
-        m_tname = TestTree::GetTreeName( std::string(connection_string) );
-        m_tree  = TestTree::CreateTree(m_tname.name.c_str());
-        m_tree->write();
-    }
+    TestConnection( const TestTree &tree) :
+        m_tree(tree)
+    { m_tree.Create(); }
+
+    TestConnection( const char *name, const char *path = 0 ) :
+        m_tree(name,path)
+    { m_tree.Create(); }
 
     ~TestConnection() { this->ClearChannels(); }
 
@@ -67,8 +68,10 @@ public:
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,5);
         m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),50,0,5);
 
-        this->m_tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL"); // FIX
-        m_tree->write();        
+        //        unique_ptr<mds::Tree> tree = m_tree.Edit();
+        //        tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL");
+        //        tree->write();
+        m_tree.AddNode(cnt->GetName().c_str(),(char *)"SIGNAL");
     }
 
     virtual void ClearChannels() {
@@ -77,9 +80,10 @@ public:
         m_chspeed.clear();
     }
 
-    mds::Tree * GetTree() const { return m_tree; }
+    std::string GetTreeName() const { return m_tree.Name(); }
 
-    std::string GetTreeName() { return m_tname.name; }
+    TestTree & Tree() { return m_tree; }
+    const TestTree & Tree() const { return m_tree; }
 
     TimeHistogram & ChannelTime(Channel *ch) { return m_chtimes[ch]; }
 
@@ -97,9 +101,7 @@ public:
 
 
 protected:
-
-    mds::Tree * m_tree;
-    TestTree::TreeName m_tname;
+    TestTree m_tree;
 
     std::vector<Channel *> m_channels;
     std::vector<Content *> m_contents;
@@ -129,8 +131,10 @@ class TestConnectionMT : public TestConnection, Lockable {
 
 public:
 
-    explicit TestConnectionMT(const char *name) :
-        TestConnection(name)
+    TestConnectionMT( const TestTree &tree) : BaseClass(tree) {}
+
+    explicit TestConnectionMT(const char *name, const char *path = 0) :
+        TestConnection(name,path)
     {}
 
     ~TestConnectionMT()
@@ -161,10 +165,13 @@ private:
 
 class TestConnectionMP : public TestConnection
 {
-    typedef TestConnection BaseCLass;
+    typedef TestConnection BaseClass;
 
 public:
-    TestConnectionMP(const char *name) : TestConnection(name) {}
+
+    TestConnectionMP(const TestTree &tree) : BaseClass(tree) {}
+
+    TestConnectionMP(const char *name, const char *path = 0) : TestConnection(name,path) {}
 
     void AddChannel(Content *cnt, Channel *ch);
 
