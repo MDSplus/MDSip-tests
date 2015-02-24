@@ -152,6 +152,8 @@ public:
         Named(name)
     {}
 
+    size_t Size() const { return m_data.size(); }
+
     template < typename _T >
     void AddPoint( const Point2D<_T> &pt ) {
         //MDS_LOCK_SCOPE(*this);

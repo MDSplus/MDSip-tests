@@ -35,3 +35,4 @@ configure.ac
 Makefile.am
 README.md
 src/testing/DataUtilsTest.cpp
+recipes/SpeedDistributionMP.cpp

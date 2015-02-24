@@ -40,6 +40,7 @@ TestTree g_target_tree;
 /// data into the channel.
 ///
 Point2D<double> segment_size_throughput_MP(size_t size_KB,
+                                           std::vector<Curve2D> &speed_curve,
                                            int nch = 1,
                                            int nseg = 50)
 {
@@ -73,6 +74,9 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
         TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
+
+        speed_curve.at(i) = speed_h;
+
         time(0) += time_h.MeanAll();
         time(1) += time_h.VarianceAll();
         speed(0) += speed_h.MeanAll();
@@ -96,69 +100,55 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
 int main(int argc, char *argv[])
 {
     if(argc > 1) {
-        g_target_tree = TestTree("test_size", argv[1]);
+        g_target_tree = TestTree("test_speed", argv[1]);
     }
     else {
-        char *path = TestTree::GetEnvPath("test_size");
+        char *path = TestTree::GetEnvPath("test_speed");
         if(path) {
-            g_target_tree = TestTree("test_size",path);
+            g_target_tree = TestTree("test_speed",path);
         }
     }
 
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    static const int n_channels = 4;
-    static const int seg_step   = 128;
-    static const int seg_max    = 128;
+    static const int n_channels  = 1;
+    static const int n_samples   = 50;
+    static const int seg_size    = 128;
 
     std::vector<Curve2D> speeds;
-    std::vector<Curve2D> speed_errors;
 
     for(int nch = 1; nch <= n_channels; nch++ )
     {
         std::stringstream curve_name;
         curve_name << "ch" << nch;
         speeds.push_back(Curve2D(curve_name.str().c_str()));
-        curve_name << "_err";
-        speed_errors.push_back(Curve2D(curve_name.str().c_str()));
-
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
-        {
-            unsigned int seg_size = seg_step*(sid+1);
-            Point2D<double> pt;
-            pt = segment_size_throughput_MP(seg_size,nch);
-
-            Curve2D &speed = speeds.back();
-            Curve2D &speed_error = speed_errors.back();
-
-            speed.AddPoint( Point2D<double>(seg_size,pt(0)) );
-            speed_error.AddPoint( Point2D<double>(seg_size,pt(1)) );
-        }
     }
 
+    segment_size_throughput_MP(seg_size,speeds,n_channels,n_samples);
+
+
+
     std::ofstream file;
-    file.open("test_segment_size.csv");
+    file.open("segment_size_speed_distr.csv");
     static const char sep = ';';
 
     std::cout << " ---- COLLECTED SPEEDS  ------ \n";
-    file << "segment size";
+    file << "speed";
     for(unsigned int nch=0; nch<n_channels; ++nch)
     {
         Curve2D &speed = speeds[nch];
-        Curve2D &speed_error = speed_errors[nch];
         std::cout << speed << "\n";
-        file << sep << speed.GetName() << sep << speed_error.GetName();
+        file << sep << speed.GetName();
     }
     file << std::endl;
 
-    for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
+    for(unsigned int sid = 0; sid<speeds.at(0).Size() ; ++sid )
     {
-        unsigned int seg_size = seg_step*(sid+1);
-        file << seg_size;
+        Curve2D &speed = speeds[0];
+        file << speed[sid](0);
         for(unsigned int nch=0; nch<n_channels; ++nch ) {
             Curve2D &speed = speeds[nch];
-            Curve2D &speed_error = speed_errors[nch];
-            file << sep << speed[sid](1) << sep << speed_error[sid](1);
+            file << sep << speed[sid](1);
         }
         file << std::endl;
     }
@@ -167,6 +157,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
 
 
 
