@@ -65,8 +65,8 @@ public:
     virtual void AddChannel(Content *cnt, Channel *chn) {
         m_channels.push_back(chn);
         m_contents.push_back(cnt);
-        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),250,0,5);
-        m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),250,0,0.2);
+        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,5);
+        m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,2);
 
         //        unique_ptr<mds::Tree> tree = m_tree.Edit();
         //        tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL");

@@ -22,9 +22,9 @@ using namespace MDSplus;
 TestTree g_target_tree;
 
 
-//////////////////////////////////////////////////////////////////////////////////
-////  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -41,7 +41,7 @@ TestTree g_target_tree;
 ///
 Point2D<double> segment_size_throughput_MP(size_t size_KB,
                                            int nch = 1,
-                                           int nseg = 50)
+                                           int nseg = 2)
 {
 
     TestConnectionMP conn(g_target_tree);
@@ -93,6 +93,12 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+//  MAIN  //////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
 int main(int argc, char *argv[])
 {
     if(argc > 1) {
@@ -107,14 +113,14 @@ int main(int argc, char *argv[])
 
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    static const int n_channels = 4;
+    static const int n_channels = 8;
     static const int seg_step   = 128;
     static const int seg_max    = 128;
 
     std::vector<Curve2D> speeds;
     std::vector<Curve2D> speed_errors;
 
-    for(int nch = 1; nch <= n_channels; nch++ )
+    for(int nch = 1; nch <= n_channels; nch*=2 )
     {
         std::stringstream curve_name;
         curve_name << "ch" << nch;
@@ -142,7 +148,7 @@ int main(int argc, char *argv[])
 
     std::cout << " ---- COLLECTED SPEEDS  ------ \n";
     file << "segment size";
-    for(unsigned int nch=0; nch<n_channels; ++nch)
+    for(unsigned int nch=0; nch<speeds.size(); ++nch)
     {
         Curve2D &speed = speeds[nch];
         Curve2D &speed_error = speed_errors[nch];
@@ -155,7 +161,7 @@ int main(int argc, char *argv[])
     {
         unsigned int seg_size = seg_step*(sid+1);
         file << seg_size;
-        for(unsigned int nch=0; nch<n_channels; ++nch ) {
+        for(unsigned int nch=0; nch<speeds.size(); ++nch ) {
             Curve2D &speed = speeds[nch];
             Curve2D &speed_error = speed_errors[nch];
             file << sep << speed[sid](1) << sep << speed_error[sid](1);

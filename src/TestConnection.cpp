@@ -298,6 +298,8 @@ double TestConnectionMT::StartConnection()
 {
     BaseClass::StartConnection();
 
+    std::cout << "START MULTITHREADED CONNECTION\n";
+
     Timer conn_timer;
     conn_timer.Start();
 
@@ -358,42 +360,44 @@ double TestConnectionMP::StartConnection()
 {
     BaseClass::StartConnection();
 
+    std::cout << "START MULTIPROCESS CONNECTION\n";
+
     // TOTAL CONNECTION TIMER //
     Timer conn_timer; conn_timer.Start();
 
-    if(m_pids.size() == 1)
-    {
+//    if(m_pids.size() == 1)
+//    {
 
-        // FIX: use BaseClass for single channel //
+//        // FIX: use BaseClass for single channel //
 
-        Channel *channel = this->m_channels[0];
-        Content *content = this->m_contents[0];
+//        Channel *channel = this->m_channels[0];
+//        Content *content = this->m_contents[0];
 
-        Timer timer;
+//        Timer timer;
 
-        TimeHistogram &time = this->ChannelTime(channel);
-        TimeHistogram &speed = this->ChannelSpeed(channel);
+//        TimeHistogram &time = this->ChannelTime(channel);
+//        TimeHistogram &speed = this->ChannelSpeed(channel);
 
-        channel->Open(this->Tree());
+//        channel->Open(this->Tree());
 
-        while (  content->GetSize() > 0 )
-        {
-            Content::Element el;
-            content->GetNextElement(channel->Size(), el);
-            timer.Start();
-            channel->PutSegment(el);
-            double t = timer.StopWatch();
-            std::cout << "." << std::flush;
-            time << t;
-            speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
-            // FIX: the actual size of el may not be of this size //
-        }
+//        while (  content->GetSize() > 0 )
+//        {
+//            Content::Element el;
+//            content->GetNextElement(channel->Size(), el);
+//            timer.Start();
+//            channel->PutSegment(el);
+//            double t = timer.StopWatch();
+//            std::cout << "." << std::flush;
+//            time << t;
+//            speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+//            // FIX: the actual size of el may not be of this size //
+//        }
 
-        std::cout << "\n";
+//        std::cout << "\n";
 
-        channel->Close();
-    }
-    else
+//        channel->Close();
+//    }
+//    else
     {
         // SHARED MEMORY TIMINGS SERIALIZATION //
         for(unsigned int i = 0; i < m_pids.size(); ++i) {

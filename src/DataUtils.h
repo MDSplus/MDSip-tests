@@ -390,17 +390,18 @@ public:
     }
 
 
-    //    friend Histogram merge(const Histogram &h1, const Histogram &h2) {
-    //        // TODO: add assertions ... //
-    //        Histogram out = h1;
-    //        for(unsigned int i=0; i<h1.BinSize(); ++i) {
-    //            out.m_bins[i] += h2.m_bins[i];
-    //        }
-    //        out.BaseClass::Clear();
-    //        out.m_stat.clear();
-    //        out.m_underf += h2.m_underf;
-    //        out.m_overf += h2.m_overf;
-    //    }
+    static Histogram merge(const Histogram &h1, const Histogram &h2) {
+        // TODO: add assertions ... //
+        Histogram out = h1;
+        for(unsigned int i=0; i<h1.BinSize(); ++i) {
+            out.m_bins[i] += h2.m_bins[i];
+        }
+        out.BaseClass::Clear();
+        out.m_stat.clear();
+        out.m_underf += h2.m_underf;
+        out.m_overf += h2.m_overf;
+        return out;
+    }
 
     template < class Archive >
     friend void serialize(Archive &ar, Histogram &h) {

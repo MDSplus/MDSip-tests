@@ -36,3 +36,4 @@ Makefile.am
 README.md
 src/testing/DataUtilsTest.cpp
 recipes/SpeedDistributionMP.cpp
+recipes/SpeedDistributionNChannels.cpp
