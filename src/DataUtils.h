@@ -116,7 +116,73 @@ private:
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  Tuple  /////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
+template < typename _Scalar, unsigned int _Dim >
+class Tuple
+{
+    typedef Tuple<_Scalar,_Dim> ThisClass;
+
+public:
+    Tuple() {
+        std::fill( m_data, m_data + sizeof(m_data), 0 );
+    }
+
+    Tuple(_Scalar x, _Scalar y = 0, _Scalar z = 0) {
+        _Scalar *args[3] = {&x,&y,&z};
+        for(unsigned int i = 0; i<_Dim; ++i)
+            m_data[i] = *args[i];
+    }
+
+    typedef CommaInitializer< ThisClass , _Scalar >  CommaInit;
+
+    inline CommaInit operator << (_Scalar scalar) {
+        return CommaInit(this, scalar);
+    }
+
+    _Scalar & operator() (const unsigned int i) { assert(i<_Dim); return m_data[i]; }
+    const _Scalar & operator() (const unsigned int i) const { assert(i<_Dim); return m_data[i]; }
+
+    template < typename _Other >
+    Tuple<_Other,_Dim> cast() {
+        Tuple<_Other,_Dim> cast_out;
+        for(unsigned int i = 0; i<_Dim; ++i)
+            cast_out.m_data[i] = static_cast<_Other>(this->m_data[i]);
+        return cast_out;
+    }
+
+    template < typename _Other >
+    inline operator Tuple<_Other,_Dim> () {
+        return this->cast<_Other>();
+    }
+
+    friend std::ostream &
+    operator << (std::ostream &o, const ThisClass &pt) {
+        for(unsigned int i=0; i<_Dim-1; ++i) o << pt(i) << ",";
+        return o << pt(_Dim-1);
+    }
+
+private:
+    friend class CommaInitializer< Tuple<_Scalar,_Dim> , _Scalar >;
+    void resize(int i) {}
+
+    _Scalar m_data[_Dim];
+};
+
+
+typedef Tuple<float,2> Vector2f;
+typedef Tuple<float,3> Vector3f;
+typedef Tuple<float,4> Vector4f;
+
+typedef Tuple<double,2> Vector2d;
+typedef Tuple<double,3> Vector3d;
+typedef Tuple<double,4> Vector4d;
+
+typedef Tuple<int,2> Vector2i;
+typedef Tuple<int,3> Vector3i;
+typedef Tuple<int,4> Vector4i;
 
 
 
@@ -124,9 +190,8 @@ private:
 //  Curve2D  ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-// FINIRE //
 
-class Curve2D : /*Lockable,*/ public Named
+class Curve2D : Lockable, public Named
 {
     typedef Point2D<double> Point;
 
@@ -159,7 +224,7 @@ public:
 
     template < typename _T >
     void AddPoint( const Point2D<_T> &pt ) {
-        //MDS_LOCK_SCOPE(*this);
+        MDS_LOCK_SCOPE(*this);
         m_data.push_back ( (Point)pt );
     }
 
@@ -481,6 +546,13 @@ public:
         // FARE: //
     }
 
+    void PrintToGnuplotFile(std::ostream &o) /*const*/ {
+        foreach (Curve2D &curve, m_curves) {
+            o << "# " << curve.GetName() << "\n";
+        }
+    }
+
+
     friend CsvDataFile &
     operator << (CsvDataFile &csv, const Plot2D &plot) {
         //        const char c = csv.Separator(); (void)c;
@@ -490,6 +562,9 @@ public:
         // FARE: //
         return csv;
     }
+
+
+
 
 private:
     std::vector<Axis> m_axis;

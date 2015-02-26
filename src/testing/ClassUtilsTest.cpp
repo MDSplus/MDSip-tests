@@ -1,12 +1,6 @@
 
 #include "ClassUtils.h"
-
 #include "testing-prototype.h"
-
-
-
-
-
 
 
 struct CountDestructors {
@@ -25,6 +19,7 @@ public:
     float f;
     int i;
 };
+
 
 
 int main(int argc, char *argv[])
@@ -54,10 +49,18 @@ int main(int argc, char *argv[])
     }
 
 
+    { // TEST MPL TT IS_CONSTANT //
+        TEST0_P( is_const<       float   >::value );
+        TEST1_P( is_const< const float   >::value );
+        TEST0_P( is_const<       float * >::value );
+        TEST1_P( is_const< const float * >::value );
+        TEST0_P( is_const<       float & >::value );
+        TEST1_P( is_const< const float & >::value );
+    }
 
     { // TEST FOREACH EXPANSION //
         std::vector<MyClass> container;
-        for(size_t i=0; i<1000; ++i) {
+        for(size_t i=0; i<1; ++i) {
             container.push_back(MyClass());
             container.back().f = 555.2368;
             container.back().i = i;
@@ -84,6 +87,13 @@ int main(int argc, char *argv[])
 
         std::vector<MyClass> *cntptr = &container;
         foreach (MyClass &el, *cntptr) {
+            static int count = 0;
+            TEST1( AreSame<float>(el.f,555.2368) );
+            TEST1( el.i == count++ );
+        }
+
+        const std::vector<MyClass> &const_cntptr = container;
+        foreach (const MyClass &el, const_cntptr) {
             static int count = 0;
             TEST1( AreSame<float>(el.f,555.2368) );
             TEST1( el.i == count++ );

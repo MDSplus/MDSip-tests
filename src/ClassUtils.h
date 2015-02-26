@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <assert.h>
 
 #include <vector>
 #include <deque>
@@ -191,8 +192,95 @@ private:
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  TYPE TRAITS  ///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+//  MACROS  ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+#define MDSIPTEST_PP_STRINGIZE_I(text) #text
+#define MDSIPTEST_STATIC_CONSTANT(type, assignment) static const type assignment
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  CV QUALIFIERS MATHCING  ////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+namespace detail {
+
+#define MDSIPTEST_TT_AUX_CV_TRAITS_IMPL_PARAM(X) X *
+template <typename T> struct cv_traits_imp {};
+
+template <typename T>
+struct cv_traits_imp<T*>
+{
+    MDSIPTEST_STATIC_CONSTANT(bool, is_const    = false);
+    MDSIPTEST_STATIC_CONSTANT(bool, is_volatile = false);
+    typedef T unqualified_type;
+};
+
+template <typename T>
+struct cv_traits_imp<MDSIPTEST_TT_AUX_CV_TRAITS_IMPL_PARAM(const T)>
+{
+    MDSIPTEST_STATIC_CONSTANT(bool, is_const    = true);
+    MDSIPTEST_STATIC_CONSTANT(bool, is_volatile = false);
+    typedef T unqualified_type;
+};
+
+template <typename T>
+struct cv_traits_imp<MDSIPTEST_TT_AUX_CV_TRAITS_IMPL_PARAM(volatile T)>
+{
+    MDSIPTEST_STATIC_CONSTANT(bool, is_const    = false);
+    MDSIPTEST_STATIC_CONSTANT(bool, is_volatile = true);
+    typedef T unqualified_type;
+};
+
+template <typename T>
+struct cv_traits_imp<MDSIPTEST_TT_AUX_CV_TRAITS_IMPL_PARAM(const volatile T)>
+{
+    MDSIPTEST_STATIC_CONSTANT(bool, is_const    = true);
+    MDSIPTEST_STATIC_CONSTANT(bool, is_volatile = true);
+    typedef T unqualified_type;
+};
+#undef MDSIPTEST_TT_AUX_CV_TRAITS_IMPL_PARAM
+
+} // detail
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  IS CONST  //////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+namespace detail {
+template <class T>
+struct is_const_rvalue_filter
+{
+    static const bool value =
+            detail::cv_traits_imp<T*>::is_const;
+};
+
+template <class T>
+struct is_const_rvalue_filter<T*>
+{
+    static const bool value =
+            detail::cv_traits_imp<T*>::is_const;
+};
+
+template <class T>
+struct is_const_rvalue_filter<T&>
+{ static const bool value = false; };
+
+template <class T>
+struct is_const_rvalue_filter<const T&>
+{ static const bool value = true; };
+
+} // detail
+
+template < typename T >
+struct is_const : detail::is_const_rvalue_filter<T> {};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -201,31 +289,45 @@ private:
 // GCC ONLY //
 
 namespace detail {
-template <typename T>
+
+template <typename T, bool IsConst = true >
 class ForeachOnContainer {
 public:
-    inline ForeachOnContainer( T & t) :
+    inline ForeachOnContainer(const T & t) :
         m_cnt(t),
         brk(0),
         itr(m_cnt.begin()),
         end(m_cnt.end())
     { }
+    const T & m_cnt; int brk;
+    typename T::const_iterator itr,end;
+};
 
-    inline ForeachOnContainer(const T& t) :
-        m_cnt(const_cast<T&>(t)),
+template <typename T >
+class ForeachOnContainer<T,false> {
+public:
+    inline ForeachOnContainer(T & t) :
+        m_cnt(t),
         brk(0),
         itr(m_cnt.begin()),
-        end(m_cnt.end()) { } // bad solution //
-    T m_cnt; int brk;
-    typename T::iterator itr, end;
+        end(m_cnt.end())
+    { }
+    T & m_cnt; int brk;
+    typename T::iterator itr,end;
 };
+
+
+
 } // detail
 
-#define _FOREACH_EXPANSION(variable, container)                                 \
-for (detail::ForeachOnContainer<__typeof__(container)> _foreach_cnt_(container);  \
-     !_foreach_cnt_.brk && _foreach_cnt_.itr != _foreach_cnt_.end;                    \
-     __extension__  ({ ++_foreach_cnt_.brk; ++_foreach_cnt_.itr; }))                \
-    for (variable = *_foreach_cnt_.itr;; __extension__ ({--_foreach_cnt_.brk; break;}))
+
+
+#define _FOREACH_EXPANSION(variable, container)                          \
+for (detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(container)>::value > _cnt(container);  \
+     !_cnt.brk && _cnt.itr != _cnt.end;                                  \
+     __extension__  ({ ++_cnt.brk; ++_cnt.itr; })  )                \
+    for (variable = *_cnt.itr;; __extension__ ({--_cnt.brk; break;}))
+
 
 #define foreach _FOREACH_EXPANSION
 
