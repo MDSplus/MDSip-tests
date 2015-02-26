@@ -2,6 +2,7 @@
 #include <fstream>
 #include <time.h>
 
+#include "SerializeUtils.h"
 #include "FileUtils.h"
 #include "DataUtils.h"
 

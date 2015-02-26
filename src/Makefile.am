@@ -6,6 +6,7 @@ library_includedir = $(includedir)/MDSipTest
 
 library_include_HEADERS = \
  ClassUtils.h \
+ SerializeUtils.h \
  DataUtils.h \
  FileUtils.h \
  MDSTest.h \
@@ -20,6 +21,7 @@ library_include_HEADERS = \
 
 _CORE_SOURCES = \
 ClassUtils.cpp \
+SerializeUtils.cpp \
 FileUtils.cpp \
 ProducerConsumer.cpp \
 StatisticsUtils.cpp \

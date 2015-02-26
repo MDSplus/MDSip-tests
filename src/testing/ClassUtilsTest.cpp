@@ -6,6 +6,9 @@
 
 
 
+
+
+
 struct CountDestructors {
     CountDestructors() : m_del(0) {}
     size_t m_del;
@@ -15,12 +18,12 @@ struct CountDestructors {
 class MyClass {
 public:
     ~MyClass() {
-        std::cout << "~MyClass()\n";
         Singleton<CountDestructors> destructor;
         destructor->m_del++;
     }
 
     float f;
+    int i;
 };
 
 
@@ -41,15 +44,51 @@ int main(int argc, char *argv[])
     }
     TEST1(Singleton<CountDestructors>::get_const_instance().m_del == 4);
 
-    {
+    { // VALGRIND TEST FOR MDS DELETION //
         mds::Float32 *f = new mds::Float32(555.2368);
         mds::deleteData(f);
     }
-    {
+
+    { // VALGRIND TEST FOR UNIQUE_PTR MDS DELETION //
         unique_ptr<mds::Float32> f = new mds::Float32(555.2368);
     }
 
 
+
+    { // TEST FOREACH EXPANSION //
+        std::vector<MyClass> container;
+        for(size_t i=0; i<1000; ++i) {
+            container.push_back(MyClass());
+            container.back().f = 555.2368;
+            container.back().i = i;
+        }
+
+        foreach (MyClass &el, container) {
+            static int count = 0;
+            TEST1( AreSame<float>(el.f,555.2368) );
+            TEST1( el.i == count++ );
+        }
+
+        foreach (const MyClass &el, container) {
+            static int count = 0;
+            TEST1( AreSame<float>(el.f,555.2368) );
+            TEST1( el.i == count++ );
+        }
+
+        std::vector<MyClass> &cntref = container;
+        foreach (MyClass &el, cntref) {
+            static int count = 0;
+            TEST1( AreSame<float>(el.f,555.2368) );
+            TEST1( el.i == count++ );
+        }
+
+        std::vector<MyClass> *cntptr = &container;
+        foreach (MyClass &el, *cntptr) {
+            static int count = 0;
+            TEST1( AreSame<float>(el.f,555.2368) );
+            TEST1( el.i == count++ );
+        }
+    }
 
     END_TESTING;
 }

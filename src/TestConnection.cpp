@@ -8,9 +8,9 @@
 
 #include <mdsobjects.h>
 
+#include "SerializeUtils.h"
 #include "DataUtils.h"
 #include "Threads.h"
-
 #include "TestConnection.h"
 
 using namespace MDSplus;

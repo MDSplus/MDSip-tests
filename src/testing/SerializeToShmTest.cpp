@@ -9,7 +9,7 @@
 //#include <sys/mman.h>
 //#include <sys/shm.h>
 
-
+#include "SerializeUtils.h"
 #include "FileUtils.h"
 #include "DataUtils.h"
 

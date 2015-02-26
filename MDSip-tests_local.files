@@ -37,3 +37,5 @@ README.md
 src/testing/DataUtilsTest.cpp
 recipes/SpeedDistributionMP.cpp
 recipes/SpeedDistributionNChannels.cpp
+src/SerializeUtils.h
+src/SerializeUtils.cpp
