@@ -22,7 +22,7 @@ namespace mds = MDSplus;
 
 // Comma Initializer template ...
 // ContentT should provide operator[] and resize() methods.
-// Waiting for Static interface check
+// TODO: Waiting for Static interface mpl check
 
 template < typename ContainerT, typename ContentT >
 struct CommaInitializer
@@ -48,7 +48,7 @@ struct CommaInitializer
 
 // Comma Initializer template for fixed array...
 // ContentT should provide operator[] and size() methods.
-// Waiting for Static interface check
+// TODO: Waiting for Static interface mpl check
 
 template < typename ContainerT, typename ContentT >
 struct CommaInitializerFixed
@@ -97,7 +97,6 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 //  Unique Ptr  ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
 
 template < typename T >
 class Deleter {
@@ -203,6 +202,10 @@ private:
 #define MDSIPTEST_PP_STRINGIZE_I(text) #text
 #define MDSIPTEST_STATIC_CONSTANT(type, assignment) static const type assignment
 
+#define DO_PRAGMA(x) _Pragma (#x)
+#define TODO(x) DO_PRAGMA(message ("TODO - " #x))
+#define COMPILE_WARNING(x) DO_PRAGMA(message ("WARNING - " #x))
+#define COMPILE_ERROR(x) DO_PRAGMA(message ("ERROR - " #x))
 
 ////////////////////////////////////////////////////////////////////////////////
 //  CV QUALIFIERS MATHCING  ////////////////////////////////////////////////////
@@ -286,7 +289,6 @@ struct is_const : detail::is_const_rvalue_filter<T> {};
 ////////////////////////////////////////////////////////////////////////////////
 //  FOREACH EXPANSION  /////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-// GCC ONLY //
 
 namespace detail {
 
@@ -321,16 +323,20 @@ public:
 } // detail
 
 
-
+// WARNING: GCC ONLY //
 #define _FOREACH_EXPANSION(variable, container)                          \
 for (detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(container)>::value > _cnt(container);  \
      !_cnt.brk && _cnt.itr != _cnt.end;                                  \
      __extension__  ({ ++_cnt.brk; ++_cnt.itr; })  )                \
     for (variable = *_cnt.itr;; __extension__ ({--_cnt.brk; break;}))
 
-
-#define foreach _FOREACH_EXPANSION
-
+// foreach loop re-definition //
+# ifdef foreach
+#  undef foreach
+   COMPILE_WARNING( overloading foreach definition );
+# else
+#  define foreach _FOREACH_EXPANSION
+# endif
 
 
 

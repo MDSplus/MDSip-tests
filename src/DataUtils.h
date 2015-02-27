@@ -127,7 +127,9 @@ class Tuple
 
 public:
     Tuple() {
-        std::fill( m_data, m_data + sizeof(m_data), 0 );
+        //        std::fill( m_data, m_data + sizeof(m_data), 0 );
+        for(unsigned int i = 0; i<_Dim; ++i)
+            m_data[i] = 0;
     }
 
     Tuple(_Scalar x, _Scalar y = 0, _Scalar z = 0) {
@@ -166,6 +168,8 @@ public:
 
 private:
     friend class CommaInitializer< Tuple<_Scalar,_Dim> , _Scalar >;
+//    template <typename _Other> friend class Tuple<_Other,_Dim>;
+
     void resize(int i) {}
 
     _Scalar m_data[_Dim];

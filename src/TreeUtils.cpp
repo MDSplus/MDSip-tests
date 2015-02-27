@@ -108,7 +108,10 @@ void TestTree::Create()
         break;
     case TC:
     {
-        mds::Connection cnx((char *)TreePath::toString(m_path).c_str());
+        // TODO: only tcp allowed .. fix MDSConnection
+        TreePath path = m_path; path.protocol.clear(); // tcp
+
+        mds::Connection cnx((char *)TreePath::toString(path).c_str());
         //cnx.openTree((char *)m_name.c_str(),-1);
         mds::Data * args[1];
         args[0] = new mds::String(m_name.c_str());
@@ -139,7 +142,10 @@ void TestTree::CreatePulse(int pulse)
         break;
     case TestTree::TC:
     {
-        mds::Connection cnx((char *)TreePath::toString(m_path).c_str());
+        // TODO: only tcp allowed .. fix MDSConnection
+        TreePath path = m_path; path.protocol.clear(); // tcp
+
+        mds::Connection cnx((char *)TreePath::toString(path).c_str());
         cnx.openTree((char *)m_name.c_str(),-1);
         mds::Data * args[1];
         args[0] = new mds::Int32(pulse);
@@ -165,7 +171,10 @@ void TestTree::SetCurrentPulse(int pulse)
         break;
     case TestTree::TC:
     {
-        mds::Connection cnx((char *)TreePath::toString(m_path).c_str());
+        // TODO: only tcp allowed .. fix MDSConnection
+        TreePath path = m_path; path.protocol.clear(); // tcp
+
+        mds::Connection cnx((char *)TreePath::toString(path).c_str());
         cnx.openTree((char *)m_name.c_str(),-1);
         mds::Data * args[2];
         args[0] = new mds::String(m_name.c_str());
@@ -227,7 +236,10 @@ void TestTree::AddNode(const char *name, const char *usage)
         break;
     case TestTree::TC:
     {
-        mds::Connection cnx((char *)TreePath::toString(m_path).c_str());
+        // TODO: only tcp allowed .. fix MDSConnection
+        TreePath path = m_path; path.protocol.clear(); // tcp
+
+        mds::Connection cnx((char *)TreePath::toString(path).c_str());
         mds::Data * args[3];
         args[0] = new mds::String(m_name.c_str());
         args[1] = new mds::String(name);

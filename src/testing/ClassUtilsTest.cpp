@@ -26,7 +26,11 @@ int main(int argc, char *argv[])
 {
     BEGIN_TESTING(Class Utils);
 
-    { // unique pointer test //
+    ////////////////////////////////////////////////////////////////////////////////
+    //  unique_ptr  ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    {
         unique_ptr<MyClass> ptr(new MyClass);
         unique_ptr<MyClass> ptr2 = new MyClass;
         unique_ptr<MyClass> ptr3;
@@ -39,17 +43,24 @@ int main(int argc, char *argv[])
     }
     TEST1(Singleton<CountDestructors>::get_const_instance().m_del == 4);
 
-    { // VALGRIND TEST FOR MDS DELETION //
+    ////////////////////////////////////////////////////////////////////////////////
+    //  // VALGRIND TEST FOR MDS DELETION //  //////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    {
         mds::Float32 *f = new mds::Float32(555.2368);
         mds::deleteData(f);
     }
 
-    { // VALGRIND TEST FOR UNIQUE_PTR MDS DELETION //
+    {
         unique_ptr<mds::Float32> f = new mds::Float32(555.2368);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //  // TEST MPL TT IS_CONSTANT //  /////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
 
-    { // TEST MPL TT IS_CONSTANT //
+    {
         TEST0_P( is_const<       float   >::value );
         TEST1_P( is_const< const float   >::value );
         TEST0_P( is_const<       float * >::value );
@@ -58,9 +69,13 @@ int main(int argc, char *argv[])
         TEST1_P( is_const< const float & >::value );
     }
 
-    { // TEST FOREACH EXPANSION //
+    ////////////////////////////////////////////////////////////////////////////////
+    //  // TEST FOREACH EXPANSION //  //////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    {
         std::vector<MyClass> container;
-        for(size_t i=0; i<1; ++i) {
+        for(size_t i=0; i<10; ++i) {
             container.push_back(MyClass());
             container.back().f = 555.2368;
             container.back().i = i;
