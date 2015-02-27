@@ -83,7 +83,7 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
     }
     time(0) /= nch;
     time(1) = sqrt( time(1)/nch );
-    speed(0);
+    //speed(0);
     speed(1) = sqrt( speed(1) );
     std::cout << "SPEED: " << speed << "\n";
 

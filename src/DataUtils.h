@@ -120,6 +120,8 @@ private:
 //  Tuple  /////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+
+
 template < typename _Scalar, unsigned int _Dim >
 class Tuple
 {
@@ -168,7 +170,7 @@ public:
 
 private:
     friend class CommaInitializer< Tuple<_Scalar,_Dim> , _Scalar >;
-//    template <typename _Other> friend class Tuple<_Other,_Dim>;
+    template <typename _Other, unsigned int _OtherDim> friend class Tuple;
 
     void resize(int i) {}
 

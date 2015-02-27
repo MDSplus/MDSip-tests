@@ -41,7 +41,7 @@ TestTree g_target_tree;
 ///
 Point2D<double> segment_size_throughput_MP(size_t size_KB,
                                            int nch = 1,
-                                           int nseg = 2)
+                                           int nseg = 20)
 {
 
     TestConnectionMP conn(g_target_tree);
@@ -113,9 +113,9 @@ int main(int argc, char *argv[])
 
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    static const int n_channels = 8;
-    static const int seg_step   = 128;
-    static const int seg_max    = 128;
+    static const int n_channels = 1;
+    static const int seg_step   = 1024;
+    static const int seg_max    = 1024;
 
     std::vector<Curve2D> speeds;
     std::vector<Curve2D> speed_errors;
