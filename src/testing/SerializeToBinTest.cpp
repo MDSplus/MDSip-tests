@@ -16,7 +16,7 @@
 struct MyObj {
     float i;
     float f[2];
-    Point2D<float> p;
+    Vector2f p;
     std::string str;
     MyObj *next;
 

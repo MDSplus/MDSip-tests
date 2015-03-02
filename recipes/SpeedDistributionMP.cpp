@@ -39,7 +39,7 @@ TestTree g_target_tree;
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-Point2D<double> segment_size_throughput_MP(size_t size_KB,
+Point2D segment_size_throughput_MP(size_t size_KB,
                                            std::vector<Curve2D> &speed_curve,
                                            int nch = 1,
                                            int nseg = 50)
@@ -66,7 +66,7 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
     conn.StartConnection();
 
     std::cout << "CHANNELS TIMES:\n";
-    Point2D<double> time, speed;
+    Point2D time, speed;
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
         TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);

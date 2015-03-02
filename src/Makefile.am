@@ -22,6 +22,7 @@ library_include_HEADERS = \
 _CORE_SOURCES = \
 ClassUtils.cpp \
 SerializeUtils.cpp \
+DataUtils.cpp \
 FileUtils.cpp \
 ProducerConsumer.cpp \
 StatisticsUtils.cpp \

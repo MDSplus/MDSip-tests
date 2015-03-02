@@ -2,6 +2,9 @@
 #define DATAUTILS_H
 
 
+#include <cmath>
+#include <limits>
+
 #include <sys/time.h>
 #include <utility>
 #include <vector>
@@ -13,6 +16,17 @@
 #include "StatisticsUtils.h"
 #include "FileUtils.h"
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  DataUtils  /////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+template < typename T >
+inline bool are_same(T a, T b) {
+    return std::fabs(a - b) < std::numeric_limits<T>::epsilon();
+}
 
 
 
@@ -71,49 +85,49 @@ private:
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-//  Point2D  ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+////  Point2D  ///////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 
-template <typename _Scalar>
-struct Point2D {
+//template <typename _Scalar>
+//struct Point2D {
 
-    Point2D() {
-        m_data[0] = 0;
-        m_data[1] = 0;
-    }
+//    Point2D() {
+//        m_data[0] = 0;
+//        m_data[1] = 0;
+//    }
 
-    Point2D(_Scalar x, _Scalar y) {
-        m_data[0] = x;
-        m_data[1] = y;
-    }
+//    Point2D(_Scalar x, _Scalar y) {
+//        m_data[0] = x;
+//        m_data[1] = y;
+//    }
 
-    typedef CommaInitializer< Point2D<_Scalar> , _Scalar >  CommaInit;
+//    typedef CommaInitializer< Point2D<_Scalar> , _Scalar >  CommaInit;
 
-    inline CommaInit operator <<(_Scalar scalar) {
-        return CommaInit(this, scalar);
-    }
+//    inline CommaInit operator <<(_Scalar scalar) {
+//        return CommaInit(this, scalar);
+//    }
 
-    _Scalar & operator() (const unsigned int i) { return m_data[i]; }
-    const _Scalar & operator() (const unsigned int i) const { return m_data[i]; }
+//    _Scalar & operator() (const unsigned int i) { return m_data[i]; }
+//    const _Scalar & operator() (const unsigned int i) const { return m_data[i]; }
 
-    template < typename _Other >
-    operator Point2D<_Other> () {
-        return Point2D<_Other> (static_cast<_Other>(m_data[0]), static_cast<_Other>(m_data[1]) );
-    }
+//    template < typename _Other >
+//    operator Point2D<_Other> () {
+//        return Point2D<_Other> (static_cast<_Other>(m_data[0]), static_cast<_Other>(m_data[1]) );
+//    }
 
-    friend std::ostream &
-    operator << (std::ostream &o, const Point2D<_Scalar> &pt) {
-        return o << pt(0) << "," << pt(1);
-    }
+//    friend std::ostream &
+//    operator << (std::ostream &o, const Point2D<_Scalar> &pt) {
+//        return o << pt(0) << "," << pt(1);
+//    }
 
-private:
-    friend class CommaInitializer< Point2D<_Scalar> , _Scalar >;
-    void resize(int i) {}
+//private:
+//    friend class CommaInitializer< Point2D<_Scalar> , _Scalar >;
+//    void resize(int i) {}
 
-    _Scalar m_data[2];
-};
+//    _Scalar m_data[2];
+//};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,6 +142,9 @@ class Tuple
     typedef Tuple<_Scalar,_Dim> ThisClass;
 
 public:
+
+    typedef _Scalar ScalarType;
+
     Tuple() {
         //        std::fill( m_data, m_data + sizeof(m_data), 0 );
         for(unsigned int i = 0; i<_Dim; ++i)
@@ -162,6 +179,18 @@ public:
         return this->cast<_Other>();
     }
 
+    inline friend bool operator < (const ThisClass &t1, const ThisClass &t2) {
+        return t1(0) < t2(0);
+    }
+
+    inline friend bool operator == (const ThisClass &t1, const ThisClass &t2) {
+        bool out = 1;
+        for(unsigned int i = 0; i<_Dim; ++i) {
+            out &= t1.m_data[i] == t2.m_data[i];
+        }
+        return out;
+    }
+
     friend std::ostream &
     operator << (std::ostream &o, const ThisClass &pt) {
         for(unsigned int i=0; i<_Dim-1; ++i) o << pt(i) << ",";
@@ -190,6 +219,7 @@ typedef Tuple<int,2> Vector2i;
 typedef Tuple<int,3> Vector3i;
 typedef Tuple<int,4> Vector4i;
 
+typedef Vector3d Point2D;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,13 +229,11 @@ typedef Tuple<int,4> Vector4i;
 
 class Curve2D : Lockable, public Named
 {
-    typedef Point2D<double> Point;
-
-    static bool point_cmp (const Point &p1, const Point &p2) {
-        return p1(0) < p2(0);
-    }
+public:
+    typedef Vector3d Point;   // (X, Y, RMS ERROR) //
 
 public:
+
 
     struct Axis {
         Axis() :
@@ -229,7 +257,7 @@ public:
     size_t Size() const { return m_data.size(); }
 
     template < typename _T >
-    void AddPoint( const Point2D<_T> &pt ) {
+    void AddPoint( const Tuple<_T,3> &pt ) {
         MDS_LOCK_SCOPE(*this);
         m_data.push_back ( (Point)pt );
     }
@@ -248,10 +276,10 @@ public:
         for(size_t i = 0; i < m_data.size(); ++i) {
             double &min = XAxis().limits[0];
             double &max = XAxis().limits[1];
-            min = std::min( min, m_data.at(i)(0) );
+            min = std::min( min, m_data.at(i)(1) );
             max = std::max( max, m_data.at(i)(1) );
         }
-        std::sort(m_data.begin(),m_data.end(),point_cmp);
+        std::sort(m_data.begin(),m_data.end());
     }
 
     inline Axis & GetAxis(unsigned int i) { return m_axis[i]; }
@@ -259,8 +287,11 @@ public:
     inline Axis & YAxis() { return GetAxis(1); }
 
     std::vector<Point> &Points() { return m_data; }
+    const std::vector<Point> &Points() const { return m_data; }
+
     Point & operator[](size_t id) { return m_data[id]; }
     const Point & operator[](size_t id) const { return m_data[id]; }
+
 
 
 private:
@@ -434,7 +465,7 @@ public:
         curve.XAxis().name = "Histogram";
         curve.YAxis().name = this->m_value_name;
         for(size_t i=0; i<this->BinSize(); ++i)
-            curve.AddPoint( Point2D<double>(get_pos(i) + get_spacing()/2, m_bins[i]) );
+            curve.AddPoint( Vector3d(get_pos(i) + get_spacing()/2, m_bins[i]) );
         curve.Update();
         return curve;
     }
@@ -520,6 +551,67 @@ private:
 
 
 ////////////////////////////////////////////////////////////////////////////////
+//  ColorRGB  //////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+class ColorRGB : public Tuple<unsigned char,3>
+{
+    typedef Tuple<unsigned char,3> BaseClass;
+    typedef typename BaseClass::ScalarType ScalarType;
+
+public:
+    ColorRGB() {}
+
+    ColorRGB(const ScalarType R,const ScalarType G,const ScalarType B) : BaseClass(R,G,B) {}
+    ColorRGB(const char *SharpRGB);
+
+    ScalarType & R() { return this->operator ()(0); }
+    const ScalarType & R() const { return this->operator ()(0); }
+    ScalarType & G() { return this->operator ()(1); }
+    const ScalarType & G() const { return this->operator ()(1); }
+    ScalarType & B() { return this->operator ()(2); }
+    const ScalarType & B() const { return this->operator ()(2); }
+
+    std::string ToString() const;
+
+
+private:
+
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  ColorRGBList  //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+class ColorRGBList
+{
+public:
+    ColorRGBList() {}
+
+    struct Entry {
+        std::string name;
+        ColorRGB    color;
+        Entry(const std::string n, const ColorRGB c) : name(n), color(c) {}
+    };
+
+    const std::vector<Entry> & ColorList() const { return m_color_list; }
+    std::vector<Entry> & ColorList() { return m_color_list; }
+
+    std::vector<Entry> & operator ()() {
+        return ColorList();
+    }
+
+private:
+
+    std::vector<Entry> m_color_list;
+
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 //  Plot  //////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -527,11 +619,14 @@ class Plot2D : public Named
 {
 public:
 
-    typedef Curve2D::Axis Axis;
+    typedef Curve2D        CurveType;
+    typedef Curve2D::Axis  AxisType;
+    typedef Curve2D::Point PointType;
 
     Plot2D(const char *name) :
         Named(name),
-        m_axis(2)
+        m_Xaxis(1),
+        m_Yaxis(1)
     {}
 
     size_t GetNumberOfPlots() const { return m_curves.size(); }
@@ -540,41 +635,30 @@ public:
          m_curves.push_back(curve);
     }
 
-    inline Axis & GetAxis(unsigned int i) { return m_axis[i]; }
-    inline Axis & XAxis() { return GetAxis(0); }
-    inline Axis & YAxis() { return GetAxis(1); }
+    inline AxisType & XAxis(unsigned int i = 0) { return m_Xaxis.at(i); }
+    inline const AxisType & XAxis(unsigned int i = 0) const { return m_Xaxis.at(i); }
+    inline AxisType & YAxis(unsigned int i = 0) { return m_Yaxis.at(i); }
+    inline const AxisType & YAxis(unsigned int i = 0) const { return m_Yaxis.at(i); }
 
-    Curve2D &Curve(int i) { return m_curves[i]; }
+    Curve2D & Curve(int i) { return m_curves[i]; }
 
-
-    void PrintCsvEasy( CsvDataFile &file ) {
-        (void) file;
-        // FARE: //
-    }
-
-    void PrintToGnuplotFile(std::ostream &o) /*const*/ {
-        foreach (Curve2D &curve, m_curves) {
-            o << "# " << curve.GetName() << "\n";
-        }
-    }
-
+    void PrintToCsv( std::ostream &o, const char sep = ';' );
 
     friend CsvDataFile &
-    operator << (CsvDataFile &csv, const Plot2D &plot) {
-        //        const char c = csv.Separator(); (void)c;
-        //        double pos = 0;
-
-
-        // FARE: //
+    operator << (CsvDataFile &csv, Plot2D &plot) {
+        plot.PrintToCsv(csv, csv.Separator());
         return csv;
     }
 
-
-
+    void PrintToGnuplotFile(std::string file_name = "") const;
 
 private:
-    std::vector<Axis> m_axis;
+    std::vector<AxisType> m_Xaxis;
+    std::vector<AxisType> m_Yaxis;
     std::vector<Curve2D> m_curves;
+
+    static Singleton<ColorRGBList> s_chart_colors;
+
 };
 
 

@@ -39,9 +39,9 @@ TestTree g_target_tree;
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-Point2D<double> segment_size_throughput_MP(size_t size_KB,
-                                           int nch = 1,
-                                           int nseg = 20)
+Point2D segment_size_throughput_MP(size_t size_KB,
+                                   int nch = 1,
+                                   int nseg = 20)
 {
 
     TestConnectionMP conn(g_target_tree);
@@ -66,7 +66,7 @@ Point2D<double> segment_size_throughput_MP(size_t size_KB,
     conn.StartConnection();
 
     std::cout << "CHANNELS TIMES:\n";
-    Point2D<double> time, speed;
+    Point2D time, speed;
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
         TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
@@ -131,14 +131,14 @@ int main(int argc, char *argv[])
         for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
         {
             unsigned int seg_size = seg_step*(sid+1);
-            Point2D<double> pt;
+            Point2D pt;
             pt = segment_size_throughput_MP(seg_size,nch);
 
             Curve2D &speed = speeds.back();
             Curve2D &speed_error = speed_errors.back();
 
-            speed.AddPoint( Point2D<double>(seg_size,pt(0)) );
-            speed_error.AddPoint( Point2D<double>(seg_size,pt(1)) );
+            speed.AddPoint( Point2D(seg_size,pt(0)) );
+            speed_error.AddPoint( Point2D(seg_size,pt(1)) );
         }
     }
 

@@ -171,6 +171,10 @@ public:
 
     Singleton() {}
 
+    Singleton(const T &copy) {
+        this->get_instance() = copy;
+    }
+
     inline T * const operator -> () { return &get_instance(); }
     inline const T * const operator -> () const { return &get_instance(); }
 
@@ -184,7 +188,7 @@ public:
     }
 
 private:
-    Singleton(Singleton const&);      // Don't Implement
+//    Singleton(Singleton const&);      // Don't Implement
     void operator=(Singleton const&); // Don't implement
 };
 
