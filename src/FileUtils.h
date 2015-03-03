@@ -15,6 +15,10 @@ public:
     static void SetEnv(const char *name, const char *value);
     static void UnsetEnv(const char *name);
     void SetFile(char * ciao, int parm);
+
+
+    static const std::string CurrentDateTime();
+
 };
 
 

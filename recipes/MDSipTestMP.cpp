@@ -125,8 +125,8 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////////
     // PARAMETERS //////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    n_channels                 << 1,2,4;
-    static const int seg_step   = 16;
+    n_channels                 << 1;
+    static const int seg_step   = 128;
     static const int seg_max    = 128;
     ////////////////////////////////////////////////////////////////////////////
 
@@ -159,8 +159,19 @@ int main(int argc, char *argv[])
         plot.AddCurve(speed);
     }
 
-    plot.XAxis().name = "Segment size [KB] of signal data";
-    plot.YAxis().name = "Total speed [MB/s]";
+    {
+        // SET PLOT TITLES AND LABELS //
+        std::string prtcl = "tcp";
+        if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
+        plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+        std::string subtitle;
+        subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+        const char * hostname = FileUtils::GetEnv("HOSTNAME");
+        if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
+        plot.SetSubtitle(subtitle);
+        plot.XAxis().name = "Segment size [KB] of signal data";
+        plot.YAxis().name = "Total speed [MB/s]";
+    }
 
     plot.PrintToCsv("test_segment_size");
     plot.PrintToGnuplotFile("test_segment_size");

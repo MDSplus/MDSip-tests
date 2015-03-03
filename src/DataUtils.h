@@ -625,9 +625,7 @@ public:
     typedef Curve2D::Axis  AxisType;
     typedef Curve2D::Point PointType;
 
-    Plot2D(const char *name) :
-        Named(name)
-    {}
+    Plot2D(const char *name) : Named(name) {}
 
     size_t GetNumberOfPlots() const { return m_curves.size(); }
 
@@ -641,6 +639,9 @@ public:
     inline const AxisType & XAxis(unsigned int i = 0) const { return m_Xaxis.at(i); }
     inline AxisType & YAxis(unsigned int i = 0) { return m_Yaxis.at(i); }
     inline const AxisType & YAxis(unsigned int i = 0) const { return m_Yaxis.at(i); }
+
+    std::string GetSubtitle() const { return m_subtitle; }
+    void SetSubtitle(const std::string &subtitle) { m_subtitle = subtitle; }
 
     Curve2D & Curve(int i) { return m_curves[i]; }
 
@@ -661,6 +662,8 @@ private:
     std::vector<AxisType> m_Xaxis;
     std::vector<AxisType> m_Yaxis;
     std::vector<Curve2D> m_curves;
+
+    std::string m_subtitle;
 
     static Singleton<ColorRGBList> s_chart_colors;
 

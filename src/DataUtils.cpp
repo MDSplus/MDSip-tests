@@ -149,7 +149,7 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
                (void)curve;
                const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
                o << "set style line " << count+1 << " lc rgb '" << color.ToString()
-                 << "' lt 1 lw 2 pt 7 pi -1 ps 1.5" << std::endl;
+                 << "' lt 1 lw 2 pt 7 pi -1 ps 1.3" << std::endl;
                count ++;
            }
 
@@ -158,7 +158,9 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
            o << "set pointintervalbox 3 \n";
 
            // LABELS //
-           o << "set title '" << this->GetName() << "' font 'Helvetica,25' \n";
+           std::string title = this->GetName();
+           if(!m_subtitle.empty()) title += "\\n{/*0.5 " + m_subtitle + "}";
+           o << "set title \"" << title << "\" font 'Helvetica,25' \n";
            o << "set xlabel '" << XAxis().name << "' \n";
            o << "set ylabel '" << YAxis().name << "' \n";
 
@@ -173,14 +175,17 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
                static int i=0;
                if(i==0) o << "plot \"" << file_name+".dat" << "\"";
                else o << ", \\\n  ''";
+
+               std::string smooth = curve.Points().size()>4? "smooth acsplines" : "";
                o << " index " << i << " using 1:2:3  title \"" << curve.GetName() << "\" w yerrorbars ls " << i+1 <<" , \\\n  ''"
-                 << " index " << i << " using 1:2 notitle w lines ls " << i+1;
+                 << " index " << i << " using 1:2:3 " << smooth << " notitle w lines ls " << i+1;
                i++;
            }
            o << std::endl;
 
            o.close();
 }
+
 
 
 
