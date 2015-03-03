@@ -92,6 +92,15 @@ void Plot2D::PrintToCsv(std::ostream &o, const char sep)
     }
 }
 
+void Plot2D::PrintToCsv(std::string file_name, const char sep)
+{
+    std::ofstream file;
+    file.open(std::string(file_name+".csv").c_str());
+    assert(file.is_open());
+    this->PrintToCsv(file,sep);
+    file.close();
+}
+
 
 
 void Plot2D::PrintToGnuplotFile(std::string file_name) const
@@ -103,6 +112,11 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
            std::string dat_file = file_name + ".dat";
            std::string plt_file = file_name + ".plt";
            std::string eps_file = file_name + ".eps";
+
+           ////////////////////////////////////////////////////////////////////////////////
+           //  CURVE DATA  ////////////////////////////////////////////////////////////////
+           ////////////////////////////////////////////////////////////////////////////////
+
 
            std::ofstream o;
            o.open( dat_file.c_str() );
@@ -118,37 +132,50 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
            }
            o.close();
 
+           ////////////////////////////////////////////////////////////////////////////////
+           //  PLOT DATA  /////////////////////////////////////////////////////////////////
+           ////////////////////////////////////////////////////////////////////////////////
+
            o.open( plt_file.c_str() );
            assert(o.is_open());
-
-           foreach (const Curve2D &curve, this->m_curves) {
-               static int count = 0;
-               (void)curve;
-               const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
-               o << "set style line " << count+1 << " lc rgb '" << color.ToString() << "' lt 1 lw 2 pt 7 pi -1 ps 1.5" << std::endl; // blue
-               count ++;
-           }
-
-           o << "set pointintervalbox 3 \n";
 
            // TERMINAL //
            o << "set terminal postscript eps enhanced color font 'Helvetica,20' \n";
            o << "set output '" << eps_file << "' \n";
 
+           // CURVE STYLES //
+           foreach (const Curve2D &curve, this->m_curves) {
+               static int count = 0;
+               (void)curve;
+               const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
+               o << "set style line " << count+1 << " lc rgb '" << color.ToString()
+                 << "' lt 1 lw 2 pt 7 pi -1 ps 1.5" << std::endl;
+               count ++;
+           }
+
+           o << "set grid \n";
+           o << "set key below \n";
+           o << "set pointintervalbox 3 \n";
+
            // LABELS //
            o << "set title '" << this->GetName() << "' font 'Helvetica,25' \n";
-           o << "set ylabel '" << YAxis().name << "' \n";
            o << "set xlabel '" << XAxis().name << "' \n";
+           o << "set ylabel '" << YAxis().name << "' \n";
+
+           // RANGES //
+           if(!are_same(XAxis().limits[0],XAxis().limits[1]) )
+               o << "set xrange [" << XAxis().limits[0] <<":"<< XAxis().limits[1] << "]\n";
+           if(!are_same(YAxis().limits[0],YAxis().limits[1]) )
+               o << "set yrange [" << YAxis().limits[0] <<":"<< YAxis().limits[1] << "]\n";
 
            // CURVES //
-           o << "plot \"" << file_name+".dat" << "\""
-             << "  index 0 using 1:2:3 w yerrorbars ls 1 , \\" << std::endl
-             << " '' index 0 using 1:2 w lines ls 1";
-
-           for(unsigned int i=1; i< m_curves.size(); ++i) {
-               o << ", \\" << std::endl
-                 << " '' index " << i << " using 1:2:3 w yerrorbars ls " << i+1 <<" , \\" << std::endl
-                 << " '' index " << i << " using 1:2 w lines ls " << i+1;
+           foreach (const Curve2D &curve, this->m_curves) {
+               static int i=0;
+               if(i==0) o << "plot \"" << file_name+".dat" << "\"";
+               else o << ", \\\n  ''";
+               o << " index " << i << " using 1:2:3  title \"" << curve.GetName() << "\" w yerrorbars ls " << i+1 <<" , \\\n  ''"
+                 << " index " << i << " using 1:2 notitle w lines ls " << i+1;
+               i++;
            }
            o << std::endl;
 

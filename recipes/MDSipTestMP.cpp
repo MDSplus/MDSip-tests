@@ -41,7 +41,7 @@ TestTree g_target_tree;
 ///
 Point2D segment_size_throughput_MP(size_t size_KB,
                                    int nch = 1,
-                                   int nseg = 20)
+                                   int nseg = 5)
 {
     typedef TestConnection::TimeHistogram _Histogram;
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     // PARAMETERS //////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     n_channels                 << 1,2,4;
-    static const int seg_step   = 64;
+    static const int seg_step   = 16;
     static const int seg_max    = 128;
     ////////////////////////////////////////////////////////////////////////////
 
@@ -136,7 +136,8 @@ int main(int argc, char *argv[])
     {
         std::stringstream curve_name;
         curve_name << nch << " ch";
-        speeds.push_back(Curve2D(curve_name.str().c_str()));
+        Curve2D curve(curve_name.str().c_str());
+        speeds.push_back(curve);
 
         for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
         {
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
     }
 
 
-    Plot2D plot("Segment Size Throughput");
+    Plot2D plot("Throughput vs Segment Size");
 
     std::cout << " ---- COLLECTED SPEEDS  ------ \n";
     foreach (Curve2D &speed, speeds) {
@@ -158,10 +159,11 @@ int main(int argc, char *argv[])
         plot.AddCurve(speed);
     }
 
-    std::ofstream file;
-    file.open("test_segment_size.csv");
-    plot.PrintToCsv(file,';');
-    file.close();
+    plot.XAxis().name = "Segment size [KB] of signal data";
+    plot.YAxis().name = "Total speed [MB/s]";
+
+    plot.PrintToCsv("test_segment_size");
+    plot.PrintToGnuplotFile("test_segment_size");
 
     return 0;
 }

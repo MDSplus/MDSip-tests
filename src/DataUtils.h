@@ -236,8 +236,7 @@ public:
 
 
     struct Axis {
-        Axis() :
-            ticks(1)
+        Axis() : ticks(1)
         {
             limits[0] = 0;
             limits[1] = 0;
@@ -272,13 +271,13 @@ public:
         return o;
     }
 
-    void Update() {
-        for(size_t i = 0; i < m_data.size(); ++i) {
-            double &min = XAxis().limits[0];
-            double &max = XAxis().limits[1];
-            min = std::min( min, m_data.at(i)(1) );
-            max = std::max( max, m_data.at(i)(1) );
-        }
+    void Update() {        
+        //        for(size_t i = 0; i < m_data.size(); ++i) {
+        //            XAxis().limits[0] = std::min( min, m_data.at(i)(0) );
+        //            XAxis().limits[1] = std::max( max, m_data.at(i)(0) );
+        //            YAxis().limits[0] = std::min( min, m_data.at(i)(1) );
+        //            YAxis().limits[1] = std::max( max, m_data.at(i)(1) );
+        //        }
         std::sort(m_data.begin(),m_data.end());
     }
 
@@ -647,13 +646,16 @@ public:
 
     void PrintToCsv( std::ostream &o, const char sep = ';' );
 
+    void PrintToCsv( std::string file_name, const char sep = ';' );
+
+    void PrintToGnuplotFile(std::string file_name = "") const;
+
     friend CsvDataFile &
     operator << (CsvDataFile &csv, Plot2D &plot) {
         plot.PrintToCsv(csv, csv.Separator());
         return csv;
     }
 
-    void PrintToGnuplotFile(std::string file_name = "") const;
 
 private:
     std::vector<AxisType> m_Xaxis;
