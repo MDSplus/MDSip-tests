@@ -19,7 +19,6 @@ namespace mds = MDSplus;
 //  Comma Init  ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-
 // Comma Initializer template ...
 // ContentT should provide operator[] and resize() methods.
 // TODO: Waiting for Static interface mpl check
@@ -27,23 +26,27 @@ namespace mds = MDSplus;
 template < typename ContainerT, typename ContentT >
 struct CommaInitializer
 {
-    inline explicit CommaInitializer(ContainerT *container, ContentT s)
-        : container(container)
+    typedef ContentT&(ContainerT::* OpType)(const size_t);
+
+    inline explicit CommaInitializer(ContainerT *container, ContentT s, OpType op = &ContainerT::operator() )
+        : container(container), operation(op)
     {
         this->index = 0;
         container->resize(1);
-        this->container->operator()(0) = s;
+        (container->*operation)(0) = s;
     }
     inline CommaInitializer & operator, (ContentT s) {
         this->index++;
         container->resize(index + 1);
-        this->container->operator()(this->index) = s;
+        (container->*operation)(this->index) = s;
         return *this;
     }
 
     ContainerT *container;
+    OpType      operation;
     unsigned int index;
 };
+
 
 
 // Comma Initializer template for fixed array...
@@ -68,6 +71,23 @@ struct CommaInitializerFixed
     ContainerT *container;
     unsigned int index;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  COMMA INIT FOR CONTAINERS  /////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+namespace std {
+
+template < typename _T >
+inline CommaInitializer< std::vector<_T>, _T > operator << (std::vector<_T> &cnt, _T scalar ) {
+    return CommaInitializer< std::vector<_T>, _T>(&cnt,scalar,&std::vector<_T>::operator []);
+}
+
+} // std
+
+
 
 
 

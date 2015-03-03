@@ -163,8 +163,8 @@ public:
         return CommaInit(this, scalar);
     }
 
-    _Scalar & operator() (const unsigned int i) { assert(i<_Dim); return m_data[i]; }
-    const _Scalar & operator() (const unsigned int i) const { assert(i<_Dim); return m_data[i]; }
+    _Scalar & operator() (const size_t i) { assert(i<_Dim); return m_data[i]; }
+    const _Scalar & operator() (const size_t i) const { assert(i<_Dim); return m_data[i]; }
 
     template < typename _Other >
     Tuple<_Other,_Dim> cast() {
@@ -557,7 +557,7 @@ private:
 class ColorRGB : public Tuple<unsigned char,3>
 {
     typedef Tuple<unsigned char,3> BaseClass;
-    typedef typename BaseClass::ScalarType ScalarType;
+    typedef BaseClass::ScalarType ScalarType;
 
 public:
     ColorRGB() {}

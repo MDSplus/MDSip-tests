@@ -43,6 +43,7 @@ Point2D segment_size_throughput_MP(size_t size_KB,
                                    int nch = 1,
                                    int nseg = 20)
 {
+    typedef TestConnection::TimeHistogram _Histogram;
 
     TestConnectionMP conn(g_target_tree);
 
@@ -51,6 +52,9 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 
     size_t tot_size = size_KB * nseg;
 
+    _Histogram time_h("channel time histogram",100,0,5);
+    _Histogram speed_h("channel speed histogram",100,0,20);
+
     // prepare channels //
     for(int i=0; i<nch; ++i) {
         std::stringstream name;
@@ -58,6 +62,8 @@ Point2D segment_size_throughput_MP(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
         conn.AddChannel(functions[i],channels[i]);
+        conn.ChannelTime(channels.back()) = time_h;
+        conn.ChannelSpeed(channels.back()) = speed_h;
     }
 
 
@@ -113,14 +119,16 @@ int main(int argc, char *argv[])
 
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    static const int n_channels = 1;
+    std::vector<int> n_channels;
+
+    n_channels                 << 1,2,4,8;
     static const int seg_step   = 1024;
     static const int seg_max    = 1024;
 
     std::vector<Curve2D> speeds;
     std::vector<Curve2D> speed_errors;
 
-    for(int nch = 1; nch <= n_channels; nch*=2 )
+    foreach(int nch, n_channels)
     {
         std::stringstream curve_name;
         curve_name << "ch" << nch;
