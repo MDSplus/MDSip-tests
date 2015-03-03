@@ -283,8 +283,11 @@ public:
     }
 
     inline Axis & GetAxis(unsigned int i) { return m_axis[i]; }
+    inline const Axis & GetAxis(unsigned int i) const { return m_axis[i]; }
     inline Axis & XAxis() { return GetAxis(0); }
+    inline const Axis & XAxis() const { return GetAxis(0); }
     inline Axis & YAxis() { return GetAxis(1); }
+    inline const Axis & YAxis() const { return GetAxis(1); }
 
     std::vector<Point> &Points() { return m_data; }
     const std::vector<Point> &Points() const { return m_data; }
@@ -624,15 +627,15 @@ public:
     typedef Curve2D::Point PointType;
 
     Plot2D(const char *name) :
-        Named(name),
-        m_Xaxis(1),
-        m_Yaxis(1)
+        Named(name)
     {}
 
     size_t GetNumberOfPlots() const { return m_curves.size(); }
 
     void AddCurve(const Curve2D &curve) {
          m_curves.push_back(curve);
+         if(m_Xaxis.empty()) m_Xaxis.push_back(curve.XAxis());
+         if(m_Yaxis.empty()) m_Yaxis.push_back(curve.YAxis());
     }
 
     inline AxisType & XAxis(unsigned int i = 0) { return m_Xaxis.at(i); }

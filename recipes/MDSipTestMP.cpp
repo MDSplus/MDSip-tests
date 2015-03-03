@@ -52,8 +52,12 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 
     size_t tot_size = size_KB * nseg;
 
-    _Histogram time_h("channel time histogram",100,0,5);
-    _Histogram speed_h("channel speed histogram",100,0,20);
+    ////////////////////////////////////////////////////////////////////////////
+    // PARAMETERS //////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    _Histogram time_h ("ch time ",100,0,5);
+    _Histogram speed_h("ch speed",100,0,20);
+    ////////////////////////////////////////////////////////////////////////////
 
     // prepare channels //
     for(int i=0; i<nch; ++i) {
@@ -107,34 +111,32 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 
 int main(int argc, char *argv[])
 {
-    if(argc > 1) {
-        g_target_tree = TestTree("test_size", argv[1]);
-    }
+    if(argc > 1) g_target_tree = TestTree("test_size", argv[1]);
     else {
         char *path = TestTree::GetEnvPath("test_size");
-        if(path) {
-            g_target_tree = TestTree("test_size",path);
-        }
+        if(path) { g_target_tree = TestTree("test_size",path); }
     }
+    std::cout << "CONNECTING TARGET: "
+              << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
     std::vector<int> n_channels;
 
-    n_channels                 << 1,2,4,8;
-    static const int seg_step   = 1024;
-    static const int seg_max    = 1024;
+    ////////////////////////////////////////////////////////////////////////////
+    // PARAMETERS //////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    n_channels                 << 1,2,4;
+    static const int seg_step   = 64;
+    static const int seg_max    = 128;
+    ////////////////////////////////////////////////////////////////////////////
 
     std::vector<Curve2D> speeds;
-    std::vector<Curve2D> speed_errors;
 
     foreach(int nch, n_channels)
     {
         std::stringstream curve_name;
-        curve_name << "ch" << nch;
+        curve_name << nch << " ch";
         speeds.push_back(Curve2D(curve_name.str().c_str()));
-        curve_name << "_err";
-        speed_errors.push_back(Curve2D(curve_name.str().c_str()));
 
         for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
         {
@@ -143,40 +145,22 @@ int main(int argc, char *argv[])
             pt = segment_size_throughput_MP(seg_size,nch);
 
             Curve2D &speed = speeds.back();
-            Curve2D &speed_error = speed_errors.back();
-
-            speed.AddPoint( Point2D(seg_size,pt(0)) );
-            speed_error.AddPoint( Point2D(seg_size,pt(1)) );
+            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
         }
+    }
+
+
+    Plot2D plot("Segment Size Throughput");
+
+    std::cout << " ---- COLLECTED SPEEDS  ------ \n";
+    foreach (Curve2D &speed, speeds) {
+        std::cout << speed << "\n";
+        plot.AddCurve(speed);
     }
 
     std::ofstream file;
     file.open("test_segment_size.csv");
-    static const char sep = ';';
-
-    std::cout << " ---- COLLECTED SPEEDS  ------ \n";
-    file << "segment size";
-    for(unsigned int nch=0; nch<speeds.size(); ++nch)
-    {
-        Curve2D &speed = speeds[nch];
-        Curve2D &speed_error = speed_errors[nch];
-        std::cout << speed << "\n";
-        file << sep << speed.GetName() << sep << speed_error.GetName();
-    }
-    file << std::endl;
-
-    for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
-    {
-        unsigned int seg_size = seg_step*(sid+1);
-        file << seg_size;
-        for(unsigned int nch=0; nch<speeds.size(); ++nch ) {
-            Curve2D &speed = speeds[nch];
-            Curve2D &speed_error = speed_errors[nch];
-            file << sep << speed[sid](1) << sep << speed_error[sid](1);
-        }
-        file << std::endl;
-    }
-
+    plot.PrintToCsv(file,';');
     file.close();
 
     return 0;
