@@ -31,45 +31,56 @@ public:
 
 namespace detail {
 
+
+template<typename T>
+struct sum_kahan
+{
+    sum_kahan() : m_sum(0), m_cps(0) {}
+
+    void add(const T &val) {
+        const T y = val - m_cps;
+        const T t = m_sum + y;
+        m_cps = (t - m_sum) - y;
+        m_sum = t;
+    }
+
+    T operator ()() const {
+        return this->m_sum;
+    }
+
+    inline friend sum_kahan & operator << (sum_kahan &sum, const T &val) {
+        sum.add(val);
+        return sum;
+    }
+
+private:
+    T m_sum;
+    T m_cps;
+};
+
+
 template < typename T >
-class mp_mean : Lockable {
+class mean_kahan  {
 
 public:
-    mp_mean(size_t size) : m_size(size), m_current_size(0) {
-        if(size <= 0)
-            throw std::invalid_argument("mean window size must be greater than 0");
-    }
+    mean_kahan() : m_size(0) {}
 
     void add(const T &data) {
-        MDS_LOCK_SCOPE(*this);
-        if(m_current_size == 0) {
-            m_current_size = m_size;
-            m_values.push_back(0);
-        }
-        m_values.back() += data - mean();
-        ++m_current_size;
+        m_sum.add(data); ++m_size;
     }
 
-    T mean() const {
-        T value = 0;
-        for(unsigned int i=0; i< m_values.size()-1; ++i)
-            value += m_values[i] / m_size;
-        if(m_current_size)
-            value += m_values.back() / m_current_size;
-        return value;
+    T mean() const { return m_sum() / m_size; }
+
+    inline T operator ()() const { return mean(); }
+
+    inline friend mean_kahan & operator << (mean_kahan &mean, const T &data) {
+        mean.add(data);
+        return mean;
     }
-
-
-    inline T operator()() const { return mean(); }
-
-    inline T operator << (const T &data) { this->add(data); }
-
-
 
 private:    
-    const size_t m_size;
-    size_t m_current_size;
-    std::vector< T > m_values;
+    sum_kahan<T> m_sum;
+    size_t m_size;
 };
 
 
@@ -117,8 +128,6 @@ private:
     double m_mean;
     double m_M2;
 };
-
-
 
 } // detail
 

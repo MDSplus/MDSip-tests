@@ -10,7 +10,8 @@ TESTS = \
  TreeUtilsTest \
  ContentProducerTest \
  ClassUtilsTest \
- DataUtilsTest
+ DataUtilsTest \
+ StatisticsUtilsTest
 
 
 # UuidTest
