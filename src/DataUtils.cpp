@@ -144,12 +144,12 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
            o << "set output '" << eps_file << "' \n";
 
            // CURVE STYLES //
+           int count = 0;
            foreach (const Curve2D &curve, this->m_curves) {
-               static int count = 0;
                (void)curve;
                const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
                o << "set style line " << count+1 << " lc rgb '" << color.ToString()
-                 << "' lt 1 lw 2 pt 7 pi -1 ps 1.3" << std::endl;
+                 << "' lt 1 lw 4 pt 7 pi -1 ps 1.3" << std::endl;
                count ++;
            }
 
@@ -171,15 +171,33 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
                o << "set yrange [" << YAxis().limits[0] <<":"<< YAxis().limits[1] << "]\n";
 
            // CURVES //
+           count=0;
            foreach (const Curve2D &curve, this->m_curves) {
-               static int i=0;
-               if(i==0) o << "plot \"" << file_name+".dat" << "\"";
+               const OptionFlags &flags = m_curves_flags[count];
+
+               if(count==0) o << "plot \"" << file_name+".dat" << "\"";
                else o << ", \\\n  ''";
 
-               std::string smooth = curve.Points().size()>4? "smooth acsplines" : "";
-               o << " index " << i << " using 1:2:3  title \"" << curve.GetName() << "\" w yerrorbars ls " << i+1 <<" , \\\n  ''"
-                 << " index " << i << " using 1:2:3 " << smooth << " notitle w lines ls " << i+1;
-               i++;
+               bool has_errors = 0;
+               foreach (const Point2D &pt, curve.Points())
+                   has_errors |= !are_same(pt(2),.0);
+
+               std::string smooth = (flags.testFlag(Smoothed) && curve.Points().size()>4 && has_errors) ? "smooth acsplines" : "";
+
+               if( flags.testFlag(ShowPoints) && !flags.testFlag(ShowLines) ) {
+                   o << " index " << count << " using 1:2:3  title \"" << curve.GetName() << "\" w yerrorbars ls " << count+1;
+               }
+               else if ( !flags.testFlag(ShowPoints) && flags.testFlag(ShowLines) ) {
+                   o << " index " << count << " using 1:2:3 title  \"" << curve.GetName() << "\" " << smooth << " w lines ls " << count+1;
+               }
+               else if(has_errors) {
+                   o << " index " << count << " using 1:2:3  title \"" << curve.GetName() << "\" w yerrorbars ls " << count+1 << " , \\\n  ''"
+                     << " index " << count << " using 1:2:3 " << smooth << " notitle w lines ls " << count+1;
+               }
+               else {
+                   o << " index " << count << " using 1:2:3 title  \"" << curve.GetName() << "\" " << smooth << " w lines ls " << count+1;
+               }
+               count++;
            }
            o << std::endl;
 

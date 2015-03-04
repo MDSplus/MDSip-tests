@@ -1,5 +1,5 @@
 recipes/Makefile.am
-recipes/MDSipTestMP.cpp
+recipes/SegmentSize.cpp
 recipes/PerfTestProc.cpp
 recipes/PerfTestProcMultipleTrees.cpp
 recipes/PerfTestThreads.cpp
@@ -35,8 +35,7 @@ configure.ac
 Makefile.am
 README.md
 src/testing/DataUtilsTest.cpp
-recipes/SpeedDistributionMP.cpp
-recipes/SpeedDistributionNChannels.cpp
+recipes/SpeedDistribution.cpp
 src/SerializeUtils.h
 src/SerializeUtils.cpp
 src/DataUtils.cpp

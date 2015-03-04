@@ -87,6 +87,27 @@ int main(int argc, char *argv[])
     }
 
 
+    { // HISTOGRAMS //
+
+        Histogram<double> h("test",20,-5,5);
+        for (int i=0; i<5000; ++i) {
+            h << StatisticGen::boxMuller(0,1);
+        }
+        Curve2D curve = h;
+
+        foreach (Point2D &pt, curve.Points()) {
+            pt(1) /= h.Size();
+            pt(2) = StatisticGen::noiseWhite() / 10;
+        }
+
+        Plot2D plot("test histogram");
+
+        plot.AddCurve(curve);
+        plot.CurveFlags(0) = Plot2D::ShowPoints | Plot2D::ShowLines;
+
+        plot.PrintToGnuplotFile("test_histogram");
+    }
+
 
 
     END_TESTING;

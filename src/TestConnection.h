@@ -19,8 +19,6 @@
 
 class Channel {
 
-    //    typedef Histogram<double> TimeHistogram;
-
 public:
     virtual ~Channel() {}
 
@@ -68,9 +66,6 @@ public:
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,5);
         m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,2);
 
-        //        unique_ptr<mds::Tree> tree = m_tree.Edit();
-        //        tree->addNode(cnt->GetName().c_str(),(char *)"SIGNAL");
-        //        tree->write();
         m_tree.AddNode(cnt->GetName().c_str(),(char *)"SIGNAL");
     }
 

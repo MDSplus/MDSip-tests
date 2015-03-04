@@ -6,17 +6,15 @@ bin_PROGRAMS = \
  PerfTestProc \
  PerfTestProcMultipleTrees \
  PerfTestThreads \
- MDSipTestMP \
- SpeedDistributionMP \
- SpeedDistributionNChannels
+ SegmentSize \
+ SpeedDistribution
 
 # needed by obsolete automake versions (ra22.igi.cnr.it)
 PerfTestProc_SOURCES = PerfTestProc.cpp
 PerfTestProcMultipleTrees_SOURCES = PerfTestProcMultipleTrees.cpp
 PerfTestThreads_SOURCES = PerfTestThreads.cpp
-MDSipTestMP_SOURCES = MDSipTestMP.cpp
-SpeedDistributionMP_SOURCES = SpeedDistributionMP.cpp
-SpeedDistributionNChannels_SOURCES = SpeedDistributionNChannels.cpp
+SegmentSize_SOURCES = SegmentSize.cpp
+SpeedDistribution_SOURCES = SpeedDistribution.cpp
 
 
 LDADD = $(top_builddir)/libMDSipTest.la

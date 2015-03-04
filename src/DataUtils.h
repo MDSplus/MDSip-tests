@@ -227,13 +227,12 @@ typedef Vector3d Point2D;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-class Curve2D : Lockable, public Named
+class Curve2D : /*Lockable,*/ public Named
 {
 public:
     typedef Vector3d Point;   // (X, Y, RMS ERROR) //
 
-public:
-
+public:    
 
     struct Axis {
         Axis() : ticks(1)
@@ -257,7 +256,7 @@ public:
 
     template < typename _T >
     void AddPoint( const Tuple<_T,3> &pt ) {
-        MDS_LOCK_SCOPE(*this);
+//        MDS_LOCK_SCOPE(*this);
         m_data.push_back ( (Point)pt );
     }
 
@@ -631,6 +630,7 @@ public:
 
     void AddCurve(const Curve2D &curve) {
          m_curves.push_back(curve);
+         m_curves_flags.push_back( OptionFlags(ShowLines | ShowPoints | Smoothed) );
          if(m_Xaxis.empty()) m_Xaxis.push_back(curve.XAxis());
          if(m_Yaxis.empty()) m_Yaxis.push_back(curve.YAxis());
     }
@@ -657,11 +657,22 @@ public:
         return csv;
     }
 
+    enum OptionEnum {
+        Smoothed    = 1 << 0,
+        ShowLines   = 1 << 1,
+        ShowPoints  = 1 << 2,
+        ShowBars    = 1 << 3
+    };
+    typedef Flags<enum OptionEnum> OptionFlags;
+
+    OptionFlags & CurveFlags(unsigned int i) { return m_curves_flags[i]; }
+    const OptionFlags & CurveFlags(unsigned int i) const { return m_curves_flags[i]; }
 
 private:
     std::vector<AxisType> m_Xaxis;
     std::vector<AxisType> m_Yaxis;
-    std::vector<Curve2D> m_curves;
+    std::vector<Curve2D>     m_curves;
+    std::vector<OptionFlags> m_curves_flags;
 
     std::string m_subtitle;
 
@@ -670,6 +681,7 @@ private:
 };
 
 
+DEFINE_OPERATORS_FOR_FLAGS(Plot2D::OptionFlags)
 
 
 

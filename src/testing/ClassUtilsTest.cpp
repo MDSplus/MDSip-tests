@@ -21,6 +21,20 @@ public:
 };
 
 
+// FLAGS //
+
+enum _MyFlags
+{
+    F1 = 1 << 0,
+    F2 = 1 << 2,
+    F3 = 1 << 3
+};
+typedef Flags<enum _MyFlags> MyFlags;
+DEFINE_OPERATORS_FOR_FLAGS(MyFlags)
+
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -126,6 +140,19 @@ int main(int argc, char *argv[])
             TEST1( AreSame<float>(el.f,555.2368) );
             TEST1( el.i == count++ );
         }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //  FLAGS  /////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+
+    {
+        MyFlags f;
+        f = F1 | F2;
+        TEST1_P(f.testFlag(F1));
+        TEST1_P(f.testFlag(F2));
+        TEST0_P(f.testFlag(F3));
     }
 
     END_TESTING;
