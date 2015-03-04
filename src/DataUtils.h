@@ -313,7 +313,11 @@ class Accumulator : public Named
 public:
     Accumulator() : Named() {}
 
-    Accumulator(const Accumulator &other) : Named(other) {}
+    Accumulator(const Accumulator &other) :
+        Named(other),
+        m_min(other.m_min), m_max(other.m_max), m_sum(other.m_sum),
+        m_stat(other.m_stat)
+    {}
 
     Accumulator(const char *name) :
         Named(name),
@@ -330,7 +334,7 @@ public:
         m_stat << data;
     }
 
-    inline void operator<<(const T data) { Push(data); }
+    inline void operator << (const T data) { Push(data); }
 
     void Clear() {
         m_min = m_max = m_sum = 0;
@@ -352,8 +356,6 @@ public:
     }
 
 
-
-
     /// Print to ostreem
     friend std::ostream &
     operator << (std::ostream &o, const Accumulator<T> &_this) {
@@ -367,7 +369,7 @@ public:
         ar & (Named &)h;
     }
 
-private:
+protected:
     T m_min,m_max,m_sum;
     StatUtils::IncrementalOrder2 m_stat;
 };
@@ -461,7 +463,7 @@ public:
     }
 
     /// Convert to a Curve object
-    operator Curve2D () {
+    operator Curve2D () const {
         Curve2D curve(this->GetName().c_str());
         curve.XAxis().name = "Histogram";
         curve.YAxis().name = this->m_value_name;
@@ -497,7 +499,7 @@ public:
 
 
     static Histogram merge(const Histogram &h1, const Histogram &h2) {
-        // TODO: add assertions ... //
+        // TODO: very bad .. add assertions ... //
         Histogram out = h1;
         for(unsigned int i=0; i<h1.BinSize(); ++i) {
             out.m_bins[i] += h2.m_bins[i];
@@ -506,6 +508,8 @@ public:
         out.m_stat.clear();
         out.m_underf += h2.m_underf;
         out.m_overf += h2.m_overf;
+
+        // out.Accumulator
         return out;
     }
 

@@ -121,7 +121,7 @@ public:
     operator << (incremental_statistic &st, const T &data) {
         st.add(data);
         return st;
-    }
+    }    
 
 private:
     size_t m_count;

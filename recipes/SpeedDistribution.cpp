@@ -26,10 +26,12 @@ TestTree g_target_tree;
 ////  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
+//typedef TestConnection::TimeHistogram Histogram;
+
 
 Vector2d segment_speed_distr_MP(size_t size_KB,
-                                    Curve2D &speed_curve,
-                                    Curve2D &time_curve,
+                                    TestConnection::TimeHistogram &speed_h_out,
+                                    TestConnection::TimeHistogram &time_h_out,
                                     int nch = 1,
                                     int nseg = 50)
 {
@@ -88,8 +90,8 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
     std::cout << "SPEED: " << speed << "\n";
 
     // returns a plot of merged histograms //
-    speed_curve = speed_h_sum;
-    time_curve = time_h_sum;
+    speed_h_out = speed_h_sum;
+    time_h_out = time_h_sum;
 
     for(int i=0; i<nch; ++i) {
         delete channels[i];
@@ -111,22 +113,23 @@ int main(int argc, char *argv[])
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
     std::vector<int> n_channels;
+    typedef TestConnection::TimeHistogram Histogram;
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     n_channels                  << 1,2,4;
-    static const int n_samples   = 100;
+    static const int n_samples   = 10;
     static const int seg_size    = 64;
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    std::vector<Curve2D> speeds;
-    std::vector<Curve2D> times;
+    std::vector<Histogram> speeds;
+    std::vector<Histogram> times;
 
     foreach (int nch, n_channels)
     {
-        Curve2D speed;
-        Curve2D time;
+        Histogram speed;
+        Histogram time;
         segment_speed_distr_MP(seg_size,speed,time,nch,n_samples);
         std::stringstream curve_name;
         curve_name << "ch" << nch;
@@ -140,9 +143,12 @@ int main(int argc, char *argv[])
         Plot2D plot("Speed Distribution");
 
         std::cout << " ---- COLLECTED SPEEDS  ------ \n";
-        foreach (const Curve2D &curve, speeds) {
-            std::cout << curve << "\n";
-            plot.AddCurve(curve);
+        foreach (const Histogram &h, speeds) {
+            std::cout << h << "\n";
+            Curve2D curve = h;
+//            foreach (Point2D &pt, curve.Points())
+//                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
+            plot.AddCurve(h);
         }
 
         {
@@ -158,7 +164,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission speed [MB/s]";
-            plot.YAxis().name = "probability to transmit segment";
+            plot.YAxis().name = "number of transmitted segments";
         }
 
         plot.PrintToCsv("speed_distribution");
@@ -169,9 +175,12 @@ int main(int argc, char *argv[])
         Plot2D plot("Time Distribution");
 
         std::cout << " ---- COLLECTED TIMES  ------ \n";
-        foreach (const Curve2D &curve, times) {
-            std::cout << curve << "\n";
-            plot.AddCurve(curve);
+        foreach (const Histogram &h, times) {
+            std::cout << h << "\n";
+            Curve2D curve = h;
+//            foreach (Point2D &pt, curve.Points())
+//                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
+            plot.AddCurve(h);
         }
 
         {
@@ -187,7 +196,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission time [s]";
-            plot.YAxis().name = "probability to transmit segment";
+            plot.YAxis().name = "number of transmitted segments";
         }
 
         plot.PrintToCsv("time_distribution");
