@@ -350,11 +350,17 @@ public:
     double Variance() const { return m_stat.variance(); }
     double Rms() const { return m_stat.rms(); }
 
+    void operator += (const Accumulator &other) {
+        m_min = std::min(m_min, other.m_min);
+        m_max = std::max(m_max, other.m_max);
+        m_sum += other.m_sum;
+        m_stat += other.m_stat; // see stat operator //
+    }
+
     void PrintSelfInline(std::ostream &o) const {
         o << "Accumulator(\"" << this->GetName() << "\") [" << m_min << "," << m_max << "]"
           << " tot:" << m_sum << " mean:" << Mean() << " rms:" << Rms();
-    }
-
+    }    
 
     /// Print to ostreem
     friend std::ostream &
@@ -499,17 +505,20 @@ public:
 
 
     static Histogram merge(const Histogram &h1, const Histogram &h2) {
-        // TODO: very bad .. add assertions ... //
+        // TODO: very bad ... works only if h have the same bins //
+        assert(h1.BinSize() == h2.BinSize());
+        assert(h1.m_limits[0] == h2.m_limits[0]);
+        assert(h1.m_limits[1] == h2.m_limits[1]);
+
         Histogram out = h1;
         for(unsigned int i=0; i<h1.BinSize(); ++i) {
             out.m_bins[i] += h2.m_bins[i];
-        }
-        out.BaseClass::Clear();
-        out.m_stat.clear();
+        }        
+        out.Accumulator<T>::operator +=((Accumulator<T>)h2);
+        out.m_stat += h2.m_stat;
         out.m_underf += h2.m_underf;
         out.m_overf += h2.m_overf;
 
-        // out.Accumulator
         return out;
     }
 

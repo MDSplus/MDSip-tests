@@ -116,6 +116,22 @@ public:
 
     double rms() const { return sqrt(variance()); }
 
+    void operator += (const incremental_statistic & other) {
+        size_t nx = other.m_count + m_count;
+        double d = other.m_mean - m_mean;
+        double mx;
+        if(m_count > 50 && other.m_count > 50)
+            mx = (m_mean*m_count + other.m_mean*other.m_count) /
+                    m_count + other.m_count;
+        else {
+            mx = m_mean + d * other.m_count / nx;
+        }
+        m_M2 = other.m_M2 + m_M2 + d*d*m_count*other.m_count/nx;
+        m_mean = mx;
+        m_count = nx;
+    }
+
+
     template < typename T >
     friend incremental_statistic &
     operator << (incremental_statistic &st, const T &data) {

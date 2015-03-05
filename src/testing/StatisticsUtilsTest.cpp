@@ -31,7 +31,23 @@ static Scalar test_dummy_variance(const std::vector<Scalar> &v) {
     foreach (Scalar val, v) {
         variance += pow(val-mean,2);
     }
-    return variance / v.size();
+    return variance / (v.size()-1);
+}
+
+
+
+static Scalar test_compensated_variance(const std::vector<Scalar> &v) {
+    Scalar m=0,s2=0,s3=0;
+    const size_t n = v.size();
+    foreach (Scalar x, v)
+        m += x;
+    m /= n;
+    foreach (Scalar x, v) {
+        x -= m;
+        s2 += x*x;
+        s3 += x;
+    }
+    return (s2 - s3*s3/n)/(n-1);
 }
 
 
@@ -39,6 +55,22 @@ static Scalar test_dummy_variance(const std::vector<Scalar> &v) {
 int main(int argc, char *argv[])
 {
     BEGIN_TESTING(Statistics Utils);
+
+    //    {
+    //        std::vector<Scalar> data;
+    //        StatUtils::IncrementalOrder2 st;
+    //        int n = 0;
+    //        for(int i=0; i<100; i++) {
+    //            Scalar val = StatisticGen::boxMuller(0,1);
+    //            data.push_back(val);
+    //            st.add(val);
+    //                std::cout << i << ";" << test_dummy_variance(data) << ";"
+    //                          << test_dummy_variance(data) - st.variance() << ";"
+    //                          << test_compensated_variance(data) - st.variance() << "\n";
+    //        }
+    //    }
+
+
 
     { // TEST INCREMENTAL VARIANCE //
         std::vector<Scalar> data;
@@ -52,10 +84,11 @@ int main(int argc, char *argv[])
             if(n > 50) break; // safe exit //
         } while( n==1 || fabs(sqrt(test_dummy_variance(data))-sqrt(st.variance())) > 0.1 );
 
-        // test that incremental variance error is less than 10% for at least 5 samples //
+        // test that incremental variance error is less than 10% within 5 samples //
         TEST1_P( n <= 5 );
     }
 
+    // TODO: test IncrementalOrder2 additions .. //
 
 
     END_TESTING;

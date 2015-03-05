@@ -44,8 +44,8 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
 
     size_t tot_size = size_KB * nseg;
 
-    Histogram speed_h_sum("speed_sum",100,0,3);
-    Histogram time_h_sum("time_sum",100,0,2);
+    Histogram speed_h_sum("speed_sum",100,0,1);
+    Histogram time_h_sum("time_sum",100,0,0.5);
 
     // prepare channels //
     for(int i=0; i<nch; ++i) {
@@ -117,8 +117,8 @@ int main(int argc, char *argv[])
 
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    n_channels                  << 1,2,4;
-    static const int n_samples   = 10;
+    n_channels                  << 1,2,3,4;
+    static const int n_samples   = 200;
     static const int seg_size    = 64;
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
@@ -146,9 +146,9 @@ int main(int argc, char *argv[])
         foreach (const Histogram &h, speeds) {
             std::cout << h << "\n";
             Curve2D curve = h;
-//            foreach (Point2D &pt, curve.Points())
-//                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
-            plot.AddCurve(h);
+            foreach (Point2D &pt, curve.Points())
+                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
+            plot.AddCurve(curve);
         }
 
         {
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission speed [MB/s]";
-            plot.YAxis().name = "number of transmitted segments";
+            plot.YAxis().name = "Transmission probability";
         }
 
         plot.PrintToCsv("speed_distribution");
@@ -178,9 +178,9 @@ int main(int argc, char *argv[])
         foreach (const Histogram &h, times) {
             std::cout << h << "\n";
             Curve2D curve = h;
-//            foreach (Point2D &pt, curve.Points())
-//                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
-            plot.AddCurve(h);
+            foreach (Point2D &pt, curve.Points())
+                pt(1) /= h.Size(); // NORMALIZE DISTRIBUTION //
+            plot.AddCurve(curve);
         }
 
         {
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission time [s]";
-            plot.YAxis().name = "number of transmitted segments";
+            plot.YAxis().name = "Transmission probability";
         }
 
         plot.PrintToCsv("time_distribution");
