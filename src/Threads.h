@@ -21,6 +21,10 @@ public:
       return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
    }
 
+   void StopThread() {
+       pthread_cancel(_thread);
+   }
+
    void WaitForThreadToExit() {
       (void) pthread_join(_thread, NULL);
    }

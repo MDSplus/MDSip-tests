@@ -77,23 +77,16 @@ TestTree::TestTree(const char *name, const char *path, const TestTree::ClientTyp
     m_name(name),
     m_path(path)
 {
-//    if( GetEnvPath(name) ) {
-//        std::cout << "WARNING: using env path is set\n";
-//        //        m_path = GetEnvPath(name);
-//        //        m_path.protocol.clear(); // remove protocol in env (not supported)
-//        //SetEnvPath(name,path);
-//        m_client = DC;
-//    }
     if(m_path.path.empty()) m_client = TC;
-    else if(m_path.server.empty()) {
-        // only path DC local connection //
-        SetEnvPath(name,m_path.path.c_str());
-    }
-    else{ // server and path DC connection //
-        TreePath path = m_path;
-        path.protocol.clear();
-        SetEnvPath(name,path);
-    }
+//    else if(m_path.server.empty()) {
+//        // only path DC local connection //
+//        SetEnvPath(name,m_path.path.c_str());
+//    }
+//    else { // server and path DC connection //
+//        TreePath path = m_path;
+//        path.protocol.clear();
+//        SetEnvPath(name,path);
+//    }
 }
 
 

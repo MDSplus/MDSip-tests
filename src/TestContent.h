@@ -4,6 +4,8 @@
 #include <mdsobjects.h>
 
 #include "ClassUtils.h"
+#include "TreeUtils.h"
+
 #include "Threads.h"
 
 namespace mds = MDSplus;
@@ -22,6 +24,8 @@ public:
         m_name(name)
     {}
 
+    virtual ~Content() {}
+
     struct Element {
         std::string         path;
         unique_ptr<mds::Float32Array> data;
@@ -38,18 +42,10 @@ public:
     static size_t GetKByteSizeIn(size_t KB) { return KB*1024/sizeof(T); }
 
 protected:
-    virtual ~Content() {}
     std::string m_name;    
 };
 
 
-//inline std::ostream &
-//operator << (std::ostream &o, Content::Element &el) {
-//    o << "path:  " << el.path << "\n"
-//      << "data:  " << el.data << "\n"
-//      << "dim:   " << el.dim  << "\n";
-//    return o;
-//}
 
 
 
@@ -91,12 +87,44 @@ private:
     float  m_sample_time; // seconds
     size_t m_current_sample;
     GenFunction m_func;
-
-    mds::Tree  *m_subtree; // not used at the moment //
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  ContentReader  /////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
+class ContentReader : public Content, Lockable {
+
+public:
+
+    ContentReader(const char *name, size_t size_KB = 0);
+
+    ContentReader(const ContentReader &other);
+
+    ~ContentReader();
+
+    size_t GetSize() const;
+
+    void SetTree(const TestTree &tree, const int pulse = 0);
+
+    bool GetNextElement(size_t size_KB, Element &el);
+
+    void ResetSize(size_t size_KB);
+
+private:
+    size_t m_size;
+    float  m_sample_time; // seconds
+    size_t m_current_sample;
+
+    TestTree m_tree;
+    int m_pulse;
+
+    // DC connection //
+    unique_ptr<mds::Tree> m_dc_tree;
+    unique_ptr<mds::TreeNodeArray> m_dc_node_array;
+
+};
 
 
 

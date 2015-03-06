@@ -59,7 +59,20 @@ public:
         return  new mds::Tree(m_name.c_str(),shot,"EDIT");
     }
 
-    void SetClientType(const ClientType cl) { m_client = cl; }
+    mds::Tree * Read(int shot = -1) {
+        return  new mds::Tree(m_name.c_str(),shot,"READONLY");
+    }
+
+    void SetClientType(const ClientType cl) {
+        if(cl == DC) {
+            if(m_path.path.empty()) m_path.path = " "; // trick //
+            std::cout << "setting env: " << m_name << " -> " << TreePath::toString(m_path) <<"\n";
+            SetEnvPath(m_name.c_str(),TreePath::toString(m_path).c_str());
+        }
+        m_client = cl;
+    }
+
+    const ClientType GetClientType() const { return m_client; }
 
     void CreatePulse(int pulse);
 
@@ -107,7 +120,7 @@ public:
         return std::string("\\") + std::string(tree_name) + "::TOP";
     }
 
-    static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);    
+    static mds::TreeNodeArray * PreOrderVisitTree(mds::Tree *tree, const char *path = NULL);
 
 private:
     ClientType  m_client;

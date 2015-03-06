@@ -11,7 +11,8 @@ TESTS = \
  ContentProducerTest \
  ClassUtilsTest \
  DataUtilsTest \
- StatisticsUtilsTest
+ StatisticsUtilsTest \
+ TestContentTest
 
 
 # UuidTest

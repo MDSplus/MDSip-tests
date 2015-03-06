@@ -47,8 +47,8 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 
     TestConnectionMP conn(g_target_tree);
 
-    std::vector<ContentFunction *> functions; // function generators //
-    std::vector<Channel *>         channels;  // forked channels //
+    std::vector< unique_ptr<ContentFunction> > functions; // function generators //
+    std::vector< unique_ptr<Channel> >         channels;  // forked channels //
 
     size_t tot_size = size_KB * nseg;
 
@@ -69,7 +69,6 @@ Point2D segment_size_throughput_MP(size_t size_KB,
         conn.ChannelTime(channels.back()) = time_h;
         conn.ChannelSpeed(channels.back()) = speed_h;
     }
-
 
     std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
 
@@ -94,10 +93,6 @@ Point2D segment_size_throughput_MP(size_t size_KB,
     speed(1) = sqrt( speed(1) );
     std::cout << "SPEED: " << speed << "\n";
 
-    for(int i=0; i<nch; ++i) {
-        delete channels[i];
-        delete functions[i];
-    }
     return speed;
 }
 

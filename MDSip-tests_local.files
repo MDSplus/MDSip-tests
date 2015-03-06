@@ -40,3 +40,5 @@ src/SerializeUtils.h
 src/SerializeUtils.cpp
 src/DataUtils.cpp
 src/testing/StatisticsUtilsTest.cpp
+src/testing/TestContentTest.cpp
+recipes/SegmentContent.cpp
