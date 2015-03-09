@@ -23,17 +23,23 @@ struct Parameters : Options {
 
     std::vector<int> n_channels;
     Vector3i seg_range;
-    Vector2d h_limits;
+    Vector2d h_speed_limits;
+    Vector2d h_time_limits;
+    size_t samples;
 
     Parameters() :
         seg_range(2048,2048,20480),
-        h_limits(0,20)
+        samples(20),
+        h_speed_limits(0,10),
+        h_time_limits(0,5)
     {
         n_channels << 1,2,4;
         this->AddOptions()
                 ("channels",&n_channels,"parallel channels to build")
                 ("segments",&seg_range,"segment size [KB] (start,delta,stop)")
-                ("speed_limits",&h_limits,"speed histogram limits [MB/s] (begin,end)")
+                ("samples",&samples,"number of samples to average")
+                ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
+                ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ;
     }
 
@@ -61,7 +67,7 @@ TestTree g_target_tree;
 ///
 Point2D segment_size_throughput_MP(size_t size_KB,
                                    int nch = 1,
-                                   int nseg = 5)
+                                   int nseg = g_options.samples)
 {
     typedef TestConnection::TimeHistogram _Histogram;
 
@@ -75,9 +81,10 @@ Point2D segment_size_throughput_MP(size_t size_KB,
     ////////////////////////////////////////////////////////////////////////////
     // PARAMETERS //////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    const Vector2d &ls = g_options.h_limits;
-    _Histogram time_h ("ch time ",100,0,5);
-    _Histogram speed_h("ch speed",100,ls(0),ls(1));
+    const Vector2d &l1 = g_options.h_speed_limits;
+    const Vector2d &l2 = g_options.h_time_limits;
+    _Histogram speed_h("ch speed",100,l1(0),l1(1));
+    _Histogram time_h ("ch time ",100,l2(0),l2(1));
     ////////////////////////////////////////////////////////////////////////////
 
     // prepare channels //

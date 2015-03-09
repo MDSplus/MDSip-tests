@@ -76,7 +76,7 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
     size_t tot_size = size_KB * nseg;
 
     const Vector2d &l1 = g_options.h_speed_limits;
-    const Vector2d &l2 = g_options.h_speed_limits;
+    const Vector2d &l2 = g_options.h_time_limits;
     Histogram speed_h_sum("speed_sum",100,l1(0),l1(1));
     Histogram time_h_sum("time_sum",100,l2(0),l2(1));
 
@@ -94,7 +94,8 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
         speed_h = speed_h_sum;
     }
 
-    std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
+    std::cout << "\n /////// connecting " << nch
+              << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
 
     conn.StartConnection();
 

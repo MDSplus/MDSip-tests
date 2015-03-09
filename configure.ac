@@ -192,6 +192,7 @@ AC_CONFIG_FILES([
         src/testing/Makefile
         recipes/Makefile
         tex/Makefile
+	tex/img/Makefile
 	])
 AC_OUTPUT
 
