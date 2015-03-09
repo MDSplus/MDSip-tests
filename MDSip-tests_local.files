@@ -42,3 +42,6 @@ src/DataUtils.cpp
 src/testing/StatisticsUtilsTest.cpp
 src/testing/TestContentTest.cpp
 recipes/SegmentContent.cpp
+tex/Makefile.am
+tex/report.tex
+src/testing/OptionsTest.cpp

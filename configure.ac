@@ -134,7 +134,6 @@ esac],
 
 
 
-
 dnl AC_ARG_ENABLE(vtk,
 dnl                AS_HELP_STRING([--enable-vtk=no/yes],[turn on vtk visualization wrappers, default: no]),
 dnl [case "${enableval}" in
@@ -164,6 +163,15 @@ dnl [--with-readline was given, but test for readline failed])
 dnl fi
 dnl ], -lncurses)])
 
+
+# Check for presence of pdfLaTeX
+AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
+if test -z "$PDFLATEX"; then
+  AC_MSG_WARN([Unable to create PDF report.])
+fi
+
+AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
+
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 AM_CONDITIONAL(PARAL_MP, test x"$parallel" = x"true")
 AM_CONDITIONAL(SIMD_AUTOVECTOR, test x"$autovector" = x"true")
@@ -183,6 +191,7 @@ AC_CONFIG_FILES([
         src/Makefile
         src/testing/Makefile
         recipes/Makefile
+        tex/Makefile
 	])
 AC_OUTPUT
 

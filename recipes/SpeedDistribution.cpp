@@ -20,14 +20,45 @@
 using namespace MDSplus;
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  GLOBALS  ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+struct Parameters : Options {
+
+    std::vector<int> n_channels;
+    size_t seg_size, samples;
+    Vector2d h_speed_limits;
+    Vector2d h_time_limits;
+
+    Parameters() :
+        seg_size(128),
+        samples(250),
+        h_speed_limits(0,10),
+        h_time_limits(0,5)
+    {
+        n_channels << 1,2,4; // default channels number;
+        this->AddOptions()
+                ("channels",&n_channels,"parallel channels to build")
+                ("segments",&seg_size,"segment size [KB]")
+                ("samples",&samples,"number of samples to average")
+                ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
+                ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
+                ;
+    }
+
+} g_options;
+
 TestTree g_target_tree;
 
-//////////////////////////////////////////////////////////////////////////////////
-////  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
 
-//typedef TestConnection::TimeHistogram Histogram;
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 Vector2d segment_speed_distr_MP(size_t size_KB,
                                     TestConnection::TimeHistogram &speed_h_out,
@@ -44,8 +75,10 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
 
     size_t tot_size = size_KB * nseg;
 
-    Histogram speed_h_sum("speed_sum",100,0,1);
-    Histogram time_h_sum("time_sum",100,0,0.5);
+    const Vector2d &l1 = g_options.h_speed_limits;
+    const Vector2d &l2 = g_options.h_speed_limits;
+    Histogram speed_h_sum("speed_sum",100,l1(0),l1(1));
+    Histogram time_h_sum("time_sum",100,l2(0),l2(1));
 
     // prepare channels //
     for(int i=0; i<nch; ++i) {
@@ -104,33 +137,31 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
 
 int main(int argc, char *argv[])
 {
+    std::string program_name(argv[0]);
+    g_options.SetUsage(program_name + " target_path plot_fileprefix [options]");
+    g_options.Parse(argc,argv);
+
     if(argc > 1) g_target_tree = TestTree("test_speed", argv[1]);
     else {
         char *path = TestTree::GetEnvPath("test_speed");
         if(path) g_target_tree = TestTree("test_speed",path);
     }
+    std::string filename_out = "test_distribution";
+    if(argc > 2) filename_out = argv[2];
 
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    std::vector<int> n_channels;
     typedef TestConnection::TimeHistogram Histogram;
 
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    n_channels                  << 1,2,3,4;
-    static const int n_samples   = 200;
-    static const int seg_size    = 64;
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
 
     std::vector<Histogram> speeds;
     std::vector<Histogram> times;
 
-    foreach (int nch, n_channels)
+    foreach (int nch, g_options.n_channels)
     {
         Histogram speed;
         Histogram time;
-        segment_speed_distr_MP(seg_size,speed,time,nch,n_samples);
+        segment_speed_distr_MP(g_options.seg_size,speed,time,nch,g_options.samples);
         std::stringstream curve_name;
         curve_name << "ch" << nch;
         speed.SetName(curve_name.str().c_str());
@@ -156,7 +187,7 @@ int main(int argc, char *argv[])
             std::string prtcl = "tcp";
             if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
             std::stringstream ss;
-            ss << plot.GetName() << " in " << g_target_tree.Path().protocol << " segsize = " << seg_size << " [KB]";
+            ss << plot.GetName() << " in " << g_target_tree.Path().protocol << " segsize = " << g_options.seg_size << " [KB]";
             plot.SetName( ss.str()  );
             std::string subtitle;
             subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
@@ -167,8 +198,8 @@ int main(int argc, char *argv[])
             plot.YAxis().name = "Transmission probability";
         }
 
-        plot.PrintToCsv("speed_distribution");
-        plot.PrintToGnuplotFile("speed_distribution");
+        plot.PrintToCsv(filename_out + "_speed");
+        plot.PrintToGnuplotFile(filename_out + "_speed");
     }
 
     {
@@ -188,7 +219,7 @@ int main(int argc, char *argv[])
             std::string prtcl = "tcp";
             if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
             std::stringstream ss;
-            ss << plot.GetName() << " in " << g_target_tree.Path().protocol << " segsize = " << seg_size << " [KB]";
+            ss << plot.GetName() << " in " << g_target_tree.Path().protocol << " segsize = " << g_options.seg_size << " [KB]";
             plot.SetName( ss.str()  );
             std::string subtitle;
             subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
@@ -199,8 +230,8 @@ int main(int argc, char *argv[])
             plot.YAxis().name = "Transmission probability";
         }
 
-        plot.PrintToCsv("time_distribution");
-        plot.PrintToGnuplotFile("time_distribution");
+        plot.PrintToCsv(filename_out + "_time");
+        plot.PrintToGnuplotFile(filename_out + "_time");
     }
 
     return 0;

@@ -12,7 +12,8 @@ TESTS = \
  ClassUtilsTest \
  DataUtilsTest \
  StatisticsUtilsTest \
- TestContentTest
+ TestContentTest \
+ OptionsTest
 
 
 # UuidTest

@@ -395,6 +395,18 @@ operator << (ostream &o, const vector<T> &v) {
     return o;
 }
 
+template < typename T >
+inline istream &
+operator >> (istream &is, vector<T> &v) {
+    T value;
+    v.clear();
+    while( !(is >> value).fail() )
+        v.push_back(value);
+    return is;
+}
+
+
+
 } // std
 
 

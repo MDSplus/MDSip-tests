@@ -19,6 +19,26 @@
 using namespace MDSplus;
 
 
+struct Parameters : Options {
+
+    std::vector<int> n_channels;
+    Vector3i seg_range;
+    Vector2d h_limits;
+
+    Parameters() :
+        seg_range(2048,2048,20480),
+        h_limits(0,20)
+    {
+        n_channels << 1,2,4;
+        this->AddOptions()
+                ("channels",&n_channels,"parallel channels to build")
+                ("segments",&seg_range,"segment size [KB] (start,delta,stop)")
+                ("speed_limits",&h_limits,"speed histogram limits [MB/s] (begin,end)")
+                ;
+    }
+
+} g_options;
+
 TestTree g_target_tree;
 
 
@@ -55,8 +75,9 @@ Point2D segment_size_throughput_MP(size_t size_KB,
     ////////////////////////////////////////////////////////////////////////////
     // PARAMETERS //////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
+    const Vector2d &ls = g_options.h_limits;
     _Histogram time_h ("ch time ",100,0,5);
-    _Histogram speed_h("ch speed",100,0,20);
+    _Histogram speed_h("ch speed",100,ls(0),ls(1));
     ////////////////////////////////////////////////////////////////////////////
 
     // prepare channels //
@@ -106,42 +127,37 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 
 int main(int argc, char *argv[])
 {
+    std::string program_name(argv[0]);
+    g_options.SetUsage(program_name + " target_path plot_filename [options]");
+    g_options.Parse(argc,argv);
+
     if(argc > 1) g_target_tree = TestTree("test_size", argv[1]);
     else {
         char *path = TestTree::GetEnvPath("test_size");
         if(path) { g_target_tree = TestTree("test_size",path); }
     }
+    std::string filename_out = "test_segment_size";
+    if(argc > 2) filename_out = argv[2];
+
+
+
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-
-    std::vector<int> n_channels;
-
-    ////////////////////////////////////////////////////////////////////////////
-    // PARAMETERS //////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    n_channels                 << 1;
-    static const int seg_step   = 128;
-    static const int seg_max    = 128;
-    ////////////////////////////////////////////////////////////////////////////
-
     std::vector<Curve2D> speeds;
-
-    foreach(int nch, n_channels)
+    foreach(int nch, g_options.n_channels)
     {
         std::stringstream curve_name;
         curve_name << nch << " ch";
         Curve2D curve(curve_name.str().c_str());
         speeds.push_back(curve);
 
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid )
-        {
-            unsigned int seg_size = seg_step*(sid+1);
-            Point2D pt;
-            pt = segment_size_throughput_MP(seg_size,nch);
-
+        Vector3i &range = g_options.seg_range;
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        {            
+            Point2D pt = segment_size_throughput_MP(seg,nch);
             Curve2D &speed = speeds.back();
-            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
+            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
     }
 
@@ -168,8 +184,8 @@ int main(int argc, char *argv[])
         plot.YAxis().name = "Total speed [MB/s]";
     }
 
-    plot.PrintToCsv("test_segment_size");
-    plot.PrintToGnuplotFile("test_segment_size");
+    plot.PrintToCsv(filename_out);
+    plot.PrintToGnuplotFile(filename_out);
 
     return 0;
 }

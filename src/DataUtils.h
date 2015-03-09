@@ -197,6 +197,13 @@ public:
         return o << pt(_Dim-1);
     }
 
+    friend std::istream &
+    operator >> (std::istream &is, ThisClass &v) {
+        char sep; // any separator //
+        is >> v(0) >> sep >> v(1) >> sep >> v(2);
+        return is;
+    }
+
 private:
     friend class CommaInitializer< Tuple<_Scalar,_Dim> , _Scalar >;
     template <typename _Other, unsigned int _OtherDim> friend class Tuple;
@@ -220,6 +227,14 @@ typedef Tuple<int,3> Vector3i;
 typedef Tuple<int,4> Vector4i;
 
 typedef Vector3d Point2D;
+
+
+
+
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
