@@ -153,8 +153,10 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
                count ++;
            }
 
+           if(this->m_curves.size() == 1) o << "set key off \n";
+           else o << "set key below \n";
+
            o << "set grid \n";
-           o << "set key below \n";
            o << "set pointintervalbox 3 \n";
 
            // LABELS //

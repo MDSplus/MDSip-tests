@@ -1,15 +1,12 @@
 SUBDIRS = . img
 
-CLEANFILES = $(MANPDF) $(MANNAME).log $(MANNAME).idx $(MANNAME).out \
- $(MANNAME).toc $(MANAUX)
+CLEANFILES = *.log *.idx *.out *.toc *.aux
 
 all: report
 
-
 .PHONY: report
-
 if HAVE_PDFLATEX
-report: report.tex 
+report: report.tex bashful.sty
 	$(PDFLATEX) $<
 else
 report:

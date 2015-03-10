@@ -200,7 +200,8 @@ public:
     friend std::istream &
     operator >> (std::istream &is, ThisClass &v) {
         char sep; // any separator //
-        is >> v(0) >> sep >> v(1) >> sep >> v(2);
+        for(unsigned int i=0; i<_Dim-1; ++i) is >> v(i) >> sep;
+        is >> v(_Dim-1);
         return is;
     }
 

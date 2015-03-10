@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     opt.AddOptions()
             ("effe", &f, "")
-            ("fv",&fv,"test tuple")
+            ("f_v",&fv,"test tuple")
             ("vv",&vv,"test vector")
             ("string",&str,"test string")
             ;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
 
     std::cout << "f = " << f << "\n";
-    std::cout << "fv = " << fv << "\n";
+    std::cout << "f_v = " << fv << "\n";
     std::cout << "vv = " << vv << "\n";
     std::cout << "str = " << str << "\n";
 

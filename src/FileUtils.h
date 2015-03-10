@@ -92,7 +92,6 @@ public:
     std::string m_description;
 };
 
-
 template <typename T>
 class value_type : public value_semantic {
     T *m_ptr;
@@ -178,7 +177,7 @@ private:
 
     bool isCharTag(const char *str) { return std::strlen(str)>2 && str[0] == '-' && std::isalpha(str[1]); }
 
-    bool isNameTag(const char *str) { return std::strlen(str)>3 && strncmp(str,"--",2) == 0 && std::isalpha(str[3]); }
+    bool isNameTag(const char *str) { return std::strlen(str)>3 && strncmp(str,"--",2) == 0 && std::isalpha(str[2]); }
 
     detail::value_semantic *findValueByName(const char *name) {
         foreach (detail::value_semantic *val, m_values) {

@@ -168,7 +168,6 @@ int main(int argc, char *argv[])
         }
     }
 
-
     Plot2D plot("Throughput vs Segment Size");
 
     std::cout << " ---- COLLECTED SPEEDS  ------ \n";

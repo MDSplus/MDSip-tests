@@ -199,8 +199,8 @@ int main(int argc, char *argv[])
             plot.YAxis().name = "Transmission probability";
         }
 
-        plot.PrintToCsv(filename_out + "_speed");
-        plot.PrintToGnuplotFile(filename_out + "_speed");
+        plot.PrintToCsv(filename_out + "speed");
+        plot.PrintToGnuplotFile(filename_out + "speed");
     }
 
     {
@@ -231,8 +231,8 @@ int main(int argc, char *argv[])
             plot.YAxis().name = "Transmission probability";
         }
 
-        plot.PrintToCsv(filename_out + "_time");
-        plot.PrintToGnuplotFile(filename_out + "_time");
+        plot.PrintToCsv(filename_out + "time");
+        plot.PrintToGnuplotFile(filename_out + "time");
     }
 
     return 0;
