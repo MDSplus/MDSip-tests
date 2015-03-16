@@ -149,7 +149,7 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
                (void)curve;
                const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
                o << "set style line " << count+1 << " lc rgb '" << color.ToString()
-                 << "' lt 1 lw 4 pt 7 pi -1 ps 1.3" << std::endl;
+                 << "' lt 1 lw 4 pt 7 ps 1.3" << std::endl;
                count ++;
            }
 
@@ -157,7 +157,6 @@ void Plot2D::PrintToGnuplotFile(std::string file_name) const
            else o << "set key below \n";
 
            o << "set grid \n";
-           o << "set pointintervalbox 3 \n";
 
            // LABELS //
            std::string title = this->GetName();
