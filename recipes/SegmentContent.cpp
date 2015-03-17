@@ -271,8 +271,8 @@ int main(int argc, char *argv[])
         plot.YAxis().name = "Total speed [MB/s]";
     }
 
-    plot.PrintToCsv("test_segment_content");
-    plot.PrintToGnuplotFile("test_segment_content");
+    plot.PrintToCsv(filename_out);
+    plot.PrintToGnuplotFile(filename_out);
 
     return 0;
 }
