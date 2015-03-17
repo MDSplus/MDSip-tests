@@ -196,7 +196,6 @@ int main(int argc, char *argv[])
     g_options.SetUsage(program_name + " target_path plot_filename [options]");
     g_options.Parse(argc,argv);
 
-    TestConnectionMT conn(g_target_tree);
     if(argc > 1) g_target_tree = TestTree("test_size", argv[1]);
     else {
         char *path = TestTree::GetEnvPath("test_size");

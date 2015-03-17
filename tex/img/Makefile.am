@@ -24,7 +24,8 @@ IMAGES = \
 	distr-tcp-speed.eps \
 	distr-tcp-time.eps \
 	distr-udt-speed.eps \
-	distr-udt-time.eps 
+	distr-udt-time.eps \
+	content-udt.eps 
 
 size-tcp.csv:
 	${recipes}/SegmentSize tcp://${TARGET} size-tcp \
@@ -41,6 +42,11 @@ distr-tcp-speed.csv distr-tcp-time.csv:
 distr-udt-speed.csv distr-udt-time.csv:
 	${recipes}/SpeedDistribution udt://${TARGET} "distr-udt-" \
 	--channels 1 --segments 40 --samples 100 --speed_limits 0,0.8 --time_limits 0,0.5
+
+content-udt.csv:
+	${recipes}/SegmentContent udt://${TARGET} conent-udt \
+	--channels 1 --segments 128,128,512 --samples 10
+
 
 
 #### implicit rules ####
