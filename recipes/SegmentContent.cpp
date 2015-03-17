@@ -15,10 +15,37 @@
 
 #include "DataUtils.h"
 
-
 using namespace MDSplus;
 
 TestTree g_target_tree;
+
+
+struct Parameters : Options {
+
+    int n_channels;
+    Vector3i seg_range;
+    Vector2d h_speed_limits;
+    Vector2d h_time_limits;
+    size_t samples;
+
+    Parameters() :
+        n_channels(1),
+        seg_range(2048,2048,20480),
+        samples(20),
+        h_speed_limits(0,10),
+        h_time_limits(0,5)
+    {
+        this->AddOptions()
+                ("channels",&n_channels,"parallel channels to build")
+                ("segments",&seg_range,"segment size [KB] (start,delta,stop)")
+                ("samples",&samples,"number of samples to average")
+                ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
+                ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
+                ;
+    }
+
+} g_options;
+
 
 ////////////////////////////////////////////////////////////////////////////
 // PARAMETERS //////////////////////////////////////////////////////////////
@@ -103,7 +130,7 @@ Vector2d content_function_throughput_MP(size_t size_KB,
 {
     typedef TestConnection::TimeHistogram _Histogram;
 
-    TestConnectionMT conn(g_target_tree);
+    TestConnectionMP conn(g_target_tree);
 
     std::vector< unique_ptr<Content> >  contents; // function generators //
     std::vector< unique_ptr<Channel> >  channels; // forked channels //
@@ -165,57 +192,60 @@ Vector2d content_function_throughput_MP(size_t size_KB,
 
 int main(int argc, char *argv[])
 {
+    std::string program_name(argv[0]);
+    g_options.SetUsage(program_name + " target_path plot_filename [options]");
+    g_options.Parse(argc,argv);
+
+    TestConnectionMT conn(g_target_tree);
     if(argc > 1) g_target_tree = TestTree("test_size", argv[1]);
     else {
         char *path = TestTree::GetEnvPath("test_size");
         if(path) { g_target_tree = TestTree("test_size",path); }
     }
+    std::string filename_out = "test_segment_content";
+    if(argc > 2) filename_out = argv[2];
+
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
-    ////////////////////////////////////////////////////////////////////////////
-    // PARAMETERS //////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    const int nch        = 1;
-    const int seg_step   = 1024;
-    const int seg_max    = 10240;
-    ////////////////////////////////////////////////////////////////////////////
-
+    // PARAMETERS //
+    const int nch = g_options.n_channels;
+    Vector3i &range = g_options.seg_range;
     std::vector<Curve2D> speeds;
 
     { // READ //
-        Curve2D speed("read");
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid ) {
-            unsigned int seg_size = seg_step*(sid+1);
-            Vector2d pt = content_read_throughput_MP(seg_size,nch);
-            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
+        Curve2D speed("read");        
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        {
+            Vector2d pt = content_read_throughput_MP(seg,nch);
+            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
         speeds.push_back(speed);
     }
     { // SINE //
         Curve2D speed("sine");
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid ) {
-            unsigned int seg_size = seg_step*(sid+1);
-            Vector2d pt = content_function_throughput_MP(seg_size,ContentFunction::Sine,nch);
-            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        {
+            Vector2d pt = content_function_throughput_MP(seg,ContentFunction::Sine,nch);
+            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
         speeds.push_back(speed);
     }
     { // NOISE W //
         Curve2D speed("noiseW");
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid ) {
-            unsigned int seg_size = seg_step*(sid+1);
-            Vector2d pt = content_function_throughput_MP(seg_size,ContentFunction::NoiseW,nch);
-            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        {
+            Vector2d pt = content_function_throughput_MP(seg,ContentFunction::NoiseW,nch);
+            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
         speeds.push_back(speed);
     }
     { // NOISE G //
         Curve2D speed("noiseG");
-        for(unsigned int sid = 0; sid < seg_max/seg_step; ++sid ) {
-            unsigned int seg_size = seg_step*(sid+1);
-            Vector2d pt = content_function_throughput_MP(seg_size,ContentFunction::NoiseG,nch);
-            speed.AddPoint( Point2D(seg_size,pt(0),pt(1)) );
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        {
+            Vector2d pt = content_function_throughput_MP(seg,ContentFunction::NoiseG,nch);
+            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
         speeds.push_back(speed);
     }
