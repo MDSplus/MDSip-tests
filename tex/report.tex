@@ -113,7 +113,7 @@ A plot of the obtained bandwidth in TCP using different Window sizes is plotted 
 
 Some UDP tests has also been performed between two Sinet nodes and shows that the effective UDP throughput in japan is about 3~Gbps.
 The maximum UDP bandwidth of RFX consortium is instead limited at 1~Gbps from Garr, as it can be seen in Figure~(\ref{fig:iperf_b}) where iperf test is reported with a maximum bandwidth of 800~Mbps
-\footnote{iperf seems to undergo an error reporting real bandwidth in UDP sessions with high transmission rates}.
+\footnote{iperf seems to underestimate the real bandwidth in UDP sessions with high transmission rates due to lack of cpu resources}.
 Therefore the maximum transfer speeds are capped by the RFX up-link limit and we have no chance to get a true internet connection performance measure, and it will not be presented here.
 As a consequence the role of this document will be to report a comparison between the maximum network bandwidth observed between this two nodes and the actual transfer rate achieved by \emph{mdsip} connection.
 
@@ -124,7 +124,8 @@ As a consequence the role of this document will be to report a comparison betwee
 }
 \caption[]
 % inserire samples: 600s -i 30s
-{ TCP and UDT bandwidth measured by iperf scripts, please note that the data in (a) tends to present statistical fluctuations due to the load of the network. }
+{ TCP and UDT bandwidth measured by iperf scripts. Please note that the plot in (a) tends to present statistical fluctuations due to the load of the network,
+this measure was performed during the night time on RFX side. }
 \label{fig:iprf}
 \end{figure}
 
@@ -224,7 +225,7 @@ Tests have been performed to find the best segment size and the optimal channels
 As expected the main result is that the UDT transport should be preferred to TCP in such fast long distance connections.
 
 In any case the \emph{mdsip} TCP handling does not show to scale with any adjusting of TCP buffer size so there probably may be an improvement by this side.
-But, as the iperf tests reported, the achievable bandwidth for TCP will not over take the maximum value obtained using UDT so, for this particular case, we can foresee that any TCP tuning will not improve this result.
+% But, as the iperf tests reported, the achievable bandwidth for TCP will not over take the maximum value obtained using UDT so, for this particular case, we can foresee that any TCP tuning will not improve this result.
 Moreover both protocols suffers the large RTT value of this link, this is much evident for small transmitted segments where the use of multiple parallel connections may be effective.
 Once UDT is taken as the best transport, two independent channels shown to perform uniformly better than the single channel, but higher values must be used with care of the network congestion and should be used where the size of segments is mandatory small.
 
