@@ -73,6 +73,11 @@ AC_CHECK_FUNCS([fesetround floor pow sqrt strdup strstr])
 
 AC_SEARCH_LIBS([strerror],[cposix])
 
+# Check for gnu test suite
+PKG_CHECK_MODULES([CHECK], [check], [have_check=yes], [have_check=no])
+AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
+
+
 # Check for BOOST Libraries
 # BOOST_REQUIRE([1.34])
 
@@ -131,6 +136,20 @@ AC_ARG_ENABLE(autovector,
 esac],
                 [autovector=false])
 
+
+AC_ARG_ENABLE([valgrind],
+              [AS_HELP_STRING([--enable-valgrind],
+                              [Use valgrind when running unit tests])],
+              [AS_VAR_SET([use_valgrind], [yes])],
+              [])
+
+if [[ "$use_valgrind" = "yes" ]]; then
+ AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
+ if [[ "$HAVE_VALGRIND" = "no" ]]; then
+  AC_MSG_ERROR([Valgrind not found in PATH. ])
+ fi
+fi
+AM_CONDITIONAL(USE_VALGRIND, test x"$use_valgrind" = "xyes")
 
 
 

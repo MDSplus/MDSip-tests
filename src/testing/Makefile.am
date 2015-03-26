@@ -2,7 +2,7 @@ include $(top_srcdir)/Common.am
 
 #AM_DEFAULT_SOURCE_EXT = .cpp
 
-# if HAVE_CHECK
+if HAVE_CHECK
 TESTS = \
  BuildTest \
  SerializeToBinTest \
@@ -15,14 +15,18 @@ TESTS = \
  TestContentTest \
  OptionsTest
 
+else
+ TESTS =
+endif
 
-# UuidTest
-
-# else
-# TEST =
-# endif
 
 LDADD = ../libMDSipTest.la
+
+if USE_VALGRIND
+LOG_COMPILER = valgrind
+AM_LOG_FLAGS = --quiet --trace-children=yes --error-exitcode=1 \
+               --dsymutil=yes --leak-check=yes
+endif
 
 check_PROGRAMS = $(TESTS)
 
