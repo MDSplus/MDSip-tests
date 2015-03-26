@@ -50,7 +50,7 @@ The Content represents the content of the segment to be sent, it can be a functi
 The Channel is responsible to actually send the segment to the endpoint, two channel flavours can be chosen using Distribute Client (DC) or Thin Client (TC) connections. Finally the TestConnection collects all different contents and channels and starts the connection itself. Two versions of TestConnection are implemented to manage parallel channels, the TestConnectionMT uses multiple threads (one per channel) and the TestConnectionMP uses different forked process.
 ~
 Time and speed histograms are instanced by the TestConnection one per added channels, they account the timing of each put segment operation performed by the channel. This feature was introduced to produce a speed information that does not comprehend the time to generate the signal and the tree opening and closing operations. 
-Furthermore the speed is computed using the actual size of the sent data, so all the results that will follow are representing the equivalent speed in KB per seconds of transmitted Float32 data. 
+Furthermore the speed is computed using the actual size of the sent data, so all the results that will follow are representing the equivalent speed in MB per second of transmitted Float32 data. 
 Obviously we expect this data to be higher bounded by the actual network capacity, a comparison test can be done with the results of a widely used tool called iperf.
 
 \section{Network characterization}
@@ -143,20 +143,21 @@ Tests has been performed using TCP and UDT, the latter based on UDP.
 ~
 The software can be set to send many parallel streams of segments each collected into a single signal at the target server.
 We shall call these the connection channels and they are at most uncorrelated each others. The sole correlation resides on mdsip mutexes accessing parse files.
+The cpu load requested to generate signals and the write speed of the storage server has been evaluated and does not influence the measure.
 In the figures below the total speed reached by those channels is plotted against the per segment size for both protocols.
 
-The Figure~(\ref{fig:sizea}) presents results for up to 8 TCP channels. 
-For these TCP channels the Round Trip Time dominates the connection and MDSip performs far below the network capacity due to the fact that all sent packet from a MDSip client must be acknowledged by the MDSip server side at application layer, and this produce a double RTT delay when the segment size equals the TCP window.
-The maximum throughput is reached aggregating channels of 40 KB segment size.
-The overall connection speed is very poor and does not scale with different TCP windows sizes at all.
-The main reason must reside in the \emph{mdsip} data checksumming mechanism application level and should be further investigated.
+The Figure~(\ref{fig:sizea}) presents results for up to 4 TCP channels. 
+For these TCP channels the Round Trip Time dominates the connection and MDSip performs far below the network capacity due to the fact that all sent packet from a MDSip client must be acknowledged by the MDSip server side at application layer, and this may produce a double RTT delay when the segment size equals the TCP window.
+The maximum throughput is reached aggregating two channels of 6 MB segment size.
+The overall connection speed is quite poor, about 10 times smaller then the maximum theoretical value.
+The main reason must reside in the \emph{mdsip} data checksumming mechanism at application level and should be further investigated.
 In any case the TCP seems to be very sensible to the network delay and appears to be non feasible for long distance connections.
 
 On the other hand the UDT is a reliable UDP based application level data transport protocol designed for data intensive applications over wide area high-speed networks. 
 It transfers bulks of data with its own reliability control and congestion control mechanisms achieving a much higher speed than TCP in such connections.
 ~
 The results of UDT bandwidth is plotted in Figure~(\ref{fig:sizeb}).
-This protocol appears very effective in this case gaining higher speed rates than the observed TCP iperf limit.
+This protocol appears very effective in this case gaining speed rates 6 time higher than TCP.
 
 \begin{figure}[ht]
 \centerline{
@@ -173,7 +174,7 @@ Moreover the channel aggregation may ease this effect also increasing the overal
 But, as shown in figure, the augmented congestion penalizes this behaviour for more than two channels and we can conclude that the optimal number of parallel UDT streams should be left less than three for large bulk transfers.
 
 Timings histograms are collected for each separate channel and added together in Figure~(\ref{fig:distr-tcp}) for TCP and in Figure~(\ref{fig:distr-udt}) for UDT.
-In Figure~(\ref{fig:distr-tcp}) the 40 KB segment window timing distribution is plotted from set of 300 samples for two configurations, one channel transfer in blue line and aggregated eight channels in red.
+In Figure~(\ref{fig:distr-tcp}) the 6 MB segment window timing distribution is plotted from set of 300 samples for three configurations, one channel transfer in blue line and aggregated two and three channels in red and green respectively.
 Separated populations are clearly visible positioned at multiples of the 300 ms RTT.
 ~
 \begin{figure}[ht]
@@ -207,7 +208,15 @@ Different generators of transmitted content were implemented to check for a poss
 \emph{mdsip} was set to the maximum compression level that is also the default setting ("-c 9" command line argument).
 Three signals were applied: a simple sine function of 6.28 [s] period and sampled in milliseconds, a white noise in the interval $(0,1)$ and a random variable from a normal distribution with zero mean and $\sigma=1$.
 The throughput for the three signals (respectively labelled: \emph{sine}, \emph{noiseW} and \emph{noiseG}) are plotted against the segment size for a single channel connection for TCP Figure~(\ref{fig:content-tcp}) and for UDT in Figure~(\ref{fig:content-udt}).
-There seems to be no evidence of any difference in transfer speed for the three cases reported so we can presume that a content dependency is not present within this network path and that \emph{mdsip} does not add a significant compression of these data sequences. Some test were also performed with a real case of a read RFX pulse, they show similar results that are not reported here\footnote{the \emph{eprobe} server is not allowed to access the RFX data files as it resides outside the firewall protected zone, so that this analysis is not possible at the moment}.
+There seems to be no evidence of any difference in transfer speed for the UDT in the three cases reported so we can presume that a content dependency is not present within this network path in this case, and that \emph{mdsip} does not add a significant compression of these data sequences. 
+A very different scenario is revealed when TCP channels are used as in Figure~(\ref{fig:content-tcp}). 
+The differences shall be caused by the internet congestion at the moment of the measure and repeated tests reported that some fluctuations are effectively present but does not dramatically change this result.
+~
+The compression is applied to the data prior that they are sent to the transport level, so that one expect that some differences must exist with these heterogeneous signals.
+For this reason if we assume that no effective compression is done by \emph{mdsip}, the strange behaviour of TCP should be due to the network link.
+Anyway both plots seem to be non conclusive and further analysis shall be done at application level to investigate the meaning of these curves. 
+
+%Some test were also performed with a real case of a read RFX pulse in local LAN, they show similar results that are not reported here\footnote{the \emph{eprobe} server is not allowed to access the RFX data files as it resides outside the firewall protected zone, so that this analysis is not possible at the moment}.
 
 \begin{figure}[ht]
 \centerline{
@@ -228,12 +237,14 @@ A preliminary tweak of the network connection has been done using iperf test res
 Tests have been performed to find the best segment size and the optimal channels parallelization for the TCP and UDT transport protocols.
 As expected the main result is that the UDT transport should be preferred to TCP in such fast long distance connections.
 
-In any case the \emph{mdsip} TCP handling does not show to scale with any adjusting of TCP buffer size so there probably may be an improvement by this side.
+The \emph{mdsip} TCP handling show to scale with adjustments of TCP buffer size so there probably may be an improvement by this side.
 % But, as the iperf tests reported, the achievable bandwidth for TCP will not over take the maximum value obtained using UDT so, for this particular case, we can foresee that any TCP tuning will not improve this result.
-Moreover both protocols suffer the large RTT value of this link, this is much evident for small transmitted segments where the use of multiple parallel connections may be effective.
+In any case the application suffers the large RTT value of this link, this is much evident for small transmitted segments where the use of multiple parallel connections may be effective.
 Once UDT is taken as the best transport, two independent channels shown to perform uniformly better than the single channel, but higher values must be used with care of the network congestion and should be used where the size of segments is mandatory small.
-
-The network link and the \emph{mdsip} itself seems to be opaque to the nature of data to be transported as it shows no speed differences among three tested signal waveforms.
+~
+The \emph{mdsip} appears to be opaque to the nature of data to be transported using UDT transport as it shows no speed differences among three tested signal waveforms.
+On the contrary the TCP throughputs reported seem to suggest that in this case different behaviour of the network exists.
+This must be further investigated at the application level before any conclusion anyway.
 
 Finally the overall datum that can be extracted from this 1~Gbps internet link analysis is that the maximum achievable bandwidth of actual transported information is near to 50~MBps.
 So that, with a proper tuning of the transported signals, the use of MDSplus for long distance sharing of fusion data can be a valuable choice.

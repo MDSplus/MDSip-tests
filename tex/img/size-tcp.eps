@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0 EPSF-2.0
 %%Title: size-tcp.eps
-%%Creator: gnuplot 4.2 patchlevel 6 
-%%CreationDate: Tue Mar 17 04:16:58 2015
+%%Creator: gnuplot 4.6 patchlevel 6
+%%CreationDate: Tue Mar 24 09:02:59 2015
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 410 302
 %%EndComments
@@ -9,8 +9,8 @@
 /gnudict 256 dict def
 gnudict begin
 %
-% The following 6 true/false flags may be edited by hand if required
-% The unit line width may also be changed
+% The following true/false flags may be edited by hand if desired.
+% The unit line width and grayscale image gamma correction may also be changed.
 %
 /Color true def
 /Blacktext false def
@@ -19,9 +19,13 @@ gnudict begin
 /Landscape false def
 /Level1 false def
 /Rounded false def
+/ClipToBoundingBox false def
+/SuppressPDFMark false def
 /TransparentPatterns false def
 /gnulinewidth 5.000 def
 /userlinewidth gnulinewidth def
+/Gamma 1.0 def
+/BackgroundColor {-1.000 -1.000 -1.000} def
 %
 /vshift -66 def
 /dl1 {
@@ -36,24 +40,16 @@ gnudict begin
 /vpt_ 31.5 def
 /hpt hpt_ def
 /vpt vpt_ def
-Level1 {} {
-/SDict 10 dict def
-systemdict /pdfmark known not {
-  userdict /pdfmark systemdict /cleartomark get put
-} if
-SDict begin [
-  /Title (size-tcp.eps)
-  /Subject (gnuplot plot)
-  /Creator (gnuplot 4.2 patchlevel 6 )
-  /Author (andrea)
-%  /Producer (gnuplot)
-%  /Keywords ()
-  /CreationDate (Tue Mar 17 04:16:58 2015)
-  /DOCINFO pdfmark
-end
-} ifelse
+/doclip {
+  ClipToBoundingBox {
+    newpath 50 50 moveto 410 50 lineto 410 302 lineto 50 302 lineto closepath
+    clip
+  } if
+} def
 %
-% Gnuplot Prolog Version 4.2 (August 2006)
+% Gnuplot Prolog Version 4.6 (September 2012)
+%
+%/SuppressPDFMark true def
 %
 /M {moveto} bind def
 /L {lineto} bind def
@@ -63,6 +59,8 @@ end
 /Z {closepath} bind def
 /C {setrgbcolor} bind def
 /f {rlineto fill} bind def
+/g {setgray} bind def
+/Gshow {show} def   % May be redefined later in the file to support UTF-8
 /vpt2 vpt 2 mul def
 /hpt2 hpt 2 mul def
 /Lshow {currentpoint stroke M 0 vshift R 
@@ -83,6 +81,7 @@ end
 	dup 1 lt {pop 1} if 10 mul /udl exch def} def
 /PL {stroke userlinewidth setlinewidth
 	Rounded {1 setlinejoin 1 setlinecap} if} def
+3.8 setmiterlimit
 % Default Line colors
 /LCw {1 1 1} def
 /LCb {0 0 0} def
@@ -315,7 +314,8 @@ end
 /PatternFill {gsave /PFa [ 9 2 roll ] def
   PFa 0 get PFa 2 get 2 div add PFa 1 get PFa 3 get 2 div add translate
   PFa 2 get -2 div PFa 3 get -2 div PFa 2 get PFa 3 get Rec
-  gsave 1 setgray fill grestore clip
+  TransparentPatterns {} {gsave 1 setgray fill grestore} ifelse
+  clip
   currentlinewidth 0.5 mul setlinewidth
   /PFs PFa 2 get dup mul PFa 3 get dup mul add sqrt def
   0 0 M PFa 5 get rotate PFs -2 div dup translate
@@ -425,17 +425,18 @@ currentdict end definefont pop
      { 5 get 3 eq {gsave} {grestore} ifelse }
      {dup dup 0 get findfont exch 1 get scalefont setfont
      [ currentpoint ] exch dup 2 get 0 exch R dup 5 get 2 ne {dup dup 6
-     get exch 4 get {show} {stringwidth pop 0 R} ifelse }if dup 5 get 0 eq
+     get exch 4 get {Gshow} {stringwidth pop 0 R} ifelse }if dup 5 get 0 eq
      {dup 3 get {2 get neg 0 exch R pop} {pop aload pop M} ifelse} {dup 5
      get 1 eq {dup 2 get exch dup 3 get exch 6 get stringwidth pop -2 div
      dup 0 R} {dup 6 get stringwidth pop -2 div 0 R 6 get
      show 2 index {aload pop M neg 3 -1 roll neg R pop pop} {pop pop pop
      pop aload pop M} ifelse }ifelse }ifelse }
      ifelse }
-   forall} bind def
+   forall} def
+/Gswidth {dup type /stringtype eq {stringwidth} {pop (n) stringwidth} ifelse} def
 /MFwidth {0 exch { dup 5 get 3 ge { 5 get 3 eq { 0 } { pop } ifelse }
  {dup 3 get{dup dup 0 get findfont exch 1 get scalefont setfont
-     6 get stringwidth pop add} {pop} ifelse} ifelse} forall} bind def
+     6 get Gswidth pop add} {pop} ifelse} ifelse} forall} def
 /MLshow { currentpoint stroke M
   0 exch R
   Blacktext {gsave 0 setgray MFshow grestore} {MFshow} ifelse } bind def
@@ -447,1667 +448,1651 @@ currentdict end definefont pop
   Blacktext {gsave 0 setgray MFshow grestore} {MFshow} ifelse } bind def
 /XYsave    { [( ) 1 2 true false 3 ()] } bind def
 /XYrestore { [( ) 1 2 true false 4 ()] } bind def
+Level1 SuppressPDFMark or 
+{} {
+/SDict 10 dict def
+systemdict /pdfmark known not {
+  userdict /pdfmark systemdict /cleartomark get put
+} if
+SDict begin [
+  /Title (size-tcp.eps)
+  /Subject (gnuplot plot)
+  /Creator (gnuplot 4.6 patchlevel 6)
+  /Author (andrea)
+%  /Producer (gnuplot)
+%  /Keywords ()
+  /CreationDate (Tue Mar 24 09:02:59 2015)
+  /DOCINFO pdfmark
+end
+} ifelse
 end
 %%EndProlog
+%%Page: 1 1
 gnudict begin
 gsave
+doclip
 50 50 translate
 0.050 0.050 scale
 0 setgray
 newpath
 (Helvetica) findfont 200 scalefont setfont
+BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {BackgroundColor C 1.000 0 0 7200.00 5040.00 BoxColFill} if
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 1040 M
-5560 0 V
+LCa setrgbcolor
+860 1040 M
+5979 0 V
 stroke
 LTb
-1340 1040 M
+LCb setrgbcolor
+860 1040 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 1040 M
+740 1040 M
 [ [(Helvetica) 200.0 0.0 true true 0 ( 0)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 1360 M
-5560 0 V
+LCa setrgbcolor
+860 1497 M
+5979 0 V
 stroke
 LTb
-1340 1360 M
+LCb setrgbcolor
+860 1497 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 1360 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.05)]
+740 1497 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 2)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 1680 M
-5560 0 V
+LCa setrgbcolor
+860 1954 M
+5979 0 V
 stroke
 LTb
-1340 1680 M
+LCb setrgbcolor
+860 1954 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 1680 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.1)]
+740 1954 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 4)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 2000 M
-5560 0 V
+LCa setrgbcolor
+860 2411 M
+5979 0 V
 stroke
 LTb
-1340 2000 M
+LCb setrgbcolor
+860 2411 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 2000 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.15)]
+740 2411 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 6)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 2320 M
-5560 0 V
+LCa setrgbcolor
+860 2868 M
+5979 0 V
 stroke
 LTb
-1340 2320 M
+LCb setrgbcolor
+860 2868 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 2320 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.2)]
+740 2868 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 8)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 2640 M
-5560 0 V
+LCa setrgbcolor
+860 3325 M
+5979 0 V
 stroke
 LTb
-1340 2640 M
+LCb setrgbcolor
+860 3325 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 2640 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.25)]
+740 3325 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 10)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 2960 M
-5560 0 V
+LCa setrgbcolor
+860 3782 M
+5979 0 V
 stroke
 LTb
-1340 2960 M
+LCb setrgbcolor
+860 3782 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 2960 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.3)]
+740 3782 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 12)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 3280 M
-5560 0 V
+LCa setrgbcolor
+860 4239 M
+5979 0 V
 stroke
 LTb
-1340 3280 M
+LCb setrgbcolor
+860 4239 M
 63 0 V
-5497 0 R
+5916 0 R
 -63 0 V
 stroke
-1220 3280 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.35)]
+740 4239 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 14)]
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-1340 3600 M
-5560 0 V
+LCa setrgbcolor
+860 1040 M
+0 3199 V
 stroke
 LTb
-1340 3600 M
-63 0 V
-5497 0 R
--63 0 V
-stroke
-1220 3600 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.4)]
-] -66.7 MRshow
-1.000 UL
-LTb
-1.000 UL
-LTa
-1340 3920 M
-5560 0 V
-stroke
-LTb
-1340 3920 M
-63 0 V
-5497 0 R
--63 0 V
-stroke
-1220 3920 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.45)]
-] -66.7 MRshow
-1.000 UL
-LTb
-1.000 UL
-LTa
-1340 4240 M
-5560 0 V
-stroke
-LTb
-1340 4240 M
-63 0 V
-5497 0 R
--63 0 V
-stroke
-1220 4240 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 0.5)]
-] -66.7 MRshow
-1.000 UL
-LTb
-1.000 UL
-LTa
-1340 1040 M
-0 3200 V
-stroke
-LTb
-1340 1040 M
+LCb setrgbcolor
+860 1040 M
 0 63 V
-0 3137 R
+0 3136 R
 0 -63 V
 stroke
-1340 840 M
+860 840 M
 [ [(Helvetica) 200.0 0.0 true true 0 ( 0)]
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-2452 1040 M
-0 3200 V
+LCa setrgbcolor
+1404 1040 M
+0 3199 V
 stroke
 LTb
-2452 1040 M
+LCb setrgbcolor
+1404 1040 M
 0 63 V
-0 3137 R
+0 3136 R
 0 -63 V
 stroke
-2452 840 M
+1404 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 5)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+1947 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+1947 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+1947 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 10)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+2491 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+2491 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+2491 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 15)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+3034 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+3034 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+3034 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 20)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+3578 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+3578 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+3578 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 25)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+4121 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+4121 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+4121 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 30)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+4665 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+4665 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+4665 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 35)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+5208 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+5208 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+5208 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 40)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+5752 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+5752 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+5752 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 45)]
+] -66.7 MCshow
+1.000 UL
+LTb
+LCb setrgbcolor
+1.000 UL
+LTa
+LCa setrgbcolor
+6295 1040 M
+0 3199 V
+stroke
+LTb
+LCb setrgbcolor
+6295 1040 M
+0 63 V
+0 3136 R
+0 -63 V
+stroke
+6295 840 M
 [ [(Helvetica) 200.0 0.0 true true 0 ( 50)]
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTa
-3564 1040 M
-0 3200 V
+LCa setrgbcolor
+6839 1040 M
+0 3199 V
 stroke
 LTb
-3564 1040 M
+LCb setrgbcolor
+6839 1040 M
 0 63 V
-0 3137 R
+0 3136 R
 0 -63 V
 stroke
-3564 840 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 100)]
+6839 840 M
+[ [(Helvetica) 200.0 0.0 true true 0 ( 55)]
 ] -66.7 MCshow
 1.000 UL
 LTb
-1.000 UL
-LTa
-4676 1040 M
-0 3200 V
-stroke
-LTb
-4676 1040 M
-0 63 V
-0 3137 R
-0 -63 V
-stroke
-4676 840 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 150)]
-] -66.7 MCshow
+LCb setrgbcolor
 1.000 UL
 LTb
-1.000 UL
-LTa
-5788 1040 M
-0 3200 V
-stroke
-LTb
-5788 1040 M
-0 63 V
-0 3137 R
-0 -63 V
-stroke
-5788 840 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 200)]
-] -66.7 MCshow
-1.000 UL
-LTb
-1.000 UL
-LTa
-6900 1040 M
-0 3200 V
-stroke
-LTb
-6900 1040 M
-0 63 V
-0 3137 R
-0 -63 V
-stroke
-6900 840 M
-[ [(Helvetica) 200.0 0.0 true true 0 ( 250)]
-] -66.7 MCshow
-1.000 UL
-LTb
-1.000 UL
-LTb
-1340 4240 N
-0 -3200 V
-5560 0 V
-0 3200 V
--5560 0 V
+LCb setrgbcolor
+860 4239 N
+0 -3199 V
+5979 0 V
+0 3199 V
+-5979 0 V
 Z stroke
 LCb setrgbcolor
-400 2640 M
-currentpoint gsave translate 90 rotate 0 0 moveto
+160 2639 M
+currentpoint gsave translate -270 rotate 0 0 moveto
 [ [(Helvetica) 200.0 0.0 true true 0 (Total speed [MB/s])]
 ] -66.7 MCshow
 grestore
 LTb
 LCb setrgbcolor
-4120 540 M
-[ [(Helvetica) 200.0 0.0 true true 0 (Segment size [KB] of signal data)]
+3849 540 M
+[ [(Helvetica) 200.0 0.0 true true 0 (Segment size [MB] of signal data)]
 ] -66.7 MCshow
 LTb
-4120 4740 M
+3849 4739 M
 [ [(Helvetica) 250.0 0.0 true true 0 (Throughput vs Segment Size in tcp)]
 ] -83.3 MCshow
-4120 4490 M
-[ [(Helvetica) 125.0 0.0 true true 0 (\(local time: 2015-03-17.04:16:58\) eprobe.rfx.local  -->  test10g.nifs.ac.jp)]
+3849 4489 M
+[ [(Helvetica) 125.0 0.0 true true 0 (\(local time: 2015-03-24.05:01:48\) eprobe.rfx.local  -->  test10g.nifs.ac.jp)]
 ] -83.3 MCshow
 1.000 UP
 1.000 UL
 LTb
+LCb setrgbcolor
+% Begin plot #1
 1.300 UP
 4.000 UL
 LT0
-0.06 0.31 0.55 C LTb
-2074 163 M
+0.06 0.31 0.55 C LCb setrgbcolor
+1803 163 M
 [ [(Helvetica) 200.0 0.0 true true 0 (1 ch)]
 ] -66.7 MRshow
 LT0
-0.06 0.31 0.55 C 2194 163 M
+0.06 0.31 0.55 C 1923 163 M
 543 0 V
 -543 31 R
 0 -62 V
 543 62 R
 0 -62 V
-1518 1122 M
--31 0 R
+1083 1653 M
+0 211 V
+-31 -211 R
 62 0 V
--62 0 R
+-62 211 R
 62 0 V
-147 83 R
--31 0 R
+191 381 R
+0 421 V
+-31 -421 R
 62 0 V
--62 0 R
+-62 421 R
 62 0 V
-147 81 R
--31 0 R
+192 -42 R
+0 714 V
+-31 -714 R
 62 0 V
--62 0 R
+-62 714 R
 62 0 V
-147 68 R
-0 32 V
--31 -32 R
+1751 1729 M
+0 129 V
+-31 -129 R
 62 0 V
--62 32 R
+-62 129 R
 62 0 V
-147 43 R
-0 39 V
--31 -39 R
+191 27 R
+0 161 V
+-31 -161 R
 62 0 V
--62 39 R
+-62 161 R
 62 0 V
-147 36 R
-0 47 V
--31 -47 R
-62 0 V
--62 47 R
-62 0 V
-146 32 R
-0 55 V
--31 -55 R
-62 0 V
--62 55 R
-62 0 V
-147 5 R
-0 93 V
--31 -93 R
-62 0 V
--62 93 R
-62 0 V
-147 -17 R
-0 105 V
--31 -105 R
-62 0 V
--62 105 R
-62 0 V
-147 -25 R
-0 116 V
--31 -116 R
-62 0 V
--62 116 R
-62 0 V
-147 -56 R
-0 154 V
--31 -154 R
-62 0 V
--62 154 R
-62 0 V
-147 -345 R
-0 46 V
--31 -46 R
-62 0 V
--62 46 R
-62 0 V
-147 -4 R
-0 81 V
--31 -81 R
-62 0 V
--62 81 R
-62 0 V
-147 -32 R
-0 86 V
--31 -86 R
-62 0 V
--62 86 R
-62 0 V
-147 -32 R
-0 94 V
--31 -94 R
-62 0 V
--62 94 R
-62 0 V
-147 -42 R
-0 100 V
--31 -100 R
-62 0 V
--62 100 R
-62 0 V
-147 -55 R
-0 105 V
--31 -105 R
-62 0 V
--62 105 R
-62 0 V
-stroke 4396 2015 M
-147 -260 R
-0 41 V
--31 -41 R
-62 0 V
--62 41 R
-62 0 V
-146 -16 R
-0 74 V
--31 -74 R
-62 0 V
--62 74 R
-62 0 V
-147 -35 R
-0 78 V
--31 -78 R
-62 0 V
--62 78 R
-62 0 V
-147 -39 R
-0 82 V
--31 -82 R
-62 0 V
--62 82 R
-62 0 V
-147 -43 R
-0 85 V
--31 -85 R
-62 0 V
--62 85 R
-62 0 V
-147 -203 R
-0 36 V
--31 -36 R
-62 0 V
--62 36 R
-62 0 V
-147 -5 R
-0 37 V
--31 -37 R
-62 0 V
--62 37 R
-62 0 V
-147 -11 R
-0 43 V
--31 -43 R
-62 0 V
--62 43 R
-62 0 V
-147 -25 R
-0 69 V
--31 -69 R
-62 0 V
--62 69 R
-62 0 V
-147 -37 R
-0 71 V
--31 -71 R
-62 0 V
--62 71 R
-62 0 V
-147 -34 R
-0 74 V
--31 -74 R
-62 0 V
--62 74 R
-62 0 V
-147 -185 R
-0 32 V
--31 -32 R
-62 0 V
--62 32 R
-62 0 V
-147 3 R
-0 33 V
--31 -33 R
-62 0 V
--62 33 R
-62 0 V
-147 -11 R
-0 38 V
--31 -38 R
-62 0 V
--62 38 R
-62 0 V
-1518 1122 CircleF
-1696 1205 CircleF
-1874 1286 CircleF
-2052 1370 CircleF
-2230 1448 CircleF
-2408 1527 CircleF
-2585 1610 CircleF
-2763 1690 CircleF
-2941 1771 CircleF
-3119 1857 CircleF
-3297 1936 CircleF
-3475 1691 CircleF
-3653 1750 CircleF
-3831 1802 CircleF
-4009 1860 CircleF
-4187 1915 CircleF
-4365 1962 CircleF
-4543 1775 CircleF
-4720 1817 CircleF
-4898 1858 CircleF
-5076 1899 CircleF
-5254 1940 CircleF
-5432 1797 CircleF
-5610 1829 CircleF
-5788 1858 CircleF
-5966 1889 CircleF
-6144 1922 CircleF
-6322 1960 CircleF
-6500 1828 CircleF
-6678 1864 CircleF
-6856 1888 CircleF
-2465 163 CircleF
-4.000 UL
-LT0
-0.06 0.31 0.55 C 1518 1133 M
-54 24 V
-54 24 V
-54 24 V
-54 24 V
-53 23 V
-54 24 V
-54 24 V
-54 24 V
-54 24 V
-54 24 V
-54 23 V
-54 24 V
-54 24 V
-54 24 V
-54 24 V
-54 24 V
-53 25 V
-54 24 V
-54 25 V
-54 25 V
-54 25 V
-54 25 V
-54 26 V
-54 27 V
-54 27 V
-54 28 V
-54 28 V
-54 26 V
-53 24 V
-54 21 V
-54 14 V
-54 5 V
-54 -5 V
-54 -18 V
-54 -25 V
-54 -27 V
-54 -22 V
-54 -15 V
-54 -9 V
-54 -1 V
-53 6 V
-54 11 V
-54 15 V
-54 18 V
-54 19 V
-54 20 V
-54 19 V
-54 18 V
-54 15 V
-54 10 V
-54 6 V
-54 -1 V
-53 -9 V
-54 -15 V
-54 -19 V
-54 -19 V
-54 -14 V
-54 -10 V
-54 -4 V
-54 1 V
-54 6 V
-54 9 V
-54 12 V
-53 12 V
-54 11 V
-54 10 V
-54 7 V
-54 3 V
-54 -2 V
-54 -8 V
-54 -11 V
-54 -13 V
-54 -12 V
-54 -8 V
-54 -5 V
-53 -2 V
-54 1 V
-54 5 V
-54 7 V
-54 8 V
-54 10 V
-54 10 V
-54 11 V
-54 10 V
-54 10 V
-54 7 V
-54 4 V
-53 2 V
-54 -3 V
-54 -7 V
-54 -10 V
-54 -11 V
-54 -9 V
-54 -7 V
-54 -5 V
-54 -3 V
-54 -1 V
-54 1 V
-54 0 V
-1.300 UP
-stroke
-LT0
-0.80 0.36 0.36 C LTb
-3337 163 M
-[ [(Helvetica) 200.0 0.0 true true 0 (2 ch)]
-] -66.7 MRshow
-LT0
-0.80 0.36 0.36 C 3457 163 M
-543 0 V
--543 31 R
-0 -62 V
-543 62 R
-0 -62 V
-1518 1202 M
-0 3 V
--31 -3 R
-62 0 V
--62 3 R
-62 0 V
-147 161 R
-0 7 V
--31 -7 R
-62 0 V
--62 7 R
-62 0 V
-147 152 R
-0 11 V
--31 -11 R
-62 0 V
--62 11 R
-62 0 V
-147 135 R
-0 44 V
--31 -44 R
-62 0 V
--62 44 R
-62 0 V
-147 94 R
-0 69 V
--31 -69 R
-62 0 V
--62 69 R
-62 0 V
-147 70 R
-0 126 V
--31 -126 R
-62 0 V
--62 126 R
-62 0 V
-146 53 R
-0 97 V
--31 -97 R
-62 0 V
--62 97 R
-62 0 V
-147 -86 R
-0 261 V
--31 -261 R
-62 0 V
--62 261 R
-62 0 V
-147 -136 R
-0 322 V
--31 -322 R
-62 0 V
--62 322 R
-62 0 V
-147 -199 R
-0 375 V
--31 -375 R
-62 0 V
--62 375 R
-62 0 V
-147 -82 R
-0 262 V
--31 -262 R
-62 0 V
--62 262 R
-62 0 V
-147 -959 R
-0 174 V
--31 -174 R
-62 0 V
--62 174 R
-62 0 V
-147 -76 R
-0 53 V
--31 -53 R
-62 0 V
--62 53 R
-62 0 V
-147 -88 R
-0 197 V
--31 -197 R
-62 0 V
--62 197 R
-62 0 V
-147 -129 R
-0 186 V
--31 -186 R
-62 0 V
--62 186 R
-62 0 V
-147 -276 R
-0 282 V
--31 -282 R
-62 0 V
--62 282 R
-62 0 V
-147 -263 R
-0 308 V
--31 -308 R
-62 0 V
-stroke 4396 2042 M
--62 308 R
-62 0 V
-147 -437 R
-0 166 V
--31 -166 R
-62 0 V
--62 166 R
-62 0 V
-146 -188 R
-0 135 V
--31 -135 R
-62 0 V
--62 135 R
-62 0 V
-147 -142 R
+192 5 R
 0 170 V
 -31 -170 R
 62 0 V
 -62 170 R
 62 0 V
-147 -215 R
-0 183 V
--31 -183 R
+191 -15 R
+0 230 V
+-31 -230 R
 62 0 V
--62 183 R
+-62 230 R
 62 0 V
-147 -154 R
-0 151 V
--31 -151 R
-62 0 V
--62 151 R
-62 0 V
-147 -195 R
-0 208 V
--31 -208 R
-62 0 V
--62 208 R
-62 0 V
-147 -111 R
-0 151 V
--31 -151 R
-62 0 V
--62 151 R
-62 0 V
-147 -46 R
-0 74 V
--31 -74 R
-62 0 V
--62 74 R
-62 0 V
-147 -212 R
-0 224 V
--31 -224 R
-62 0 V
--62 224 R
-62 0 V
-147 -373 R
-0 153 V
--31 -153 R
-62 0 V
--62 153 R
-62 0 V
-147 -110 R
-0 133 V
--31 -133 R
-62 0 V
--62 133 R
-62 0 V
-147 -152 R
-0 139 V
--31 -139 R
-62 0 V
--62 139 R
-62 0 V
-147 -47 R
-0 162 V
--31 -162 R
-62 0 V
--62 162 R
-62 0 V
-147 -222 R
-0 109 V
--31 -109 R
-62 0 V
--62 109 R
-62 0 V
-1518 1204 CircleF
-1696 1370 CircleF
-1874 1531 CircleF
-2052 1693 CircleF
-2230 1843 CircleF
-2408 2011 CircleF
-2585 2175 CircleF
-2763 2269 CircleF
-2941 2424 CircleF
-3119 2573 CircleF
-3297 2810 CircleF
-3475 2069 CircleF
-3653 2107 CircleF
-3831 2144 CircleF
-4009 2206 CircleF
-4187 2164 CircleF
-4365 2196 CircleF
-4543 1996 CircleF
-4720 1959 CircleF
-4898 1969 CircleF
-5076 1931 CircleF
-5254 1944 CircleF
-5432 1928 CircleF
-5610 1996 CircleF
-5788 2063 CircleF
-5966 2000 CircleF
-6144 1815 CircleF
-6322 1848 CircleF
-6500 1833 CircleF
-6678 1936 CircleF
-6856 1850 CircleF
-3728 163 CircleF
-4.000 UL
-LT0
-0.80 0.36 0.36 C 1518 1207 M
-54 49 V
-54 49 V
-54 49 V
-54 49 V
-53 49 V
-54 49 V
-54 49 V
-54 49 V
-54 48 V
-54 49 V
-54 49 V
-54 48 V
-54 49 V
-54 48 V
-54 49 V
-54 48 V
-53 46 V
-54 45 V
-54 42 V
-54 40 V
-54 37 V
-54 37 V
-54 38 V
-54 42 V
-54 46 V
-54 50 V
-54 54 V
-54 55 V
-53 55 V
-54 51 V
-54 40 V
-54 11 V
-54 -35 V
-54 -92 V
-54 -125 V
-54 -126 V
-54 -98 V
-54 -63 V
-54 -34 V
-54 -12 V
-53 4 V
-54 15 V
-54 20 V
-54 20 V
-54 18 V
-54 13 V
-54 7 V
-54 2 V
-54 -1 V
-54 -2 V
-54 -2 V
-54 -10 V
-53 -20 V
-54 -33 V
-54 -39 V
-54 -39 V
-54 -31 V
-54 -24 V
-54 -16 V
-54 -10 V
-54 -6 V
-54 -3 V
-54 -3 V
-53 -5 V
-54 -5 V
-54 -4 V
-54 -3 V
-54 -1 V
-54 -1 V
-54 0 V
-54 2 V
-54 5 V
-54 10 V
-54 15 V
-54 17 V
-53 18 V
-54 15 V
-54 12 V
-54 5 V
-54 -4 V
-54 -14 V
-54 -22 V
-54 -31 V
-54 -36 V
-54 -35 V
-54 -28 V
-54 -18 V
-53 -8 V
-54 -2 V
-54 3 V
-54 6 V
-54 11 V
-54 13 V
-54 15 V
-54 12 V
-54 5 V
-54 -3 V
-54 -9 V
-54 -12 V
-1.300 UP
-stroke
-LT0
-0.22 0.56 0.56 C LTb
-4600 163 M
-[ [(Helvetica) 200.0 0.0 true true 0 (4 ch)]
-] -66.7 MRshow
-LT0
-0.22 0.56 0.56 C 4720 163 M
-543 0 V
--543 31 R
-0 -62 V
-543 62 R
-0 -62 V
-1518 1348 M
-0 12 V
--31 -12 R
-62 0 V
--62 12 R
-62 0 V
-147 285 R
-0 36 V
--31 -36 R
-62 0 V
--62 36 R
-62 0 V
-147 273 R
-0 34 V
--31 -34 R
-62 0 V
--62 34 R
-62 0 V
-147 314 R
-0 138 V
--31 -138 R
-62 0 V
--62 138 R
-62 0 V
-147 44 R
-0 197 V
--31 -197 R
-62 0 V
--62 197 R
-62 0 V
-147 -497 R
-0 350 V
--31 -350 R
-62 0 V
--62 350 R
-62 0 V
-146 -473 R
-0 322 V
--31 -322 R
-62 0 V
--62 322 R
-62 0 V
-147 -372 R
+192 -63 R
 0 233 V
 -31 -233 R
 62 0 V
 -62 233 R
 62 0 V
-147 -520 R
-0 88 V
--31 -88 R
+192 -305 R
+0 398 V
+-31 -398 R
 62 0 V
--62 88 R
+-62 398 R
 62 0 V
-147 -59 R
-0 97 V
--31 -97 R
+191 -384 R
+0 248 V
+-31 -248 R
 62 0 V
--62 97 R
+-62 248 R
 62 0 V
-147 -208 R
-0 95 V
--31 -95 R
+192 -249 R
+0 252 V
+-31 -252 R
 62 0 V
--62 95 R
+-62 252 R
 62 0 V
-147 -66 R
-0 108 V
--31 -108 R
+192 -126 R
+0 279 V
+-31 -279 R
 62 0 V
--62 108 R
+-62 279 R
 62 0 V
-147 -95 R
-0 124 V
--31 -124 R
+191 -332 R
+0 457 V
+-31 -457 R
 62 0 V
--62 124 R
+-62 457 R
 62 0 V
-147 -159 R
-0 104 V
--31 -104 R
+192 -559 R
+0 101 V
+-31 -101 R
 62 0 V
--62 104 R
+-62 101 R
 62 0 V
-147 -108 R
-0 112 V
--31 -112 R
+192 -121 R
+0 221 V
+-31 -221 R
 62 0 V
--62 112 R
+-62 221 R
 62 0 V
-147 -137 R
-0 116 V
--31 -116 R
+191 -188 R
+0 181 V
+-31 -181 R
 62 0 V
--62 116 R
+-62 181 R
 62 0 V
-147 -101 R
-0 134 V
--31 -134 R
+192 -45 R
+0 122 V
+-31 -122 R
 62 0 V
-stroke 4396 1635 M
--62 134 R
+stroke 4676 2434 M
+-62 122 R
 62 0 V
-147 -111 R
-0 137 V
--31 -137 R
+191 -26 R
+0 132 V
+-31 -132 R
 62 0 V
--62 137 R
+-62 132 R
 62 0 V
-146 -104 R
-0 114 V
--31 -114 R
+192 -178 R
+0 277 V
+-31 -277 R
 62 0 V
--62 114 R
+-62 277 R
 62 0 V
-147 -90 R
-0 116 V
--31 -116 R
+192 -95 R
+0 152 V
+-31 -152 R
 62 0 V
--62 116 R
+-62 152 R
 62 0 V
-147 -212 R
-0 193 V
--31 -193 R
+191 -494 R
+0 478 V
+-31 -478 R
 62 0 V
--62 193 R
+-62 478 R
 62 0 V
-147 -188 R
-0 133 V
--31 -133 R
+192 -374 R
+0 495 V
+-31 -495 R
 62 0 V
--62 133 R
+-62 495 R
 62 0 V
-147 -81 R
-0 112 V
--31 -112 R
+192 -588 R
+0 552 V
+-31 -552 R
 62 0 V
--62 112 R
+-62 552 R
 62 0 V
-147 -93 R
-0 140 V
--31 -140 R
+191 -495 R
+0 161 V
+-31 -161 R
 62 0 V
--62 140 R
+-62 161 R
 62 0 V
-147 -162 R
-0 123 V
--31 -123 R
+192 -121 R
+0 184 V
+-31 -184 R
 62 0 V
--62 123 R
+-62 184 R
 62 0 V
-147 -69 R
-0 126 V
--31 -126 R
-62 0 V
--62 126 R
-62 0 V
-147 -151 R
-0 142 V
--31 -142 R
-62 0 V
--62 142 R
-62 0 V
-147 -150 R
-0 139 V
--31 -139 R
-62 0 V
--62 139 R
-62 0 V
-147 -135 R
-0 146 V
--31 -146 R
-62 0 V
--62 146 R
-62 0 V
-147 -120 R
-0 127 V
--31 -127 R
-62 0 V
--62 127 R
-62 0 V
-147 -106 R
-0 131 V
--31 -131 R
-62 0 V
--62 131 R
-62 0 V
-1518 1354 CircleF
-1696 1663 CircleF
-1874 1971 CircleF
-2052 2371 CircleF
-2230 2582 CircleF
-2408 2359 CircleF
-2585 2222 CircleF
-2763 2127 CircleF
-2941 1768 CircleF
-3119 1801 CircleF
-3297 1689 CircleF
-3475 1725 CircleF
-3653 1746 CircleF
-3831 1701 CircleF
-4009 1701 CircleF
-4187 1678 CircleF
-4365 1702 CircleF
-4543 1727 CircleF
-4720 1748 CircleF
-4898 1773 CircleF
-5076 1715 CircleF
-5254 1690 CircleF
-5432 1732 CircleF
-5610 1765 CircleF
-5788 1734 CircleF
-5966 1790 CircleF
-6144 1773 CircleF
-6322 1763 CircleF
-6500 1771 CircleF
-6678 1788 CircleF
-6856 1810 CircleF
-4991 163 CircleF
+1083 1758 CircleF
+1305 2456 CircleF
+1528 2981 CircleF
+1751 1793 CircleF
+1973 1966 CircleF
+2196 2136 CircleF
+2418 2321 CircleF
+2641 2490 CircleF
+2864 2500 CircleF
+3086 2439 CircleF
+3309 2440 CircleF
+3532 2579 CircleF
+3754 2615 CircleF
+3977 2335 CircleF
+4200 2376 CircleF
+4422 2388 CircleF
+4645 2495 CircleF
+4867 2596 CircleF
+5090 2623 CircleF
+5313 2742 CircleF
+5535 2563 CircleF
+5758 2675 CircleF
+5981 2611 CircleF
+6203 2473 CircleF
+6426 2524 CircleF
+2194 163 CircleF
+% End plot #1
+% Begin plot #2
 4.000 UL
 LT0
-0.22 0.56 0.56 C 1518 1335 M
-54 108 V
-54 110 V
-54 109 V
-54 110 V
-53 111 V
-54 110 V
-54 108 V
-54 103 V
-54 96 V
-54 83 V
-54 66 V
-54 44 V
-54 18 V
-54 -12 V
-54 -36 V
-54 -49 V
-53 -52 V
-54 -49 V
+0.06 0.31 0.55 C 1083 1835 M
+54 178 V
+54 172 V
+54 164 V
+54 151 V
+53 133 V
+54 105 V
+54 65 V
+54 15 V
 54 -45 V
-54 -43 V
-54 -42 V
-54 -45 V
+54 -94 V
+54 -123 V
+54 -130 V
+54 -118 V
+54 -96 V
+54 -75 V
 54 -51 V
-54 -60 V
-54 -65 V
-54 -62 V
-54 -50 V
-54 -39 V
-53 -30 V
-54 -23 V
-54 -19 V
-54 -15 V
-54 -9 V
-54 -3 V
-54 1 V
-54 4 V
+54 -28 V
+54 -7 V
+54 12 V
+54 25 V
+54 36 V
+54 43 V
+54 47 V
+54 49 V
+54 48 V
+54 45 V
+54 39 V
+54 34 V
+54 27 V
+54 19 V
+54 11 V
 54 5 V
-54 4 V
-54 2 V
-54 0 V
-53 -4 V
-54 -6 V
-54 -6 V
-54 -6 V
-54 -5 V
-54 -5 V
-54 -4 V
-54 -3 V
-54 -2 V
-54 1 V
-54 3 V
-54 5 V
-53 7 V
-54 7 V
-54 8 V
-54 9 V
-54 8 V
-54 7 V
-54 6 V
-54 5 V
-54 2 V
 54 -1 V
-54 -4 V
-53 -9 V
-54 -10 V
-54 -10 V
+54 -5 V
+54 -7 V
 54 -8 V
 54 -6 V
-54 -2 V
+54 -3 V
 54 2 V
 54 6 V
+54 11 V
+53 17 V
+54 20 V
+54 21 V
+54 20 V
+54 15 V
+54 10 V
+54 3 V
+54 -6 V
+54 -15 V
+54 -25 V
+54 -29 V
+54 -31 V
+54 -29 V
+54 -25 V
+54 -19 V
+54 -14 V
+54 -8 V
+54 -3 V
+54 2 V
 54 8 V
+54 12 V
+54 16 V
+54 20 V
+54 21 V
+54 23 V
+54 24 V
+54 23 V
+54 22 V
+54 20 V
+54 18 V
+54 16 V
+54 13 V
+54 11 V
+54 9 V
+54 6 V
+54 3 V
+53 -2 V
+54 -6 V
+54 -9 V
+54 -9 V
+54 -7 V
+54 0 V
+54 6 V
 54 9 V
 54 8 V
-54 7 V
-53 5 V
 54 3 V
-54 2 V
-54 2 V
-54 4 V
-54 6 V
-54 5 V
-54 3 V
-54 1 V
-54 -1 V
-54 -2 V
-54 -2 V
-53 -2 V
-54 -1 V
-54 -1 V
-54 1 V
-54 3 V
-54 3 V
-54 4 V
-54 5 V
-54 6 V
-54 7 V
-54 6 V
-54 7 V
+54 -3 V
+54 -8 V
+54 -13 V
+54 -16 V
+54 -18 V
+54 -18 V
+54 -18 V
+54 -15 V
+54 -11 V
+54 -7 V
+54 -6 V
+54 -5 V
+% End plot #2
+% Begin plot #3
 1.300 UP
 stroke
 LT0
-0.85 0.44 0.84 C LTb
-5863 163 M
-[ [(Helvetica) 200.0 0.0 true true 0 (8 ch)]
+0.80 0.36 0.36 C LCb setrgbcolor
+3066 163 M
+[ [(Helvetica) 200.0 0.0 true true 0 (2 ch)]
 ] -66.7 MRshow
 LT0
-0.85 0.44 0.84 C 5983 163 M
+0.80 0.36 0.36 C 3186 163 M
 543 0 V
 -543 31 R
 0 -62 V
 543 62 R
 0 -62 V
-1518 1647 M
-0 28 V
--31 -28 R
+1083 2325 M
+0 291 V
+-31 -291 R
 62 0 V
--62 28 R
+-62 291 R
 62 0 V
-147 578 R
-0 38 V
--31 -38 R
+191 -16 R
+0 1306 V
+1274 2600 M
 62 0 V
--62 38 R
+-62 1306 R
 62 0 V
-147 543 R
-0 85 V
--31 -85 R
+192 -861 R
+0 883 V
+-31 -883 R
 62 0 V
--62 85 R
+-62 883 R
 62 0 V
-147 665 R
-0 117 V
--31 -117 R
+1751 1885 M
+0 392 V
+-31 -392 R
 62 0 V
--62 117 R
+-62 392 R
 62 0 V
-147 -27 R
-0 347 V
--31 -347 R
+191 -144 R
+0 397 V
+-31 -397 R
 62 0 V
--62 347 R
+-62 397 R
 62 0 V
-2408 2627 M
-0 400 V
--31 -400 R
+192 -330 R
+0 435 V
+-31 -435 R
 62 0 V
--62 400 R
+-62 435 R
 62 0 V
-2585 2011 M
-0 162 V
--31 -162 R
+191 -419 R
+0 265 V
+-31 -265 R
 62 0 V
--62 162 R
+-62 265 R
 62 0 V
-147 -437 R
-0 103 V
--31 -103 R
+192 -66 R
+0 290 V
+-31 -290 R
 62 0 V
--62 103 R
+-62 290 R
 62 0 V
-147 -164 R
-0 91 V
--31 -91 R
+192 -162 R
+0 314 V
+-31 -314 R
 62 0 V
--62 91 R
+-62 314 R
 62 0 V
-147 -133 R
-0 95 V
--31 -95 R
+191 -187 R
+0 324 V
+-31 -324 R
 62 0 V
--62 95 R
+-62 324 R
 62 0 V
-147 -154 R
-0 110 V
--31 -110 R
+192 -442 R
+0 471 V
+-31 -471 R
 62 0 V
--62 110 R
+-62 471 R
 62 0 V
-147 -118 R
-0 126 V
--31 -126 R
+192 -356 R
+0 583 V
+-31 -583 R
 62 0 V
--62 126 R
+-62 583 R
 62 0 V
-147 -93 R
-0 182 V
--31 -182 R
+191 -309 R
+0 319 V
+-31 -319 R
 62 0 V
--62 182 R
+-62 319 R
 62 0 V
-147 -197 R
-0 114 V
--31 -114 R
+192 -956 R
+0 374 V
+-31 -374 R
 62 0 V
--62 114 R
+-62 374 R
 62 0 V
-147 -117 R
-0 150 V
--31 -150 R
+192 -356 R
+0 349 V
+-31 -349 R
 62 0 V
--62 150 R
+-62 349 R
 62 0 V
-147 -141 R
-0 209 V
--31 -209 R
-62 0 V
--62 209 R
-62 0 V
-147 -194 R
-0 192 V
--31 -192 R
-62 0 V
-stroke 4396 1605 M
--62 192 R
-62 0 V
-147 -188 R
-0 206 V
--31 -206 R
-62 0 V
--62 206 R
-62 0 V
-146 -214 R
-0 217 V
--31 -217 R
-62 0 V
--62 217 R
-62 0 V
-147 -172 R
-0 134 V
--31 -134 R
-62 0 V
--62 134 R
-62 0 V
-147 -186 R
-0 224 V
--31 -224 R
-62 0 V
--62 224 R
-62 0 V
-147 -140 R
-0 149 V
--31 -149 R
-62 0 V
--62 149 R
-62 0 V
-147 -179 R
-0 153 V
--31 -153 R
-62 0 V
--62 153 R
-62 0 V
-147 -148 R
-0 138 V
--31 -138 R
-62 0 V
--62 138 R
-62 0 V
-147 -139 R
-0 223 V
--31 -223 R
-62 0 V
--62 223 R
-62 0 V
-147 -184 R
-0 151 V
--31 -151 R
-62 0 V
--62 151 R
-62 0 V
-147 -153 R
-0 156 V
--31 -156 R
-62 0 V
--62 156 R
-62 0 V
-147 -154 R
-0 163 V
--31 -163 R
-62 0 V
--62 163 R
-62 0 V
-147 -193 R
-0 238 V
--31 -238 R
-62 0 V
--62 238 R
-62 0 V
-147 -175 R
-0 167 V
--31 -167 R
-62 0 V
--62 167 R
-62 0 V
-147 -228 R
+191 -50 R
 0 251 V
 -31 -251 R
 62 0 V
 -62 251 R
 62 0 V
-1518 1661 CircleF
-1696 2272 CircleF
-1874 2877 CircleF
-2052 3642 CircleF
-2230 3847 CircleF
-2408 2827 CircleF
-2585 2092 CircleF
-2763 1788 CircleF
-2941 1721 CircleF
-3119 1681 CircleF
-3297 1629 CircleF
-3475 1629 CircleF
-3653 1690 CircleF
-3831 1641 CircleF
-4009 1656 CircleF
-4187 1695 CircleF
-4365 1701 CircleF
-4543 1712 CircleF
-4720 1709 CircleF
-4898 1713 CircleF
-5076 1706 CircleF
-5254 1752 CircleF
-5432 1724 CircleF
-5610 1722 CircleF
-5788 1764 CircleF
-5966 1767 CircleF
-6144 1767 CircleF
-6322 1773 CircleF
-6500 1780 CircleF
-6678 1808 CircleF
-6856 1789 CircleF
-6254 163 CircleF
+192 -200 R
+0 288 V
+-31 -288 R
+62 0 V
+stroke 4676 2672 M
+-62 288 R
+62 0 V
+191 -216 R
+0 388 V
+-31 -388 R
+62 0 V
+-62 388 R
+62 0 V
+192 -496 R
+0 392 V
+-31 -392 R
+62 0 V
+-62 392 R
+62 0 V
+192 -116 R
+0 298 V
+-31 -298 R
+62 0 V
+-62 298 R
+62 0 V
+191 -356 R
+0 322 V
+-31 -322 R
+62 0 V
+-62 322 R
+62 0 V
+192 -327 R
+0 402 V
+-31 -402 R
+62 0 V
+-62 402 R
+62 0 V
+192 -499 R
+0 315 V
+-31 -315 R
+62 0 V
+-62 315 R
+62 0 V
+191 -554 R
+0 424 V
+-31 -424 R
+62 0 V
+-62 424 R
+62 0 V
+192 -285 R
+0 318 V
+-31 -318 R
+62 0 V
+-62 318 R
+62 0 V
+1083 2471 CircleF
+1305 3253 CircleF
+1528 3487 CircleF
+1751 2081 CircleF
+1973 2331 CircleF
+2196 2418 CircleF
+2418 2348 CircleF
+2641 2560 CircleF
+2864 2700 CircleF
+3086 2832 CircleF
+3309 2788 CircleF
+3532 2959 CircleF
+3754 3100 CircleF
+3977 2491 CircleF
+4200 2497 CircleF
+4422 2747 CircleF
+4645 2816 CircleF
+4867 2938 CircleF
+5090 2832 CircleF
+5313 3061 CircleF
+5535 3015 CircleF
+5758 3050 CircleF
+5981 2910 CircleF
+6203 2725 CircleF
+6426 2811 CircleF
+3457 163 CircleF
+% End plot #3
+% Begin plot #4
 4.000 UL
 LT0
-0.85 0.44 0.84 C 1518 1630 M
-54 207 V
-54 208 V
-54 211 V
-54 213 V
-53 215 V
-54 217 V
-54 217 V
-54 210 V
-54 188 V
-54 150 V
-54 96 V
-54 25 V
-54 -63 V
-54 -163 V
-54 -240 V
-54 -277 V
-53 -275 V
-54 -249 V
-54 -218 V
-54 -182 V
+0.80 0.36 0.36 C 1083 2583 M
+54 187 V
+54 178 V
+54 161 V
+54 134 V
+53 99 V
+54 54 V
+54 -2 V
+54 -68 V
 54 -141 V
-54 -106 V
-54 -77 V
-54 -53 V
-54 -34 V
-54 -21 V
-54 -13 V
-54 -9 V
-53 -7 V
-54 -6 V
-54 -6 V
-54 -6 V
-54 -3 V
-54 -1 V
-54 2 V
-54 4 V
-54 7 V
+54 -194 V
+54 -212 V
+54 -197 V
+54 -149 V
+54 -95 V
+54 -50 V
+54 -18 V
+54 3 V
+54 14 V
+54 22 V
+54 24 V
+54 21 V
+54 17 V
+54 14 V
+54 17 V
+54 20 V
+54 28 V
+54 32 V
+54 35 V
+54 37 V
+54 37 V
+54 37 V
+54 34 V
+54 33 V
+54 29 V
+54 26 V
+54 21 V
+54 18 V
+54 13 V
+54 11 V
+54 12 V
+54 16 V
+53 24 V
+54 28 V
+54 30 V
+54 27 V
+54 19 V
 54 8 V
+54 -9 V
+54 -27 V
+54 -52 V
+54 -71 V
+54 -80 V
+54 -77 V
+54 -64 V
+54 -43 V
+54 -23 V
+54 -5 V
+54 11 V
+54 27 V
+54 36 V
+54 42 V
+54 42 V
+54 40 V
+54 37 V
+54 32 V
+54 29 V
+54 25 V
+54 21 V
+54 15 V
+54 9 V
+54 4 V
+54 1 V
+54 1 V
+54 7 V
+54 15 V
+54 22 V
+54 25 V
+53 24 V
+54 20 V
+54 14 V
+54 10 V
 54 6 V
 54 3 V
-53 -1 V
+54 0 V
+54 -4 V
+54 -10 V
+54 -17 V
+54 -25 V
+54 -30 V
+54 -34 V
+54 -36 V
+54 -36 V
+54 -34 V
+54 -27 V
+54 -18 V
+54 -8 V
+54 0 V
+54 6 V
+54 8 V
+% End plot #4
+% Begin plot #5
+1.300 UP
+stroke
+LT0
+0.22 0.56 0.56 C LCb setrgbcolor
+4329 163 M
+[ [(Helvetica) 200.0 0.0 true true 0 (3 ch)]
+] -66.7 MRshow
+LT0
+0.22 0.56 0.56 C 4449 163 M
+543 0 V
+-543 31 R
+0 -62 V
+543 62 R
+0 -62 V
+1083 1641 M
+0 808 V
+-31 -808 R
+62 0 V
+-62 808 R
+62 0 V
+1305 1377 M
+0 402 V
+-31 -402 R
+62 0 V
+-62 402 R
+62 0 V
+192 -359 R
+0 699 V
+-31 -699 R
+62 0 V
+-62 699 R
+62 0 V
+192 -575 R
+0 527 V
+-31 -527 R
+62 0 V
+-62 527 R
+62 0 V
+191 -448 R
+0 522 V
+-31 -522 R
+62 0 V
+-62 522 R
+62 0 V
+192 -467 R
+0 571 V
+-31 -571 R
+62 0 V
+-62 571 R
+62 0 V
+191 -521 R
+0 665 V
+-31 -665 R
+62 0 V
+-62 665 R
+62 0 V
+192 -647 R
+0 820 V
+-31 -820 R
+62 0 V
+-62 820 R
+62 0 V
+192 -771 R
+0 750 V
+-31 -750 R
+62 0 V
+-62 750 R
+62 0 V
+191 -615 R
+0 944 V
+-31 -944 R
+62 0 V
+-62 944 R
+62 0 V
+192 -977 R
+0 1089 V
+3278 1897 M
+62 0 V
+-62 1089 R
+62 0 V
+3532 1891 M
+0 1044 V
+3501 1891 M
+62 0 V
+-62 1044 R
+62 0 V
+3754 1880 M
+0 962 V
+-31 -962 R
+62 0 V
+-62 962 R
+62 0 V
+192 -908 R
+0 517 V
+-31 -517 R
+62 0 V
+-62 517 R
+62 0 V
+192 -424 R
+0 450 V
+-31 -450 R
+62 0 V
+-62 450 R
+62 0 V
+191 -449 R
+0 278 V
+-31 -278 R
+62 0 V
+-62 278 R
+62 0 V
+192 -268 R
+0 324 V
+-31 -324 R
+62 0 V
+stroke 4676 2038 M
+-62 324 R
+62 0 V
+191 -350 R
+0 380 V
+-31 -380 R
+62 0 V
+-62 380 R
+62 0 V
+192 -318 R
+0 307 V
+-31 -307 R
+62 0 V
+-62 307 R
+62 0 V
+192 -237 R
+0 216 V
+-31 -216 R
+62 0 V
+-62 216 R
+62 0 V
+191 -289 R
+0 347 V
+-31 -347 R
+62 0 V
+-62 347 R
+62 0 V
+192 -382 R
+0 365 V
+-31 -365 R
+62 0 V
+-62 365 R
+62 0 V
+192 224 R
+0 509 V
+-31 -509 R
+62 0 V
+-62 509 R
+62 0 V
+191 -851 R
+0 176 V
+-31 -176 R
+62 0 V
+-62 176 R
+62 0 V
+192 377 R
+0 388 V
+-31 -388 R
+62 0 V
+-62 388 R
+62 0 V
+1083 2045 CircleF
+1305 1578 CircleF
+1528 1770 CircleF
+1751 1808 CircleF
+1973 1884 CircleF
+2196 1964 CircleF
+2418 2061 CircleF
+2641 2156 CircleF
+2864 2170 CircleF
+3086 2402 CircleF
+3309 2442 CircleF
+3532 2413 CircleF
+3754 2361 CircleF
+3977 2192 CircleF
+4200 2252 CircleF
+4422 2167 CircleF
+4645 2200 CircleF
+4867 2202 CircleF
+5090 2228 CircleF
+5313 2252 CircleF
+5535 2245 CircleF
+5758 2218 CircleF
+5981 2880 CircleF
+6203 2371 CircleF
+6426 3030 CircleF
+4720 163 CircleF
+% End plot #5
+% Begin plot #6
+4.000 UL
+LT0
+0.22 0.56 0.56 C 1083 2013 M
+54 -92 V
+54 -85 V
+54 -71 V
+54 -50 V
+53 -24 V
+54 -2 V
+54 14 V
+54 20 V
+54 22 V
+54 20 V
+54 19 V
+54 18 V
+54 18 V
+54 19 V
+54 18 V
+54 18 V
+54 19 V
+54 19 V
+54 20 V
+54 21 V
+54 22 V
+54 22 V
+54 23 V
+54 23 V
+54 22 V
+54 21 V
+54 20 V
+54 18 V
+54 15 V
+54 14 V
+54 14 V
+54 18 V
+54 27 V
+54 36 V
+54 42 V
+54 43 V
+54 39 V
+54 29 V
+54 21 V
+54 13 V
+54 6 V
+53 1 V
+54 -3 V
+54 -7 V
+54 -10 V
+54 -13 V
+54 -14 V
+54 -18 V
+54 -21 V
+54 -26 V
+54 -28 V
+54 -28 V
+54 -25 V
+54 -17 V
+54 -9 V
+54 -4 V
+54 -2 V
+54 -3 V
+54 -5 V
+54 -6 V
+54 -7 V
 54 -4 V
 54 -3 V
+54 0 V
+54 1 V
+54 2 V
+54 3 V
+54 3 V
+54 3 V
+54 4 V
+54 4 V
+54 4 V
+54 3 V
+54 3 V
+54 2 V
+54 1 V
+54 0 V
+53 -1 V
+54 -2 V
 54 -1 V
 54 1 V
-54 4 V
 54 6 V
+54 12 V
+54 21 V
+54 34 V
+54 48 V
+54 67 V
+54 82 V
+54 84 V
+54 75 V
+54 53 V
+54 25 V
+54 10 V
+54 7 V
+54 18 V
+54 36 V
+54 52 V
+54 62 V
+54 68 V
+% End plot #6
+% Begin plot #7
+1.300 UP
+stroke
+LT0
+0.85 0.44 0.84 C LCb setrgbcolor
+5592 163 M
+[ [(Helvetica) 200.0 0.0 true true 0 (4 ch)]
+] -66.7 MRshow
+LT0
+0.85 0.44 0.84 C 5712 163 M
+543 0 V
+-543 31 R
+0 -62 V
+543 62 R
+0 -62 V
+1083 1408 M
+0 363 V
+-31 -363 R
+62 0 V
+-62 363 R
+62 0 V
+191 -331 R
+0 603 V
+-31 -603 R
+62 0 V
+-62 603 R
+62 0 V
+192 -583 R
+0 779 V
+-31 -779 R
+62 0 V
+-62 779 R
+62 0 V
+192 -549 R
+0 651 V
+-31 -651 R
+62 0 V
+-62 651 R
+62 0 V
+191 -666 R
+0 468 V
+-31 -468 R
+62 0 V
+-62 468 R
+62 0 V
+192 -371 R
+0 801 V
+-31 -801 R
+62 0 V
+-62 801 R
+62 0 V
+191 -812 R
+0 612 V
+-31 -612 R
+62 0 V
+-62 612 R
+62 0 V
+192 -484 R
+0 502 V
+-31 -502 R
+62 0 V
+-62 502 R
+62 0 V
+192 -458 R
+0 945 V
+-31 -945 R
+62 0 V
+-62 945 R
+62 0 V
+3086 1811 M
+0 587 V
+-31 -587 R
+62 0 V
+-62 587 R
+62 0 V
+192 -496 R
+0 846 V
+-31 -846 R
+62 0 V
+-62 846 R
+62 0 V
+192 -772 R
+0 856 V
+-31 -856 R
+62 0 V
+-62 856 R
+62 0 V
+191 -881 R
+0 661 V
+-31 -661 R
+62 0 V
+-62 661 R
+62 0 V
+192 -660 R
+0 477 V
+-31 -477 R
+62 0 V
+-62 477 R
+62 0 V
+192 -562 R
+0 455 V
+-31 -455 R
+62 0 V
+-62 455 R
+62 0 V
+191 -399 R
+0 402 V
+-31 -402 R
+62 0 V
+-62 402 R
+62 0 V
+192 -260 R
+0 327 V
+-31 -327 R
+62 0 V
+stroke 4676 2065 M
+-62 327 R
+62 0 V
+191 -253 R
+0 398 V
+-31 -398 R
+62 0 V
+-62 398 R
+62 0 V
+192 -390 R
+0 394 V
+-31 -394 R
+62 0 V
+-62 394 R
+62 0 V
+192 -427 R
+0 385 V
+-31 -385 R
+62 0 V
+-62 385 R
+62 0 V
+191 -341 R
+0 333 V
+-31 -333 R
+62 0 V
+-62 333 R
+62 0 V
+192 -230 R
+0 359 V
+-31 -359 R
+62 0 V
+-62 359 R
+62 0 V
+192 -531 R
+0 343 V
+-31 -343 R
+62 0 V
+-62 343 R
+62 0 V
+191 -371 R
+0 378 V
+-31 -378 R
+62 0 V
+-62 378 R
+62 0 V
+192 -289 R
+0 348 V
+-31 -348 R
+62 0 V
+-62 348 R
+62 0 V
+1083 1589 CircleF
+1305 1741 CircleF
+1528 1849 CircleF
+1751 2015 CircleF
+1973 1909 CircleF
+2196 2172 CircleF
+2418 2067 CircleF
+2641 2140 CircleF
+2864 2406 CircleF
+3086 2105 CircleF
+3309 2325 CircleF
+3532 2404 CircleF
+3754 2282 CircleF
+3977 2191 CircleF
+4200 2094 CircleF
+4422 2124 CircleF
+4645 2228 CircleF
+4867 2338 CircleF
+5090 2344 CircleF
+5313 2307 CircleF
+5535 2324 CircleF
+5758 2440 CircleF
+5981 2260 CircleF
+6203 2250 CircleF
+6426 2324 CircleF
+5983 163 CircleF
+% End plot #7
+% Begin plot #8
+4.000 UL
+LT0
+0.85 0.44 0.84 C 1083 1593 M
+54 35 V
+54 36 V
+54 34 V
+54 34 V
+53 32 V
+54 31 V
+54 30 V
+54 31 V
+54 31 V
+54 31 V
+54 26 V
+54 21 V
+54 12 V
+54 6 V
+54 5 V
+54 9 V
+54 19 V
+54 28 V
+54 31 V
+54 26 V
+54 15 V
+54 2 V
+54 -4 V
+54 -5 V
+54 1 V
+54 10 V
+54 19 V
+54 28 V
+54 36 V
+54 42 V
+54 40 V
+54 29 V
+54 10 V
+54 -14 V
+54 -30 V
+54 -31 V
+54 -23 V
+54 -2 V
+54 16 V
+54 27 V
+54 31 V
+53 31 V
+54 25 V
+54 18 V
 54 8 V
-54 7 V
-54 7 V
-54 5 V
+54 -4 V
+54 -15 V
+54 -22 V
+54 -27 V
+54 -29 V
+54 -29 V
+54 -27 V
+54 -27 V
+54 -26 V
+54 -23 V
+54 -20 V
+54 -15 V
+54 -9 V
+54 -2 V
 54 4 V
-53 4 V
+54 10 V
+54 15 V
+54 19 V
+54 24 V
+54 25 V
+54 26 V
+54 26 V
+54 24 V
+54 22 V
+54 17 V
+54 12 V
+54 7 V
 54 3 V
-54 2 V
-54 1 V
-54 1 V
 54 0 V
-54 -1 V
-54 0 V
-54 0 V
-54 -1 V
-54 1 V
-53 0 V
-54 2 V
-54 4 V
-54 5 V
-54 6 V
-54 5 V
-54 2 V
-54 -1 V
-54 -2 V
-54 -2 V
-54 0 V
-54 2 V
-53 4 V
-54 6 V
-54 7 V
-54 7 V
-54 5 V
-54 4 V
-54 2 V
-54 1 V
-54 1 V
-54 0 V
-54 1 V
-54 0 V
-53 2 V
-54 2 V
-54 2 V
-54 3 V
-54 4 V
-54 5 V
-54 5 V
-54 4 V
-54 2 V
-54 -1 V
-54 -2 V
 54 -3 V
+54 -4 V
+54 -4 V
+53 -2 V
+54 0 V
+54 4 V
+54 6 V
+54 9 V
+54 11 V
+54 10 V
+54 8 V
+54 2 V
+54 -6 V
+54 -15 V
+54 -20 V
+54 -22 V
+54 -19 V
+54 -15 V
+54 -10 V
+54 -5 V
+54 1 V
+54 7 V
+54 10 V
+54 13 V
+54 14 V
+% End plot #8
 stroke
 1.000 UL
 LTb
-1340 4240 N
-0 -3200 V
-5560 0 V
-0 3200 V
--5560 0 V
+LCb setrgbcolor
+860 4239 N
+0 -3199 V
+5979 0 V
+0 3199 V
+-5979 0 V
 Z stroke
 1.000 UP
 1.000 UL
 LTb
+LCb setrgbcolor
 stroke
 grestore
 end
