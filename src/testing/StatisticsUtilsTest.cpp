@@ -1,5 +1,6 @@
 
 #include "ClassUtils.h"
+#include "DataUtils.h"
 #include "StatisticsUtils.h"
 
 #include "testing-prototype.h"
@@ -87,6 +88,15 @@ int main(int argc, char *argv[])
         // test that incremental variance error is less than 10% within 5 samples //
         TEST1_P( n <= 5 );
     }
+
+    {
+        Histogram<double> h("wite noise",150,-0.2,1.2);
+        for(size_t i=0; i<100000; ++i) {
+            h << StatisticGen::noiseWhite();
+        }
+        std::cout << h << "\n";
+    }
+
 
     // TODO: test IncrementalOrder2 additions .. //
 
