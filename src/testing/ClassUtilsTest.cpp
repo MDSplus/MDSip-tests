@@ -2,6 +2,8 @@
 #include "ClassUtils.h"
 #include "testing-prototype.h"
 
+using namespace mdsip_test;
+
 
 struct CountDestructors {
     CountDestructors() : m_del(0) {}

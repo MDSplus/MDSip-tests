@@ -2,6 +2,7 @@
 #include "DataUtils.h"
 #include "testing-prototype.h"
 
+using namespace mdsip_test;
 
 int main(int argc, char *argv[])
 {

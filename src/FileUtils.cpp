@@ -11,6 +11,10 @@
 
 using namespace MDSplus;
 
+namespace mdsip_test {
+  
+
+
 ///
 /// \brief FileUtils::FindDir
 /// \param name name of the directory to be searched
@@ -135,3 +139,5 @@ void Options::PrintSelf(std::ostream &o)
     }
     o << "\n";
 }
+
+} // mdsip_test

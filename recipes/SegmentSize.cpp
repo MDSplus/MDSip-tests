@@ -17,6 +17,7 @@
 
 
 using namespace MDSplus;
+using namespace mdsip_test;
 
 
 struct Parameters : Options {

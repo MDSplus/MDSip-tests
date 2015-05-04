@@ -13,6 +13,9 @@
 
 using namespace MDSplus;
 
+namespace mdsip_test {
+  
+
 
 // UNARY GENERATORS //
 
@@ -333,7 +336,7 @@ void ContentReader::ResetSize(size_t size_KB)
 
 
 
-
+} // mdsip_test
 
 
 

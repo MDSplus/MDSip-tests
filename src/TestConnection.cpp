@@ -15,6 +15,9 @@
 
 using namespace MDSplus;
 
+namespace mdsip_test {
+  
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // SIGLE CHANNEL DC CONNECTION /////////////////////////////////////////////////
@@ -473,7 +476,7 @@ double TestConnectionMP::StartConnection()
 
 
 
-
+} // mdsip_test
 
 
 

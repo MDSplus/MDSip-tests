@@ -16,6 +16,7 @@
 #include "DataUtils.h"
 
 using namespace MDSplus;
+using namespace mdsip_test;
 
 TestTree g_target_tree;
 
@@ -27,6 +28,7 @@ struct Parameters : Options {
     Vector2d h_speed_limits;
     Vector2d h_time_limits;
     size_t samples;
+//    int compression_level;
 
     Parameters() :
         n_channels(1),
@@ -41,6 +43,7 @@ struct Parameters : Options {
                 ("samples",&samples,"number of samples to average")
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
+//                ("clevel",&compression_level,"set the compression level of client")
                 ;
     }
 

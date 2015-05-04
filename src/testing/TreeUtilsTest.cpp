@@ -6,6 +6,7 @@
 
 namespace mds = MDSplus;
 
+using namespace mdsip_test;
 
 
 

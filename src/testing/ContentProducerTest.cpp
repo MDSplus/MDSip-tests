@@ -9,6 +9,7 @@
 #include "testing-prototype.h"
 
 
+using namespace mdsip_test;
 
 
 class ContentProd : public Thread {

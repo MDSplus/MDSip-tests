@@ -10,6 +10,8 @@
 
 namespace mds = MDSplus;
 
+namespace mdsip_test {
+  
 
 ///
 /// \brief The TreeUtils class
@@ -152,6 +154,6 @@ operator << (std::ostream &o, mds::TreeNodeArray *array) {
 
 
 
-
+} // mdsip_test
 
 #endif // TREEUTILS_H

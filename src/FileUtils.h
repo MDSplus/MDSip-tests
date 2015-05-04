@@ -8,6 +8,8 @@
 #include "SerializeUtils.h" // container stream interaction //
 #include "Threads.h"
 
+namespace mdsip_test {
+  
 
 
 class FileUtils
@@ -207,7 +209,7 @@ private:
 
 
 
-
+} // mdsip_test
 
 
 #endif // FILEUTILS_H

@@ -13,7 +13,7 @@
 #include "testing-prototype.h"
 
 using namespace MDSplus;
-
+using namespace mdsip_test;
 
 
 typedef Histogram<double> TimeHistogram;

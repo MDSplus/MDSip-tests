@@ -12,8 +12,10 @@
 #include <string>
 
 #include <mdsobjects.h>
-
 namespace mds = MDSplus;
+
+
+namespace mdsip_test {
 
 ////////////////////////////////////////////////////////////////////////////////
 //  Comma Init  ////////////////////////////////////////////////////////////////
@@ -72,6 +74,8 @@ struct CommaInitializerFixed
     unsigned int index;
 };
 
+} // mdsip_test
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //  COMMA INIT FOR CONTAINERS  /////////////////////////////////////////////////
@@ -81,13 +85,14 @@ struct CommaInitializerFixed
 namespace std {
 
 template < typename _T >
-inline CommaInitializer< std::vector<_T>, _T > operator << (std::vector<_T> &cnt, _T scalar ) {
-    return CommaInitializer< std::vector<_T>, _T>(&cnt,scalar,&std::vector<_T>::operator []);
+inline mdsip_test::CommaInitializer< std::vector<_T>, _T > operator << (std::vector<_T> &cnt, _T scalar ) {
+    return mdsip_test::CommaInitializer< std::vector<_T>, _T>(&cnt,scalar,&std::vector<_T>::operator []);
 }
 
 } // std
 
 
+  
 
 
 
@@ -96,7 +101,7 @@ inline CommaInitializer< std::vector<_T>, _T > operator << (std::vector<_T> &cnt
 
 
 
-
+namespace mdsip_test {
 
 ////////////////////////////////////////////////////////////////////////////////
 //  AutoDelete  ////////////////////////////////////////////////////////////////
@@ -350,11 +355,12 @@ public:
 
 
 } // detail
+} // mdsip_test
 
 
 // WARNING: GCC ONLY //
 #define _FOREACH_EXPANSION(variable, container)                          \
-for (detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(container)>::value > _cnt(container); \
+for (mdsip_test::detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(container)>::value > _cnt(container); \
      !_cnt.brk && _cnt.itr != _cnt.end;                                  \
      __extension__  ({ ++_cnt.brk; ++_cnt.itr; })  )                \
     for (variable = *_cnt.itr;; __extension__ ({--_cnt.brk; break;}))
@@ -376,7 +382,8 @@ for (detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(conta
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
+namespace mdsip_test {
+  
 
 template<typename Enum>
 class Flags
@@ -419,19 +426,14 @@ public:
     //    { return f2 | f1; }
 };
 
+} // mdsip_test
 
 
 #define DEFINE_OPERATORS_FOR_FLAGS(_flags) \
-    inline Flags<_flags::enum_type> operator | (_flags::enum_type f1, _flags::enum_type f2) \
-{ return Flags<_flags::enum_type>(f1) | f2; } \
-    inline Flags<_flags::enum_type> operator | (_flags::enum_type f1, Flags<_flags::enum_type> f2) \
+    inline mdsip_test::Flags<_flags::enum_type> operator | (_flags::enum_type f1, _flags::enum_type f2) \
+{ return mdsip_test::Flags<_flags::enum_type>(f1) | f2; } \
+    inline mdsip_test::Flags<_flags::enum_type> operator | (_flags::enum_type f1, mdsip_test::Flags<_flags::enum_type> f2) \
 { return f2 | f1; }
-
-
-
-
-
-
 
 
 

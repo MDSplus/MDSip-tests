@@ -5,6 +5,7 @@
 
 #include "testing-prototype.h"
 
+using namespace mdsip_test;
 
 typedef float Scalar;
 

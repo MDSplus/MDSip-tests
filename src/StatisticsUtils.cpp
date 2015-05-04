@@ -4,6 +4,9 @@
 
 #include "StatisticsUtils.h"
 
+namespace mdsip_test {
+  
+
 
 double StatisticGen::boxMuller(const double mean, const double sigma)
 {
@@ -40,3 +43,5 @@ double StatisticGen::noiseWhite()
 {
     return (double)rand() / RAND_MAX;
 }
+
+} // mdsip_test

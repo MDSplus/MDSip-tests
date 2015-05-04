@@ -4,6 +4,7 @@
 
 #include "testing-prototype.h"
 
+using namespace mdsip_test;
 
 
 int main()

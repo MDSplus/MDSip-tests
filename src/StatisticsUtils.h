@@ -8,6 +8,8 @@
 #include "Threads.h"
 
 
+namespace mdsip_test {
+  
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +162,7 @@ public:
 
 
 
-
+} // mdsip_test
 
 #endif // STATISTICSUTILS_H
 

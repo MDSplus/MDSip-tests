@@ -3,13 +3,13 @@
 
 #include <mdsobjects.h>
 
-namespace MDSTest {
+namespace mdsip_test {
 
 /// Shortcut to MDSplus namespace
 namespace mds = MDSplus;
 
 
-} // MDSTest
+} // mdsip_test
 
 
 #endif // MDSTEST_H
