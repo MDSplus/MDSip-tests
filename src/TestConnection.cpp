@@ -176,24 +176,48 @@ public:
         }
     }
 
+//    void PutSegment(Content::Element &el) /*const*/ {
+//        Data * args[6];
+//        args[0] = new String(el.path.c_str());
+//        args[1] = el.dim->getBegin();
+//        args[2] = el.dim->getEnding();
+//        //        args[3] = el.dim->data();
+//        args[3] = el.dim->getDeltaVal();
+//        args[4] = el.data;
+//        args[5] = new Int32(el.data->getSize());        
+        
+//        // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
+//        m_cnx->get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
+//        // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
+//        //        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
+
+//        deleteData(args[0]);
+//        deleteData(args[5]);
+//    }
     void PutSegment(Content::Element &el) /*const*/ {
 
-        Data * args[6];
-        args[0] = new String(el.path.c_str());
-        args[1] = el.dim->getBegin();
-        args[2] = el.dim->getEnding();
-        //        args[3] = el.dim->data();
-        args[3] = el.dim->getDeltaVal();
-        args[4] = el.data;
-        args[5] = new Int32(el.data->getSize());
+      Data * args[1];
+      args[0] = el.data;
+      
+      char * begin = el.dim->getBegin()->getString();
+      char * end = el.dim->getEnding()->getString();
+      char * delta = el.dim->getDeltaVal()->getString();
+      
+      std::stringstream ss;
+      ss << "MakeSegment(" 
+         << el.path << "," 
+         << begin << ","
+         << end << ","
+         << "make_range(" << begin << "," << end << "," << delta << ")" << ","
+         << "$1" << ","
+         << el.data->getSize() << ")";
+            
+      // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
+      m_cnx->get(ss.str().c_str(),args,1);
 
-        // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-        m_cnx->get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
-        // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
-        //        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
-
-        deleteData(args[0]);
-        deleteData(args[5]);
+      delete[] begin;
+      delete[] end;
+      delete[] delta;
     }
 
     size_t Size() const { return m_size; }
