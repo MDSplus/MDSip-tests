@@ -208,7 +208,7 @@ public:
          << el.path << "," 
          << begin << ","
          << end << ","
-         << "make_range(" << begin << "," << end << "," << delta << ")" << ","
+         << "make_range(" << begin << "," << end << "," << delta << ")" << ",,"
          << "$1" << ","
          << el.data->getSize() << ")";
             
