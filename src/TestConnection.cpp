@@ -11,13 +11,14 @@
 #include "SerializeUtils.h"
 #include "DataUtils.h"
 #include "Threads.h"
+
 #include "TestConnection.h"
+
 
 using namespace MDSplus;
 
 namespace mdsip_test {
   
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // SIGLE CHANNEL DC CONNECTION /////////////////////////////////////////////////
@@ -107,136 +108,6 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
 }
 
 
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//  Channel  ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-class ChannelDC : public Channel {
-public:
-    ChannelDC(int size) :
-        m_size(size),
-        m_tree(NULL)
-    {}
-
-    ~ChannelDC() { Close(); }
-
-    void Open(TestTree &tree) {
-        Close();
-        m_tree = tree.Open();
-    }
-
-    void Close() {
-        if(m_tree) delete m_tree;
-        m_tree = NULL;
-    }
-
-    void PutSegment(Content::Element &el) /*const*/ {
-        TreeNode *node = m_tree->getNode(el.path.c_str());
-        node->makeSegment(el.dim->getBegin(), el.dim->getEnding(), el.dim, el.data);
-    }
-
-    size_t Size() const { return m_size; }
-
-private:
-    size_t m_size;
-    Tree  *m_tree;    
-};
-
-
-
-class ChannelTC : public Channel {
-public:
-    ChannelTC(int size) :
-        m_cnx(0),
-        m_size(size)
-    {}
-
-    ~ChannelTC() {
-        // Close();
-    }
-
-    void Open(TestTree &tree) {
-        if(m_cnx) Close();       
-        std::string cnx_path = TestTree::TreePath::toString(tree.Path());
-        m_cnx = new mds::Connection((char *)cnx_path.c_str());
-        m_cnx->openTree((char*)tree.Name().c_str(), 0);
-    }
-
-    void Close() {
-        if(m_cnx) {
-            m_cnx->closeAllTrees();
-            delete m_cnx;
-            m_cnx = NULL;
-        }
-    }
-
-//    void PutSegment(Content::Element &el) /*const*/ {
-//        Data * args[6];
-//        args[0] = new String(el.path.c_str());
-//        args[1] = el.dim->getBegin();
-//        args[2] = el.dim->getEnding();
-//        //        args[3] = el.dim->data();
-//        args[3] = el.dim->getDeltaVal();
-//        args[4] = el.data;
-//        args[5] = new Int32(el.data->getSize());        
-        
-//        // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-//        m_cnx->get("MakeSegment($1,$2,$3,make_range($2,$3,$4),$5,,$6)",args,6);
-//        // TDI: public fun MakeSegmentRange(as_is _node, in _start, in _end, in _delta, in _array, optional _idx, in _rows_filled)
-//        //        m_cnx.get("MakeSegmentRange($1,$2,$3,$4,$5,,$6)",args,6);
-
-//        deleteData(args[0]);
-//        deleteData(args[5]);
-//    }
-    void PutSegment(Content::Element &el) /*const*/ {
-
-      Data * args[1];
-      args[0] = el.data;
-      
-      char * begin = el.dim->getBegin()->getString();
-      char * end = el.dim->getEnding()->getString();
-      char * delta = el.dim->getDeltaVal()->getString();
-      
-      std::stringstream ss;
-      ss << "MakeSegment(" 
-         << el.path << "," 
-         << begin << ","
-         << end << ","
-         << "make_range(" << begin << "," << end << "," << delta << ")" << ",,"
-         << "$1" << ","
-         << el.data->getSize() << ")";
-            
-      // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-      m_cnx->get(ss.str().c_str(),args,1);
-
-      delete[] begin;
-      delete[] end;
-      delete[] delta;
-    }
-
-    size_t Size() const { return m_size; }
-
-private:
-    mds::Connection *m_cnx;
-    size_t m_size;
-};
-
-
-Channel *Channel::NewDC(int size_KB)
-{
-    return new ChannelDC(size_KB);
-}
-
-Channel *Channel::NewTC(int size_KB)
-{
-    return new ChannelTC(size_KB);
-}
 
 
 
@@ -394,19 +265,13 @@ double TestConnectionMP::StartConnection()
 
 //    if(m_pids.size() == 1)
 //    {
-
 //        // FIX: use BaseClass for single channel //
-
 //        Channel *channel = this->m_channels[0];
 //        Content *content = this->m_contents[0];
-
 //        Timer timer;
-
 //        TimeHistogram &time = this->ChannelTime(channel);
 //        TimeHistogram &speed = this->ChannelSpeed(channel);
-
 //        channel->Open(this->Tree());
-
 //        while (  content->GetSize() > 0 )
 //        {
 //            Content::Element el;
@@ -419,9 +284,7 @@ double TestConnectionMP::StartConnection()
 //            speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
 //            // FIX: the actual size of el may not be of this size //
 //        }
-
 //        std::cout << "\n";
-
 //        channel->Close();
 //    }
 //    else

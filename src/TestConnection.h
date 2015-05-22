@@ -9,37 +9,13 @@
 #include <mdsobjects.h>
 
 #include "TreeUtils.h"
-#include "TestContent.h"
 #include "DataUtils.h"
 
+#include "TestContent.h"
+#include "TestChannel.h"
 
 namespace mdsip_test {
   
-
-
-////////////////////////////////////////////////////////////////////////////////
-//  Channel  ///////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-class Channel {
-
-public:
-    virtual ~Channel() {}
-
-    static Channel * NewDC(int size_KB);
-    static Channel * NewTC(int size_KB);
-
-    virtual void Open(TestTree &tree) = 0;
-
-    virtual void Close() = 0;
-
-    virtual size_t Size() const = 0;
-
-    virtual void PutSegment(Content::Element &el) /*const*/ = 0;
-protected:
-    Channel() {}
-};
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,8 +41,10 @@ public:
     virtual double StartConnection();
 
     virtual void AddChannel(Content *cnt, Channel *chn) {
+        chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
+        
         m_channels.push_back(chn);
-        m_contents.push_back(cnt);
+        m_contents.push_back(cnt);        
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,5);
         m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,2);
 
@@ -125,7 +103,6 @@ class Thread; // fwd //
 class TestConnectionMT : public TestConnection, Lockable {
 
     typedef TestConnection BaseClass;
-
     friend class ChannelThread;
 
 public:

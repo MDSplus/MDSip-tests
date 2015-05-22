@@ -55,3 +55,6 @@ Makefile.am
 Makefile.in
 MakeSegmentRange.fun
 README.md
+src/TestChannel.h
+src/TestChannel.cpp
+recipes/CustomSignal.cpp
