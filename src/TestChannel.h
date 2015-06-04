@@ -26,12 +26,10 @@ public:
     virtual void Close() = 0;
 
     virtual size_t Size() const = 0;
-
-    
-    virtual void Prepare() {}
-    virtual void Send() {}
     
     virtual void PutSegment(Content::Element &el) {}
+    
+    virtual void SetNoDisk(bool value) {}
 
 protected:
     Content *m_content;
@@ -42,4 +40,5 @@ protected:
 } // mdsip_tests
 
 #endif // TESTCHANNEL_H
+
 

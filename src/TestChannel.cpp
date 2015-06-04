@@ -48,6 +48,8 @@ public:
     }
 
     size_t Size() const { return m_size; }
+    
+    void SetNoDisk(bool) { std::cerr << "NoDisk option unavailable in DC\n"; }
 
 private:
     size_t m_size;
@@ -66,7 +68,8 @@ class ChannelTC : public Channel {
 public:
     ChannelTC(int size) :
         m_cnx(0),
-        m_size(size)
+        m_size(size),
+        m_nodisk(0)
     {}
 
     ~ChannelTC() {
@@ -89,39 +92,42 @@ public:
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
+        Data * args[1];
+        args[0] = el.data;            
         
-      Data * args[1];
-      args[0] = el.data;      
-      
-      char * begin = el.dim->getBegin()->getString();
-      char * end = el.dim->getEnding()->getString();
-      char * delta = el.dim->getDeltaVal()->getString();
-      
-      std::stringstream ss;
-      ss << "MakeSegment(" 
-         << el.path << "," 
-         << begin << ","
-         << end << ","
-         << "make_range(" << begin << "," << end << "," << delta << ")" << ",,"
-         << "$1" << ","
-         << el.data->getSize() << ")";            
-      // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-      m_cnx->get(ss.str().c_str(),args,1);
-
-      delete[] begin;
-      delete[] end;
-      delete[] delta;
+        if(m_nodisk) {
+            // write only into memory simply getting the size of sent array
+            m_cnx->get("size($1,1)",args,1); 
+        }
+        else {
+            // write to disk making segment into parse file
+            char * begin = el.dim->getBegin()->getString();
+            char * end = el.dim->getEnding()->getString();
+            char * delta = el.dim->getDeltaVal()->getString();
+            std::stringstream ss;
+            ss << "MakeSegment(" 
+               << el.path << "," 
+               << begin << ","
+               << end << ","
+               << "make_range(" << begin << "," << end << "," << delta << ")" << ",,"
+               << "$1" << ","
+               << el.data->getSize() << ")";            
+            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
+            m_cnx->get(ss.str().c_str(),args,1);
+            delete[] begin;
+            delete[] end;
+            delete[] delta;      
+        }
     }
-
-    void Evaluate(std::string cmd) {
-        m_cnx->get(cmd.c_str());
-    }
+    
+    void SetNoDisk(bool value) { m_nodisk = value; }
     
     size_t Size() const { return m_size; }
 
 private:
     mds::Connection *m_cnx;
     size_t m_size;
+    bool m_nodisk;
 };
 
 
