@@ -13,6 +13,7 @@ library_include_HEADERS = \
  ProducerConsumer.h \
  StatisticsUtils.h \
  TestConnection.h \
+ TestChannel.h \
  TestContent.h \
  Threads.h \
  TreeUtils.h
@@ -27,6 +28,7 @@ FileUtils.cpp \
 ProducerConsumer.cpp \
 StatisticsUtils.cpp \
 TestConnection.cpp \
+TestChannel.cpp \
 TestContent.cpp \
 TreeUtils.cpp
 

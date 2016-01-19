@@ -21,21 +21,26 @@ using namespace mdsip_test;
 TestTree g_target_tree;
 
 
-struct Parameters : Options {
+extern "C" int SetCompressionLevel(int level);
+
+
+static struct Parameters : Options {
 
     int n_channels;
     Vector3i seg_range;
     Vector2d h_speed_limits;
     Vector2d h_time_limits;
     size_t samples;
-//    int compression_level;
+    int compression_level;
+    bool no_disk;
 
     Parameters() :
         n_channels(1),
         seg_range(2048,2048,20480),
         samples(20),
         h_speed_limits(0,10),
-        h_time_limits(0,5)
+        h_time_limits(0,5),
+        no_disk(false)
     {
         this->AddOptions()
                 ("channels",&n_channels,"parallel channels to build")
@@ -43,8 +48,9 @@ struct Parameters : Options {
                 ("samples",&samples,"number of samples to average")
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
-//                ("clevel",&compression_level,"set the compression level of client")
-                ;
+                ("no_disk", &no_disk,"in TC channel only put the data array into argument and return size.")
+                ("clevel",&compression_level,"set the compression level of client")
+                ;        
     }
 
 } g_options;
@@ -88,9 +94,11 @@ Vector2d content_read_throughput_MP(size_t size_KB,
         ContentReader * cnt = new ContentReader(name,tot_size);
         g_read_src.SetClientType(TestTree::DC);
         cnt->SetTree(g_read_src,g_read_src_pulse);
-
         contents.push_back( cnt );
+        
         channels.push_back( Channel::NewTC(size_KB) );
+        channels[i]->SetNoDisk(g_options.no_disk);
+                
         conn.AddChannel(contents[i],channels[i]);
         conn.ChannelTime(channels.back()) = g_time_h;
         conn.ChannelSpeed(channels.back()) = g_speed_h;
@@ -147,9 +155,11 @@ Vector2d content_function_throughput_MP(size_t size_KB,
         sprintf(name,"func%i",i);
         ContentFunction * cnt = new ContentFunction(name,tot_size);
         cnt->SetGenFunction(ftype);
-
         contents.push_back( cnt );
+        
         channels.push_back( Channel::NewTC(size_KB) );
+        
+        
         conn.AddChannel(contents[i],channels[i]);
         conn.ChannelTime(channels.back()) = g_time_h;
         conn.ChannelSpeed(channels.back()) = g_speed_h;
@@ -210,6 +220,10 @@ int main(int argc, char *argv[])
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
+    // Set mdstcpip default connection compression //
+    SetCompressionLevel(g_options.compression_level);
+    
+    
     // PARAMETERS //
     const int nch = g_options.n_channels;
     Vector3i &range = g_options.seg_range;
