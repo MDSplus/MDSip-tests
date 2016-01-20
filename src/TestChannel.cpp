@@ -94,10 +94,10 @@ public:
     void PutSegment(Content::Element &el) /*const*/ {
         Data * args[1];
         args[0] = el.data;            
-        
+            
         if(m_nodisk) {
             // write only into memory simply getting the size of sent array
-            m_cnx->get("size($1,1)",args,1); 
+            m_cnx->get("size($1)",args,1); 
         }
         else {
             // write to disk making segment into parse file
@@ -109,8 +109,8 @@ public:
                << el.path << "," 
                << begin << ","
                << end << ","
-               << "make_range(" << begin << "," << end << "," << delta << ")" << ",,"
-               << "$1" << ","
+               << "make_range(" << begin << "," << end << "," << delta << ")" << ","
+               << "$1" << ",,"
                << el.data->getSize() << ")";            
             // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
             m_cnx->get(ss.str().c_str(),args,1);
@@ -119,9 +119,9 @@ public:
             delete[] delta;      
         }
     }
-    
+
     void SetNoDisk(bool value) { m_nodisk = value; }
-    
+
     size_t Size() const { return m_size; }
 
 private:

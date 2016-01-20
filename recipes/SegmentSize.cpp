@@ -72,7 +72,7 @@ Point2D segment_size_throughput_MP(size_t size_KB,
 {
     typedef TestConnection::TimeHistogram _Histogram;
 
-    TestConnectionMP conn(g_target_tree);
+    TestConnectionMT conn(g_target_tree);
 
     std::vector< unique_ptr<ContentFunction> > functions; // function generators //
     std::vector< unique_ptr<Channel> >         channels;  // forked channels //
