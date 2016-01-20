@@ -21,7 +21,7 @@ using namespace mdsip_test;
 TestTree g_target_tree;
 
 
-extern "C" int SetCompressionLevel(int level);
+//extern "C" int SetCompressionLevel(int level);
 
 
 static struct Parameters : Options {
@@ -49,7 +49,7 @@ static struct Parameters : Options {
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ("no_disk", &no_disk,"in TC channel only put the data array into argument and return size.")
-                ("clevel",&compression_level,"set the compression level of client")
+                ("clevel",&compression_level,"set the compression level of client (DISABLED)")
                 ;        
     }
 
@@ -158,8 +158,7 @@ Vector2d content_function_throughput_MP(size_t size_KB,
         contents.push_back( cnt );
         
         channels.push_back( Channel::NewTC(size_KB) );
-        
-        
+                
         conn.AddChannel(contents[i],channels[i]);
         conn.ChannelTime(channels.back()) = g_time_h;
         conn.ChannelSpeed(channels.back()) = g_speed_h;
@@ -221,7 +220,7 @@ int main(int argc, char *argv[])
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
     // Set mdstcpip default connection compression //
-    SetCompressionLevel(g_options.compression_level);
+    //    SetCompressionLevel(g_options.compression_level);
     
     
     // PARAMETERS //
