@@ -200,6 +200,37 @@ dnl AM_CONDITIONAL(ENABLE_VTK, [test x"$vtk" = x"true"])
 # Forcing variadic macro compiler feature (for gcc without cxx11 flag)
 dnl AC_DEFINE_UNQUOTED(BOOST_PP_VARIADICS,1,[Compiler must have variadic macros])
 
+# //////////////////////////////////////////////////////////////////////////// #
+# ///  CONFIG_H  ///////////////////////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
+dnl Here we define all custom autoheader adds to config.h.in 
+dnl Needed because mdsplus uses config.h in headers
+
+dnl add here what goes on tom of config.h
+AH_TOP()
+
+AH_VERBATIM([_LL_CONSTANTS], [
+#ifdef HAVE_LL_CONSTANTS
+#define LONG_LONG_CONSTANT(value) value##ll
+#else
+#define LONG_LONG_CONSTANT(value) value
+#endif
+])
+
+
+AH_VERBATIM([_WIN32], [
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#elif HAVE_VISIBILITY
+# define EXPORT __attribute__((__visibility__("default")))
+#else
+#define EXPORT
+#endif
+])
+
+dnl add here what goes on bottom of config.h
+AH_BOTTOM()
 
 
 ######### MAKEFILES #########################################
