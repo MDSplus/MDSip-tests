@@ -360,7 +360,7 @@ public:
 
 // WARNING: GCC ONLY //
 #define _FOREACH_EXPANSION(variable, container)                          \
-for (mdsip_test::detail::ForeachOnContainer<__typeof__(container), is_const<__typeof__(container)>::value > _cnt(container); \
+for (mdsip_test::detail::ForeachOnContainer<__typeof__(container), mdsip_test::is_const<__typeof__(container)>::value > _cnt(container); \
      !_cnt.brk && _cnt.itr != _cnt.end;                                  \
      __extension__  ({ ++_cnt.brk; ++_cnt.itr; })  )                \
     for (variable = *_cnt.itr;; __extension__ ({--_cnt.brk; break;}))
@@ -368,10 +368,9 @@ for (mdsip_test::detail::ForeachOnContainer<__typeof__(container), is_const<__ty
 // foreach loop re-definition //
 # ifdef foreach
 #  undef foreach
-   COMPILE_WARNING( overloading foreach definition );
-# else
-#  define foreach _FOREACH_EXPANSION
+//   COMPILE_WARNING( overloading foreach definition );
 # endif
+#  define foreach _FOREACH_EXPANSION
 
 
 
