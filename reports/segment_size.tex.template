@@ -1,0 +1,71 @@
+
+% /////////////// HEADER //////////////////// %
+\input{header}
+
+\begin{document}
+
+
+%\section{ Route }
+%\input{route}
+
+
+\begin{reportTab}{ Segment size 1-2-4 }
+ 
+\begin{reportTabItem}{Description}
+The MDSplus connection is used to transfer experimental signals or parse
+evaluations and must be obviously reliable. The transmission content is here
+represented by Signal Segments objects (segments hereafter). Segments are
+MDSplus objects that were designed to cluster signals in many shorter fragments
+and they are particularly suited to be network handled. Tests has been
+performed using TCP and UDT, the latter based on UDP.
+~
+The software is set to send many parallel streams of segments each collected
+into a single signal at the target server. We shall call these the connection
+channels and they are at most uncorrelated each others. The sole correlation
+resides on mdsip mutexes accessing parse files. The cpu load requested to
+generate signals and the write speed of the storage server has been evaluated
+and does not influence the measure. In the figures below the total speed
+reached by those channels is plotted against the per segment size for both
+protocols.
+\end{reportTabItem}
+
+\begin{reportTabItem}{Command}
+The command prompted in the software client to perform the test was:
+\begin{verbatim}
+ _recipe_command_
+\end{verbatim}
+\end{reportTabItem}
+
+
+\begin{reportTabItem}{Plotted results}
+\centerline{
+\includegraphics[[width=0.49\textwidth]]{size-tcp.eps}
+\includegraphics[[width=0.49\textwidth]]{size-udt.eps}
+}
+\end{reportTabItem}
+
+
+\begin{reportTabItem}{Numerical results}
+\centerline{
+\begin{minipage}{0.49\linewidth} 
+ \begin{center}
+ \reportcsvfile{size-tcp.csv} \\
+ \tiny
+ The software is set to send many parallel streams in TCP
+ \end{center} 
+\end{minipage}
+\begin{minipage}{0.49\linewidth}
+ \begin{center}
+ \reportcsvfile{size-udt.csv} \\
+ \tiny
+ The software is set to send many parallel streams in UDT
+ \end{center} 
+\end{minipage}
+}
+\end{reportTabItem}
+
+
+\vspace{1cm}
+\end{tabreport}
+\end{document}
+

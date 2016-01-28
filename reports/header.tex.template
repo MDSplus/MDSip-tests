@@ -1,0 +1,87 @@
+
+\documentclass[[10pt,a4paper]]{article}
+\usepackage[[margin=1.5cm]]{geometry}
+\usepackage[[utf8]]{inputenc}
+\usepackage[[english]]{babel}
+\usepackage[[sfdefault,light]]{roboto}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{epsfig}
+\usepackage{hyperref}
+\usepackage{eufrak}
+\usepackage{xcolor}
+\usepackage{tabularx}
+%\usepackage{showframe}
+\usepackage{fetamont}
+\usepackage{scrextend}
+
+\usepackage{pgfplotstable,filecontents}
+\pgfplotsset{compat=1.9}% supress warning
+
+\graphicspath{ {.} }
+
+
+\newsavebox{\fmbox}
+\newenvironment{fminipage}[[1]]
+{\begin{lrbox}{\fmbox}\begin{minipage}{#1}}
+{\end{minipage}\end{lrbox}\fbox{\usebox{\fmbox}}}
+
+
+% ////////////////////////////////////////////////////////////////////////////
+%  REPORT TABLE ENV
+%
+\newenvironment{reportTab}[[1]]
+{
+{\centering
+\begin{tabular*}{\linewidth}{|p{0.2\linewidth}|p{0.477\linewidth}|p{0.25\linewidth}|}
+\hline
+\ffmfamily Test name: & \ffmfamily Endpoints connected: & \ffmfamily Local time: \\
+\footnotesize   #1     & \footnotesize  _HOSTNAME_ $\rightarrow$ _TARGET_HOST_  &  \footnotesize _LOCAL_TIME_  \\ \hline
+\multicolumn{3}{l}{} \\ 
+\end{tabular*}}
+{\centering\rule{\textwidth}{1pt}}
+}
+{
+{\centering\rule{\textwidth}{1pt}}
+}
+
+
+% ////////////////////////////////////////////////////////////////////////////
+%  REPORTCSVFILE COMMAND TO PRINT TABLE
+%
+\newcommand{\reportcsvfile}[[1]]{
+\footnotesize
+\pgfplotstabletypeset[[
+                      col sep=semicolon,
+                      verbatim,
+                      every head row/.style={
+                        before row={ \hline },
+                        after row=\hline                        
+                       }
+%                      every last row/.style={ after row=\hline },
+%                      every first column/.style={ 
+%                        column type/.add={|}{}
+%                      },
+%                      every last column/.style={
+%                        column type/.add={}{|}
+%                      }
+                     ]]{#1}
+}
+
+% ////////////////////////////////////////////////////////////////////////////
+%  REPORT SECTION
+%
+\newcommand{\reportSection}[[1]]{
+  { \vspace{0.2cm} \noindent \ffmfamily #1 \vspace{0.2cm} }
+}
+
+% ////////////////////////////////////////////////////////////////////////////
+%  REPORT ITEM
+%
+\newenvironment{reportTabItem}[[1]]
+{\reportSection{#1} \begin{addmargin}[[2em]]{1em} }
+{\end{addmargin} }

@@ -243,6 +243,7 @@ AC_CONFIG_FILES([
         recipes/Makefile
         tex/Makefile
 	tex/img/Makefile
+	reports/Makefile
 	])
 AC_OUTPUT
 
