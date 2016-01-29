@@ -28,6 +28,9 @@
 % Remove page numbers
 \pagenumbering{gobble}
 
+% This removes indentation and adds a little space between paragraphs
+\usepackage{parskip}
+
 %
 % Listing 
 %
@@ -89,6 +92,7 @@
 %
 \newcommand{\reportSection}[[1]]{
   { \vspace{0.2cm} \noindent \ffmfamily #1 \vspace{0.2cm} }
+  
 }
 
 % ////////////////////////////////////////////////////////////////////////////

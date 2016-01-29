@@ -21,13 +21,6 @@ SUFFIXES = .csv .dat .plt .eps
 
 IMAGES = 
 
-size-tcp.csv:
-	${recipes}/SegmentSize tcp://${TARGET} size-tcp \
-	--channels "1 2 4" --segments 128,128,512 --samples 10
-
-size-udt.csv:
-	${recipes}/SegmentSize udt://${TARGET} size-udt \
-	--channels "1 2 4" --segments 128,128,512 --samples 10
 
 distr-tcp-speed.csv distr-tcp-time.csv:
 	${recipes}/SpeedDistribution tcp://${TARGET} "distr-tcp-" \
@@ -143,8 +136,27 @@ segment_size.pdf:
 	 cp -a $(builddir)/segment_size/$@ $@
 
 
+.PHONY: speed_trend.pdf
+CLEANFILES += speed_trend.pdf
+speed_trend.pdf:
+	@echo "Making speed trend test"
+	@$(MAKE) -k -C speed_trend $@ \
+	 TARGET_HOST=${TARGET_HOST}  \
+	 TARGET_PORT=${TARGET_PORT}; \
+	 cp -a $(builddir)/speed_trend/$@ $@
 
-all: segment_size.pdf
+
+.PHONY: speed_spread.pdf
+CLEANFILES += speed_trend.pdf
+speed_spread.pdf:
+	@echo "Making speed trend test"
+	@$(MAKE) -k -C speed_spread $@ \
+	 TARGET_HOST=${TARGET_HOST}  \
+	 TARGET_PORT=${TARGET_PORT}; \
+	 cp -a $(builddir)/speed_spread/$@ $@
+
+
+all:  segment_size.pdf speed_spread.pdf
 
 
 

@@ -10,15 +10,24 @@ TARGET_PORT    ?= 8100
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
-size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-                   --channels "1 2 4" --segments 128,256,1024 --samples 20
 
-size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-                   --channels "1 2 4" --segments 128,256,1024 --samples 20
+
+distr_tcp_command = $(builddir)/SpeedTrend tcp://${TARGET} "distr-tcp-" \
+                    --channels "1 2" --segments 40 --samples 20 --speed_limits 0,0.8 --time_limits 0,0.5 
+
+distr_udt_command = $(builddir)/SpeedTrend udt://${TARGET} "distr-udt-" \
+                    --channels "1 2" --segments 40 --samples 20 --speed_limits 0,0.8 --time_limits 0,0.5
+
+
+	
+distr-tcp-speed.csv distr-tcp-trend.csv: SpeedTrend
+	@${distr_tcp_command}
+
+distr-udt-speed.csv distr-udt-trend.csv: SpeedTrend
+	@${distr_udt_command}
+
 
 define COMMAND =
-${size_tcp_command}
-${size_udt_command}
 endef
 
 
@@ -28,9 +37,9 @@ endef
 # //////////////////////////////////////////////////////////////////////////// #
 
 bin_PROGRAMS = \
-               SegmentSize
+               SpeedTrend
 
-SegmentSize_SOURCES = SegmentSize.cpp
+SpeedTrend_SOURCES = SpeedTrend.cpp
 
 LDADD = $(top_builddir)/libMDSipTest.la
 
@@ -43,16 +52,7 @@ CLEANFILES = *.csv *.dat *.plt
 SUFFIXES = .csv .dat .plt .eps
 .PRECIOUS: %.csv %.dat %.plt
 
-IMAGES = \
-	size-tcp.eps \
-	size-udt.eps 
-
-size-tcp.csv: SegmentSize
-	${size_tcp_command}
-
-size-udt.csv: SegmentSize
-	${size_udt_command}
-
+IMAGES = 
 
 
 #### implicit rules ####
@@ -93,6 +93,8 @@ else
 	@echo "pdflatex not found in path"
 endif
 
+
+
 #
 # Set of m4 macro definitions to insert command and confguration in TeX report
 # 
@@ -116,27 +118,18 @@ define([_recipe_command_],[${COMMAND}])
 
 define([_ping_result_],[esyscmd([ping ${TARGET_HOST} -i .2 -c 20 | tail -n 1 | tr -d '\n' ])])
 
-define([_tcp_max_pt_],[esyscmd([. ./size-tcp.sh; printf \$${max_pt} ])])
-define([_tcp_max_x_],[esyscmd([. ./size-tcp.sh; printf  \$${max_x} ])])
-define([_tcp_max_y_],[esyscmd([. ./size-tcp.sh; printf "%.2f" \$${max_y} ])])
-define([_tcp_max_e_],[esyscmd([. ./size-tcp.sh; printf "%.2f" \$${max_e} ])])
-
-define([_udt_max_pt_],[esyscmd([. ./size-udt.sh; printf \$${max_pt} ])])
-define([_udt_max_x_],[esyscmd([. ./size-udt.sh; printf  \$${max_x} ])])
-define([_udt_max_y_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_y} ])])
-define([_udt_max_e_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_e} ])])
 
 
 dnl ------------------------------------------------------------------------
 endef
 
 
-CLEANFILES += size-tcp.sh size-udt.sh
+
 
 .PHONY: tex_subst.m4
 CLEANFILES += tex_subst.m4
 tex_subst.m4:
-	@## Build of script macros ##
+	@ ## Build of script macros ##
 	cat > $@ << EOF
 	${M4_TEX_SUBST}
 	EOF
@@ -149,25 +142,23 @@ SUFFIXES   += .tex.template .tex
 	cat tex_subst.m4 $< | m4 > $@
 
 
-# LOCALTEST HEADER
-CLEANFILES += header.tex segment_size.tex
 
-.PHONY: header.tex segment_size.tex
+CLEANFILES += header.tex speed_trend.tex
+.PHONY: header.tex speed_trend.tex
 header.tex: ../header.tex.template
 	@ ## building tex from template ##	
 	$(MAKE) tex_subst.m4
 	cat tex_subst.m4 $< | m4 > $@
 
-
-segment_size.tex: segment_size.tex.template size-tcp.eps size-udt.eps header.tex
-	@ ## building tex from template ##	
+CLEANFILES += speed_trend.tex
+speed_trend.tex: speed_trend.tex.template distr-tcp-speed.eps distr-tcp-trend.eps header.tex
+	@ ## building tex from template ##
 	$(MAKE) tex_subst.m4
 	cat tex_subst.m4 $< | m4 > $@
 
 
-
 CLEANFILES += *.pdf *.eps
-segment_size.pdf: segment_size.tex
+speed_trend.pdf: speed_trend.tex
 
 
 

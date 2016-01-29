@@ -246,6 +246,8 @@ AC_CONFIG_FILES([
 	tex/img/Makefile
 	reports/Makefile
 	reports/segment_size/Makefile
+	reports/speed_trend/Makefile
+	reports/speed_spread/Makefile
 	])
 AC_OUTPUT
 
