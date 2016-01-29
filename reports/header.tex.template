@@ -18,12 +18,24 @@
 %\usepackage{showframe}
 \usepackage{fetamont}
 \usepackage{scrextend}
+\usepackage{listings}
 
 \usepackage{pgfplotstable,filecontents}
 \pgfplotsset{compat=1.9}% supress warning
 
 \graphicspath{ {.} }
 
+% Remove page numbers
+\pagenumbering{gobble}
+
+%
+% Listing 
+%
+\lstset{
+ basicstyle=\footnotesize\ttfamily,
+ columns=flexible,
+ breaklines=true
+}
 
 \newsavebox{\fmbox}
 \newenvironment{fminipage}[[1]]

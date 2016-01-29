@@ -232,9 +232,10 @@ AH_VERBATIM([_WIN32], [
 dnl add here what goes on bottom of config.h
 AH_BOTTOM()
 
+AC_CHECK_PROG(MKDIR_P, mkdir, [mkdir -p])
+AC_SUBST([MKDIR_P])
 
 ######### MAKEFILES #########################################
-
 
 AC_CONFIG_FILES([
         Makefile
@@ -244,6 +245,7 @@ AC_CONFIG_FILES([
         tex/Makefile
 	tex/img/Makefile
 	reports/Makefile
+	reports/segment_size/Makefile
 	])
 AC_OUTPUT
 

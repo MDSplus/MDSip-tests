@@ -676,6 +676,10 @@ public:
     void SetSubtitle(const std::string &subtitle) { m_subtitle = subtitle; }
 
     Curve2D & Curve(int i) { return m_curves[i]; }
+    const Curve2D & Curve(int i) const { return m_curves[i]; }
+    
+    std::vector<Curve2D> & Curves() { return m_curves; }
+    const std::vector<Curve2D> & Curves() const { return m_curves; }
 
     void PrintToCsv( std::ostream &o, const char sep = ';' );
 

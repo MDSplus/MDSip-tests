@@ -64,11 +64,11 @@ void Plot2D::PrintToCsv(std::ostream &o, const char sep)
 {
     typedef std::vector<PointType>::iterator ItrType;
     std::vector<ItrType> itr,itr_end;
-    o << "X";
+    o << this->XAxis().name;
     foreach (Curve2D &curve, m_curves) {
         curve.Update();
         if(curve.Size()) {
-            o << sep << curve.GetName() << sep << curve.GetName()+"_err";
+            o << sep << curve.GetName() << sep << curve.GetName()+" err";
             itr.push_back( curve.Points().begin() );
             itr_end.push_back( curve.Points().end() );
         }

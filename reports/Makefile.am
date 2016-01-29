@@ -1,14 +1,8 @@
-.ONESHELL:
+SUBDIRS = segment_size
 
-
-all: ;
-
-MKDIR_P  = mkdir -p
 
 TARGET_HOST    ?= rat
 TARGET_PORT    ?= 8100
-
-
 
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
@@ -25,14 +19,7 @@ CLEANFILES = *.csv *.dat *.plt
 SUFFIXES = .csv .dat .plt .eps
 .PRECIOUS: %.csv %.dat %.plt
 
-IMAGES = \
-	size-tcp.eps \
-	size-udt.eps \
-	distr-tcp-speed.eps \
-	distr-tcp-time.eps \
-	distr-udt-speed.eps \
-	distr-udt-time.eps \
-	content-udt.eps 
+IMAGES = 
 
 size-tcp.csv:
 	${recipes}/SegmentSize tcp://${TARGET} size-tcp \
@@ -86,10 +73,11 @@ SUFFIXES   += .pdf .dvi
 
 if HAVE_PDFLATEX
 .tex.pdf:
-	set -e
-	-$(PDFLATEX) -interaction nonstopmode $<
-	-$(PDFLATEX) -interaction nonstopmode $<
-	-$(PDFLATEX) -interaction nonstopmode $<
+	@ \
+	set -e; \
+	-$(PDFLATEX) -interaction nonstopmode $<; \
+	-$(PDFLATEX) -interaction nonstopmode $<; \
+	-$(PDFLATEX) -interaction nonstopmode $<;
 else
 .tex.pdf: 
 	@echo "pdflatex not found in path"
@@ -119,9 +107,14 @@ define([_LOCAL_TIME_], [esyscmd([date])])
 define([_route_tcp_],[esyscmd([traceroute ${TARGET_HOST}])])
 define([_route_udp_],[esyscmd([traceroute -U ${TARGET_HOST}])])
 
-define([_recipe_command_],[${_recipe_command_}])
+
+
 dnl ------------------------------------------------------------------------
 endef
+
+
+
+
 
 
 .PHONY: tex_subst.m4
@@ -140,15 +133,18 @@ SUFFIXES   += .tex.template .tex
 	cat tex_subst.m4 $< | m4 > $@
 
 
+.PHONY: segment_size.pdf
+CLEANFILES += segment_size.pdf
+segment_size.pdf:
+	@echo "Making segment size test"
+	@$(MAKE) -k -C segment_size $@ \
+	 TARGET_HOST=${TARGET_HOST}  \
+	 TARGET_PORT=${TARGET_PORT}; \
+	 cp -a $(builddir)/segment_size/$@ $@
 
-segment_size.tex: export _recipe_command_=cacconazza
-
-segment_size.pdf: header.tex route.tex size-tcp.eps size-udt.eps 
 
 
-
-
-
+all: segment_size.pdf
 
 
 
