@@ -1,9 +1,9 @@
 .ONESHELL:
 include $(top_srcdir)/Common.am
+include $(builddir)/test.conf
 
-
-TARGET_HOST    ?= rat
-TARGET_PORT    ?= 8100
+setup:
+	nano $(builddir)/test.conf
 
 
 

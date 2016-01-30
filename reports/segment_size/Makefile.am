@@ -1,20 +1,20 @@
 .ONESHELL:
 include $(top_srcdir)/Common.am
+include $(builddir)/test.conf
 
 
-TARGET_HOST    ?= rat
-TARGET_PORT    ?= 8100
+setup:
+	nano $(builddir)/test.conf
 
 
-
-TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
+TARGET  = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-                   --channels "1 2 4" --segments 128,256,1024 --samples 20
+		   --channels "${channels}" --segments ${segments} --samples ${samples}
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-                   --channels "1 2 4" --segments 128,256,1024 --samples 20
+		   --channels "${channels}" --segments ${segments} --samples ${samples}
 
 define COMMAND =
 ${size_tcp_command}

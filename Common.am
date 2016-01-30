@@ -51,7 +51,3 @@ AM_LIBS_ALL = @LIBS@            \
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 
-
-# clean_all:
-#	rm -f *~ *# *.vtk *.vti *.ply
-#	@echo "all cleaned up!"

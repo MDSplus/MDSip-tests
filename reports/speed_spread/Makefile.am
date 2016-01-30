@@ -1,15 +1,14 @@
 .ONESHELL:
 include $(top_srcdir)/Common.am
+include $(builddir)/test.conf
 
 
-TARGET_HOST    ?= rat
-TARGET_PORT    ?= 8100
-
+setup:
+	nano $(builddir)/test.conf
 
 
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
-
 
 IMAGES = \
 	distr-tcp-speed.eps \
@@ -17,18 +16,15 @@ IMAGES = \
 	distr-udt-speed.eps \
 	distr-udt-time.eps
 
-
-
-
-
 distr_tcp_command = $(builddir)/SpeedSpread tcp://${TARGET} "distr-tcp-" \
-                    --channels "1 2" --segments 40 --samples 50 --speed_limits 0,0.8 --time_limits 0,0.5 
+		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --speed_limits ${speed_limits} --time_limits ${time_limits}
 
 distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
-                    --channels "1 2" --segments 40 --samples 50 --speed_limits 0,0.8 --time_limits 0,0.5
+		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --speed_limits ${speed_limits} --time_limits ${time_limits}
 
 
-	
 distr-tcp-speed.csv distr-tcp-time.csv: SpeedSpread
 	@${distr_tcp_command}
 

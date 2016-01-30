@@ -1,13 +1,15 @@
-SUBDIRS = segment_size
+SUBDIRS = segment_size speed_spread speed_trend
 
 
-TARGET_HOST    ?= rat
-TARGET_PORT    ?= 8100
+TARGET_HOST    ?= localhost
+TARGET_PORT    ?= 8000
 
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 
+setup:
+	. $(srcdir)/setup.sh
 
 
 
@@ -156,7 +158,15 @@ speed_spread.pdf:
 	 cp -a $(builddir)/speed_spread/$@ $@
 
 
-all:  segment_size.pdf speed_spread.pdf
+segment_size: segment_size.pdf
+speed_spread: speed_spread.pdf
+speed_trend: speed_trend.pdf
+
+TESTS = segment_size \
+	speed_spread \
+	speed_trend
+
+all: ${TESTS}
 
 
 
