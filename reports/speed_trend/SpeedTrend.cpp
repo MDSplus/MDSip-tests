@@ -16,95 +16,19 @@
 
 #include "DataUtils.h"
 
-#include <time.h>
+
+#include <ctime>
 #include <sys/types.h>
-
 #include <signal.h>
+#include <unistd.h> // sleep
 
 
-static struct sigaction sigalarm_old_action;
-static struct sigaction sigalarm_new_action;
 
 
 using namespace MDSplus;
 using namespace mdsip_test;
 
 
-static void sig_handler(int sig_nr)
-{
-
-    switch (sig_nr)
-    {
-    case SIGALRM:
-        std::cout << "got Alarm\n";
-        break;
-    case SIGTERM:
-    case SIGINT:
-    default:
-        break;
-    }
-}
-
-#define CLOCKID CLOCK_REALTIME
-#define SIG SIGRTMIN
-
-int register_signal() {
-    memset(&sigalarm_new_action, 0, sizeof(sigalarm_new_action));
-    sigalarm_new_action.sa_handler = sig_handler;
-    sigaction(SIGALRM, &sigalarm_new_action, &sigalarm_old_action);
-
-
-    timer_t timerid;
-    struct sigevent sev;
-    struct itimerspec its;
-    long long freq_nanosecs;
-    sigset_t mask;
-    struct sigaction sa;
-
-    /* Establish handler for timer signal */
-    printf("Establishing handler for signal %d\n", SIG);
-    sa.sa_flags = SA_SIGINFO;
-    sa.sa_sigaction = sig_handler;
-    sigemptyset(&sa.sa_mask);
-    if (sigaction(SIG, &sa, NULL) == -1)
-        return 0;
-
-    /* Block timer signal temporarily */
-
-    printf("Blocking signal %d\n", SIG);
-    sigemptyset(&mask);
-    sigaddset(&mask, SIG);
-    if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
-        return 0;
-
-    /* Create the timer */
-    sev.sigev_notify = SIGEV_SIGNAL;
-    sev.sigev_signo = SIG;
-    sev.sigev_value.sival_ptr = &timerid;
-    if (timer_create(CLOCKID, &sev, &timerid) == -1)
-        return 0;
-
-    printf("timer ID is 0x%lx\n", (long) timerid);
-
-    /* Start the timer */
-    freq_nanosecs = atoll(argv[2]);
-    its.it_value.tv_sec = freq_nanosecs / 1000000000;
-    its.it_value.tv_nsec = freq_nanosecs % 1000000000;
-    its.it_interval.tv_sec = its.it_value.tv_sec;
-    its.it_interval.tv_nsec = its.it_value.tv_nsec;
-
-    if (timer_settime(timerid, 0, &its, NULL) == -1)
-        return 0;
-
-
-    /* Unlock the timer signal, so that timer notification
-          can be delivered */
-
-//    printf("Unblocking signal %d\n", SIG);
-//    if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
-//        errExit("sigprocmask");
-    return 1;
-}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,12 +44,14 @@ struct Parameters : Options {
     size_t seg_size, samples;
     Vector2d h_speed_limits;
     Vector2d h_time_limits;
+    Vector2d timer_interval_duration;
     
     Parameters() :
         seg_size(128),
         samples(250),
         h_speed_limits(0,10),
-        h_time_limits(0,5)
+        h_time_limits(0,5),
+        timer_interval_duration(10,60)
     {
         n_channels << 1,2,4; // default channels number;
         this->AddOptions()
@@ -133,13 +59,112 @@ struct Parameters : Options {
                 ("segments",&seg_size,"segment size [KB]")
                 ("samples",&samples,"number of samples to average")
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
-                ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
+                ("time_range",&timer_interval_duration,
+                   "timer interval/duration (interval[seconds], duration[minutes])")
                 ;
     }
     
 } g_options;
 
 TestTree g_target_tree;
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  TIMER    ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+#define CLOCKID CLOCK_REALTIME
+#define SIG SIGRTMIN
+
+static time_t  timer_start;
+static timer_t timerid;
+static sigset_t mask;
+static struct sigaction sa;
+static double elapsed_seconds = 0;
+
+// fwd //
+static int fill_trend();
+
+static void handler(int sig, siginfo_t *si, void *uc)
+{
+    
+    /* lock timer signal temporarily */
+    sigemptyset(&mask);
+    sigaddset(&mask, SIG);
+    if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
+    { std::cerr << "Error handling timer\n"; exit(1); }
+    
+    // DO TEST //
+    fill_trend();
+    
+    time_t now; time(&now);
+    elapsed_seconds = difftime(now,timer_start);
+    if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
+        signal(sig, SIG_IGN); // stop handling  
+    
+    /* unlock timer signal */
+    if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+    { std::cerr << "Error handling timer\n"; exit(1); }
+}
+
+
+
+
+
+int register_timer(long long seconds) {
+//    memset(&sigalarm_new_action, 0, sizeof(sigalarm_new_action));
+//    sigalarm_new_action.sa_handler = sig_handler;
+//    sigaction(SIGALRM, &sigalarm_new_action, &sigalarm_old_action);
+
+    struct sigevent sev;
+    struct itimerspec its;    
+
+    /* Establish handler for timer signal */
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIG, &sa, NULL) == -1)
+        return false;
+
+    /* lock timer signal temporarily */
+    sigemptyset(&mask);
+    sigaddset(&mask, SIG);
+    if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
+        return false;
+
+    /* Create the timer */
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = SIG;
+    sev.sigev_value.sival_ptr = &timerid;
+    if (timer_create(CLOCKID, &sev, &timerid) == -1)
+        return false;
+
+    printf("timer ID is 0x%lx\n", (long) timerid);
+
+    /* Start the timer */
+    its.it_value.tv_sec = seconds;
+    its.it_value.tv_nsec = 0;
+    its.it_interval.tv_sec = its.it_value.tv_sec;
+    its.it_interval.tv_nsec = its.it_value.tv_nsec;
+
+    if (timer_settime(timerid, 0, &its, NULL) == -1)
+        return false;
+    
+    time(&timer_start);
+    /* Unlock the timer signal, so that timer notification can be delivered */
+    if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+        return false;
+
+    // OK //
+    std::cout << "timer started\n";
+    return true;
+}
+
+int unregister_timer() {
+    return true;
+}
 
 
 
@@ -187,12 +212,9 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     Vector2d speed;
     
     for(int i=0; i<nch; ++i) {
-        Channel *ch = channels[i];
-        
-        Histogram &speed_h = conn.ChannelSpeed(ch);
-        
-        std::cout << "speed dist: " << speed_h << "\n";
-                
+        Channel *ch = channels[i];        
+        Histogram &speed_h = conn.ChannelSpeed(ch);        
+        std::cout << "speed dist: " << speed_h << "\n";                
         speed_h_sum = Histogram::merge(speed_h_sum,speed_h);        
         speed(0) += speed_h.MeanAll();
         speed(1) += speed_h.VarianceAll();
@@ -201,7 +223,7 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     speed(1) = sqrt( speed(1) );
     std::cout << "SPEED: " << speed << "\n";
     
-    // returns a plot of merged histograms //
+    // returns a plot of merged histograms .. speed per channel //
     speed_h_out = speed_h_sum;
     
     for(int i=0; i<nch; ++i) {
@@ -210,6 +232,63 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     }
     return speed;
 }
+
+
+
+// FILL TREND FUNCTION //
+
+
+static std::vector<TestConnection::TimeHistogram > trend_speeds;
+static std::vector<Curve2D>   trend_value;
+static std::vector<time_t>   trend_time;
+
+static int fill_trend() 
+{   
+    typedef TestConnection::TimeHistogram Histogram;
+    
+    // CH LOOP ( loops for each channel )
+    std::vector<Histogram> ch_speeds;
+    std::vector<Point2D>   ch_value;
+    
+    foreach (int nch, g_options.n_channels)
+    {
+        Histogram speed_h;
+        Vector2d  speed;
+        time_t start_time,end_time;
+        
+        time(&start_time);        
+        speed = segment_speed_distr_MT(g_options.seg_size,speed_h,nch,g_options.samples);
+        time(&end_time);
+        
+        std::stringstream curve_name;
+        curve_name << "ch" << nch;       
+        speed_h.SetName(curve_name.str().c_str());        
+        ch_speeds.push_back(speed_h);
+                                
+        // stores only start time for now //
+        time_t now; time(&now);
+        Point2D trend_point;
+        trend_point << difftime(now,timer_start),speed(0),speed(1);
+        ch_value.push_back(trend_point);
+        trend_time.push_back(start_time);
+    }
+    
+    // collect speed histograms per channel simply merging values
+    if(trend_speeds.empty()) trend_speeds = ch_speeds;
+    else for(int i=0; i<g_options.n_channels.size(); ++i) {
+        trend_speeds[i] = Histogram::merge(trend_speeds[i],ch_speeds[i]);
+    }
+    
+    for(int i=0; i<g_options.n_channels.size(); ++i) {
+        trend_value[i].AddPoint(ch_value[i]);        
+        std::stringstream curve_name;
+        curve_name << "ch" << g_options.n_channels[i];
+        trend_value[i].SetName(curve_name.str().c_str());                        
+    }
+}
+
+
+
 
 
 
@@ -227,60 +306,26 @@ int main(int argc, char *argv[])
     std::string filename_out = "test_distribution";
     if(argc > 2) filename_out = argv[2];
     
+    
+    
+    
+    
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
     
     typedef TestConnection::TimeHistogram Histogram;
     
+    trend_value = std::vector<Curve2D>(g_options.n_channels.size());
+    trend_time = std::vector<time_t>(g_options.n_channels.size());
     
-    std::vector<Histogram> trend_speeds;
-    std::vector<Curve2D>   trend_value(g_options.n_channels.size());
-    std::vector<time_t>   trend_time(g_options.n_channels.size());
-
-    // TIME LOOP ( add this to a timer interruption )
-    for(int time_i=10;time_i-->0;) {
-        
-        // CH LOOP ( loops for each channel )
-        std::vector<Histogram> ch_speeds;
-        std::vector<Point2D>   ch_value;
-        
-        foreach (int nch, g_options.n_channels)
-        {
-            Histogram speed;
-            
-            time_t start_time,end_time;
-            
-            time(&start_time);        
-            segment_speed_distr_MT(g_options.seg_size,speed,nch,g_options.samples);
-            time(&end_time);
-            
-            std::stringstream curve_name;
-            curve_name << "ch" << nch;
-            
-            speed.SetName(curve_name.str().c_str());        
-            ch_speeds.push_back(speed);
-            
-            // stores only start time for now //
-            Point2D speed_point;
-            speed_point << time_i,speed.Mean(),speed.Rms();
-            ch_value.push_back(speed_point);
-            trend_time.push_back(start_time);        
-        }
-        
-        // collect speed histograms per channel simply merging values
-        if(trend_speeds.empty()) trend_speeds = ch_speeds;
-        else for(int i=0; i<g_options.n_channels.size(); ++i) {
-            trend_speeds[i] = Histogram::merge(trend_speeds[i],ch_speeds[i]);
-        }
-        
-        for(int i=0; i<g_options.n_channels.size(); ++i) {
-            trend_value[i].AddPoint(ch_value[i]);
-        }
-        
-    }
+    // loop until end of time //
+    register_timer(g_options.timer_interval_duration(0));
+    fill_trend(); // start also from now //
+    while(elapsed_seconds < g_options.timer_interval_duration(1) * 60) sleep(1);
     
     
+    // write out //
     {
-        Plot2D plot("Speed Distribution");
+        Plot2D plot("Speed per single segment");
         
         std::cout << " ---- COLLECTED SPEEDS  ------ \n";
         foreach (const Histogram &h, trend_speeds) {
@@ -307,7 +352,7 @@ int main(int argc, char *argv[])
                     + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission speed [MB/s]";
-            plot.YAxis().name = "Transmission probability";
+            plot.YAxis().name = "Transmission rate";
         }
         
         plot.PrintToCsv(filename_out + "speed");
@@ -338,7 +383,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " 
                     + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
-            plot.XAxis().name = "Time value (fix)";
+            plot.XAxis().name = "Time for test start [min]";
             plot.YAxis().name = "Transmission speed";
         }
         

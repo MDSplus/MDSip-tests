@@ -9,7 +9,7 @@
 %\input{route}
 
 
-\begin{reportTab}{ Segment size 1-2-4 }
+\begin{reportTab}{ TCP/UDT Throughput vs Segment size }
 
 
 % //////////////////////////////////////////////////////////////////////////// %
@@ -26,10 +26,10 @@ The transmission content is here represented by signal segments. Segments are
 MDSplus objects that were designed to cluster signals in many shorter fragments
 and they are particularly suited to be network handled.
 ~
-The software is set to send many uncorrelated parallel streams of segments ( channels in the
-following ) each collected into a single signal at the target server. In the
-figures below the total speed reached by those channels is plotted against the
-per segment size for both protocols. 
+The software is set to send many uncorrelated parallel streams of segments (
+channels in the following ) each collected into a single signal at the target
+server. In the figures below the total speed reached by those channels is
+plotted against the per segment size for both protocols.
 
 \end{reportTabItem}
 
@@ -97,7 +97,7 @@ _recipe_command_
 The connection presents a RTT of: \texttt{_ping_result_}. 
 
 The maximum TCP connection speed is [$]_tcp_max_y_[$] [[MBps]], achieved using
-[$]_tcp_max_x_[$] [[KB]] size segments, while the UDT protocol achieves a
+[$]_tcp_max_x_[$] [[KB]] size segments, while the UDT protocol gives a maximum
 throughput of [$]_udt_max_y_[$] [[MBps]] using segments of size
 [$]_udt_max_x_[$] [[KB]].
 

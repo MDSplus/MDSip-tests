@@ -7,7 +7,7 @@ setup:
 	nano $(builddir)/test.conf
 
 
-TARGET  = "$(TARGET_HOST):$(TARGET_PORT)"
+TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \

@@ -9,7 +9,7 @@
 %\input{route}
 
 
-\begin{reportTab}{ Speed trends TCP }
+\begin{reportTab}{ Speed trends _PROTOCOL_ }
 
 
 % //////////////////////////////////////////////////////////////////////////// %
@@ -18,7 +18,11 @@
  
 \begin{reportTabItem}{Description} 
 
-This test measures the data transfer trend
+This test measures the data transfer trend of a long lasting connection using
+the _PROTOCOL_ protocol. It priodically tries to send segments of prefixed size
+using the open connection finally plotting a time trend of the overall speed
+and a graph of the per segment speed distribution histogram. It can be used to
+monitor the network throughput fluctuations caused by daily traffic congestion.
 
 \end{reportTabItem}
 
@@ -35,52 +39,27 @@ _recipe_command_
 
 
 
-
 % //////////////////////////////////////////////////////////////////////////// %
 % ///   PLOTS    ///////////////////////////////////////////////////////////// %
 % //////////////////////////////////////////////////////////////////////////// %
 
 \begin{reportTabItem}{Plotted results}
 \centerline{
-\includegraphics[[width=0.49\textwidth]]{distr-tcp-trend.eps}
-\includegraphics[[width=0.49\textwidth]]{distr-tcp-speed.eps}
+\includegraphics[[width=0.49\textwidth]]{distr-trend.eps}
+\includegraphics[[width=0.49\textwidth]]{distr-speed.eps}
 }
 \end{reportTabItem}
 
 
-
-
-% //////////////////////////////////////////////////////////////////////////// %
-% ////   NUMERICAL RESULTS   ///////////////////////////////////////////////// %
-% //////////////////////////////////////////////////////////////////////////// %
-
-\begin{reportTabItem}{Numerical results}
-\centerline{
-\begin{minipage}{0.49\linewidth} 
- \begin{center}
-% \reportcsvfile{size-tcp.csv} \\
-% \tiny The software is set to send many parallel streams in TCP
- \end{center} 
-\end{minipage}
-\begin{minipage}{0.49\linewidth}
- \begin{center}
-% \reportcsvfile{size-udt.csv} \\
-% \tiny The software is set to send many parallel streams in UDT
- \end{center} 
-\end{minipage}
-}
-\end{reportTabItem}
 
 
 % //////////////////////////////////////////////////////////////////////////// %
 % ////   ANALISYS OF RESULTS   /////////////////////////////////////////////// %
 % //////////////////////////////////////////////////////////////////////////// %
 
-\begin{reportTabItem}{Analisys}
+% \begin{reportTabItem}{Analisys}
+% \end{reportTabItem}
 
-
-
-\end{reportTabItem}
 
 \vspace{1cm}
 \end{reportTab}

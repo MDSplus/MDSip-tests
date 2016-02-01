@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
                     + "  -->  " + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Transmission speed [MB/s]";
-            plot.YAxis().name = "Transmission probability";
+            plot.YAxis().name = "Transmission rate";
         }
         
         plot.PrintToCsv(filename_out + "speed");

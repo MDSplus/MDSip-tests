@@ -1,15 +1,19 @@
 
 TARGET_HOST  ?= default_selected_target
 TARGET_PORT  ?= default_port
+PROTOCOL     ?= udt
+
+# Time interval to wait between each speed probe
+time_range = 10,60
 
 # List of the parallel channels to be used in connection
-channels = "1 2 4"
+channels = "1 2"
 
 # Segment size [KB]
 segments = 64
 
 # Number of samples to collect per segment size
-samples = 50
+samples = 20
 
 # Plot limits for throughput histogram axis [min,max] [MBps]
 speed_limits = 0,0.8

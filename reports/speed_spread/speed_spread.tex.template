@@ -9,7 +9,7 @@
 %\input{route}
 
 
-\begin{reportTab}{ Speed trends }
+\begin{reportTab}{ TCP/UDT Speed spread }
 
 
 % //////////////////////////////////////////////////////////////////////////// %
@@ -18,7 +18,7 @@
  
 \begin{reportTabItem}{Description} 
 
-This test measures the data transfer spread
+This test measures the data transfer spread using TCP and UDT protocols.
 
 \end{reportTabItem}
 
@@ -46,6 +46,15 @@ _recipe_command_
  \includegraphics[[width=0.49\textwidth]]{distr-udt-speed.eps}
 }
 \end{reportTabItem}
+
+
+
+% //////////////////////////////////////////////////////////////////////////// %
+% ////   ANALISYS OF RESULTS   /////////////////////////////////////////////// %
+% //////////////////////////////////////////////////////////////////////////// %
+
+% \begin{reportTabItem}{Analisys}
+% \end{reportTabItem}
 
 
 

@@ -1,12 +1,12 @@
 SUBDIRS = segment_size speed_spread speed_trend
 
 
+
 TARGET_HOST    ?= localhost
 TARGET_PORT    ?= 8000
 
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
-
 
 setup:
 	. $(srcdir)/setup.sh
@@ -149,7 +149,7 @@ speed_trend.pdf:
 
 
 .PHONY: speed_spread.pdf
-CLEANFILES += speed_trend.pdf
+CLEANFILES += speed_spread.pdf
 speed_spread.pdf:
 	@echo "Making speed trend test"
 	@$(MAKE) -k -C speed_spread $@ \
@@ -166,9 +166,10 @@ TESTS = segment_size \
 	speed_spread \
 	speed_trend
 
+
+
 all: ${TESTS}
-
-
+reports: setup
 
 
 

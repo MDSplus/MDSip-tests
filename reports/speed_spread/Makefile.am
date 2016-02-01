@@ -7,7 +7,7 @@ setup:
 	nano $(builddir)/test.conf
 
 
-TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
+TARGET = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
 	
@@ -36,11 +36,11 @@ IMAGES = \
 
 distr_tcp_command = $(builddir)/SpeedSpread tcp://${TARGET} "distr-tcp-" \
 		    --channels ${channels} --segments ${segments} --samples ${samples} \
-		    --speed_limits ${speed_limits} --time_limits ${time_limits}
+		    --speed_limits ${speed_limits} 
 
 distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
 		    --channels ${channels} --segments ${segments} --samples ${samples} \
-		    --speed_limits ${speed_limits} --time_limits ${time_limits}
+		    --speed_limits ${speed_limits} 
 
 
 distr-tcp-speed.csv distr-tcp-time.csv: SpeedSpread
@@ -119,7 +119,7 @@ header.tex: ../header.tex.template
 	cat tex_subst.m4 $< | m4 > $@
 
 CLEANFILES += speed_spread.tex
-speed_spread.tex: speed_spread.tex.template distr-tcp-speed.eps distr-udt-speed.eps header.tex
+speed_spread.tex: speed_spread.tex.template all_images header.tex
 	@ ## building tex from template ##	
 	$(MAKE) tex_subst.m4
 	cat tex_subst.m4 $< | m4 > $@

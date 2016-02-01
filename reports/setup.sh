@@ -2,9 +2,9 @@
 BACKTITLE=" MDSip throughput tests "
 DIALOG=dialog
 
-TARGET_HOST=${TARGET_HOST:=localhost}
-TARGET_PORT=${TARGET_PORT:=8000}
-
+export TARGET_HOST=${TARGET_HOST:=rat}
+export TARGET_PORT=${TARGET_PORT:=8100}
+export PROTOCOL=${PROTOCOL:=tcp}
 
 
 TESTS="segment_size speed_spread speed_trend"
@@ -31,6 +31,12 @@ TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
 exitstatus=$?
 eval main ConfigTests
 }
+
+
+
+# /////////////////////////////////////////////////////////////////////////// #
+# /// CONFIG TESTS  ///////////////////////////////////////////////////////// #
+# /////////////////////////////////////////////////////////////////////////// #
 
 
 function config_tests() {
@@ -62,16 +68,23 @@ function select_target() {
 VALUES=$(${DIALOG} --ok-button "Submit" \
 	  --backtitle "${BACKTITLE}" \
 	  --title "Target selection" \
-	  --form "Select tests default target host/port " 15 50 0 \
-	  "Host:" 1 1	"$TARGET_HOST" 	1 10 20 0 \
-	  "Port:" 2 1	"$TARGET_PORT" 	2 10 20 0 \
+	  --form "\nSelect tests default target host/port \n " 15 50 0 \
+	  "Host:"     1 1	"$TARGET_HOST" 	1 10 20 0 \
+	  "Port:"     2 1	"$TARGET_PORT" 	2 10 20 0 \
 3>&1 1>&2 2>&3)
+opt=$?
 
-# export values just entered
-export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
-export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
+if [ $opt = 0 ]; then
+ # export values just entered
+ export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
+ export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
+ export PROTOCOL=$(echo ${VALUES} | awk '{print $3}')
+fi
 eval main SelectTests
 }
+
+
+
 
 
 # /////////////////////////////////////////////////////////////////////////// #
@@ -83,7 +96,11 @@ function main() {
 VALUES=$(${DIALOG} --cancel-button "Exit" \
 	  --backtitle "${BACKTITLE}" --title "Main Menu" \
 	  ${DEF_ITEM} \
-	  --menu "Move using [UP] [DOWN],[Enter] to Select" 15 50 5 \
+	  --menu "\n\
+Navigate options using [UP] [DOWN],[Enter] to Select items.\
+The current selected connection target is ${TARGET_HOST}:${TARGET_PORT}\
+          \n " \
+          18 50 5 \
 	  Target      "Select target host/port" \
 	  SelectTests "Select active tests" \
 	  ConfigTests "Configure tests parameters" \
@@ -97,7 +114,7 @@ if [ $opt = 0 ]; then
   Target) select_target;;
   SelectTests) select_tests;;
   ConfigTests) config_tests;;
-  Do) make ${TESTS};;
+  Do) make clean; make ${TESTS};;
   *) main;;
  esac
 fi

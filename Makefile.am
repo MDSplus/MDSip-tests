@@ -15,7 +15,6 @@ include Common.am
 ##PACKAGE_MAJOR=@PACKAGE_MAJOR@
 ##PACKAGE_MINOR=@PACKAGE_MINOR@
 
-# fix !
 LIBRARY_VERSION = 1:0:0
 
 CONLIBS = src/libMDSipTest.la
@@ -27,6 +26,16 @@ libMDSipTest_la_LDFLAGS = -version-info $(LIBRARY_VERSION)
 libMDSipTest_la_LIBADD  = $(AM_LIBS_ALL) ${CONLIBS}
 
 
-# pkgconfigdir   = $(libdir)/pkgconfig
-# pkgconfig_DATA = libmutom-${PACKAGE_VERSION}.pc
+
+.PHONY: reports_gui
+reports-gui: all 
+	@echo "Entering interactive report execution"
+	@$(MAKE) -C reports setup
+
+
+.PHONY: reports
+reports: all
+	@echo "Entering report execution"
+	@$(MAKE) -C reports all
+
 
