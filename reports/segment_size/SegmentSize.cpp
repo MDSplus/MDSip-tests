@@ -140,10 +140,10 @@ int main(int argc, char *argv[])
     g_options.SetUsage(program_name + " target_path plot_filename [options]");
     g_options.Parse(argc,argv);
 
-    if(argc > 1) g_target_tree = TestTree("test_size", argv[1]);
+    if(argc > 1) g_target_tree = TestTree("segment_size", argv[1]);
     else {
-        char *path = TestTree::GetEnvPath("test_size");
-        if(path) { g_target_tree = TestTree("test_size",path); }
+        char *path = TestTree::GetEnvPath("segment_size");
+        if(path) { g_target_tree = TestTree("segment_size",path); }
     }
     std::string filename_out = "test_segment_size";
     if(argc > 2) filename_out = argv[2];

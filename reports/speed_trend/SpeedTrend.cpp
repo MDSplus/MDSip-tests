@@ -298,10 +298,10 @@ int main(int argc, char *argv[])
     g_options.SetUsage(program_name + " target_path plot_fileprefix [options]");
     g_options.Parse(argc,argv);
     
-    if(argc > 1) g_target_tree = TestTree("test_speed", argv[1]);
+    if(argc > 1) g_target_tree = TestTree("speed_trend", argv[1]);
     else {
-        char *path = TestTree::GetEnvPath("test_speed");
-        if(path) g_target_tree = TestTree("test_speed",path);
+        char *path = TestTree::GetEnvPath("speed_trend");
+        if(path) g_target_tree = TestTree("speed_trend",path);
     }
     std::string filename_out = "test_distribution";
     if(argc > 2) filename_out = argv[2];

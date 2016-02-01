@@ -11,6 +11,9 @@ recipes = ${top_builddir}/recipes
 setup:
 	. $(srcdir)/setup.sh
 
+server-setup:
+	. $(srcdir)/setup_server.sh
+
 
 
 # //////////////////////////////////////////////////////////////////////////// #
