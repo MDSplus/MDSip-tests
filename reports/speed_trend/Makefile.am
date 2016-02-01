@@ -6,20 +6,45 @@ setup:
 	nano $(builddir)/test.conf
 
 
-
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 
 
+
+
+# //////////////////////////////////////////////////////////////////////////// #
+# ////  PROGRAM   //////////////////////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
+bin_PROGRAMS = \
+	       SpeedTrend \
+	       timertest
+
+SpeedTrend_SOURCES = SpeedTrend.cpp
+timertest_SOURCES = timertest.cpp
+
+
+LDADD = $(top_builddir)/libMDSipTest.la -lrt
+
+
+# //////////////////////////////////////////////////////////////////////////// #
+# ////  IMAGES   ///////////////////////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
+
+IMAGES = 
+
 distr_tcp_command = $(builddir)/SpeedTrend tcp://${TARGET} "distr-tcp-" \
-                    --channels "1 2" --segments 40 --samples 20 --speed_limits 0,0.8 --time_limits 0,0.5 
+		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --speed_limits ${speed_limits} --time_limits ${time_limits}
 
 distr_udt_command = $(builddir)/SpeedTrend udt://${TARGET} "distr-udt-" \
-                    --channels "1 2" --segments 40 --samples 20 --speed_limits 0,0.8 --time_limits 0,0.5
+		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --speed_limits ${speed_limits} --time_limits ${time_limits}
 
 
-	
+
 distr-tcp-speed.csv distr-tcp-trend.csv: SpeedTrend
 	@${distr_tcp_command}
 
@@ -31,40 +56,6 @@ define COMMAND =
 endef
 
 
-
-# //////////////////////////////////////////////////////////////////////////// #
-# ////  PROGRAM   //////////////////////////////////////////////////////////// #
-# //////////////////////////////////////////////////////////////////////////// #
-
-bin_PROGRAMS = \
-               SpeedTrend
-
-SpeedTrend_SOURCES = SpeedTrend.cpp
-
-LDADD = $(top_builddir)/libMDSipTest.la
-
-
-# //////////////////////////////////////////////////////////////////////////// #
-# ////  IMAGES   ///////////////////////////////////////////////////////////// #
-# //////////////////////////////////////////////////////////////////////////// #
-
-CLEANFILES = *.csv *.dat *.plt
-SUFFIXES = .csv .dat .plt .eps
-.PRECIOUS: %.csv %.dat %.plt
-
-IMAGES = 
-
-
-#### implicit rules ####
-.csv.dat:
-	@echo $<
-
-.dat.plt:
-	@echo $<
-
-.plt.eps:
-	@gnuplot $<
-
 PHONY: all_images
 all_images: ${IMAGES}
 
@@ -74,25 +65,6 @@ all_images: ${IMAGES}
 # //////////////////////////////////////////////////////////////////////////// #
 # ///  REPORTS  ////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
-
-
-
-CLEANFILES += *.log *.idx *.out *.toc *.aux
-SUFFIXES   += .pdf .dvi
-.PRECIOUS: %.pdf %.dvi
-
-
-if HAVE_PDFLATEX
-.tex.pdf:
-	set -e
-	-$(PDFLATEX) -interaction nonstopmode $<
-#	-$(PDFLATEX) -interaction nonstopmode $<
-#	-$(PDFLATEX) -interaction nonstopmode $<
-else
-.tex.pdf: 
-	@echo "pdflatex not found in path"
-endif
-
 
 
 #
@@ -117,8 +89,6 @@ define([_route_udp_],[esyscmd([traceroute -U ${TARGET_HOST}])])
 define([_recipe_command_],[${COMMAND}])
 
 define([_ping_result_],[esyscmd([ping ${TARGET_HOST} -i .2 -c 20 | tail -n 1 | tr -d '\n' ])])
-
-
 
 dnl ------------------------------------------------------------------------
 endef

@@ -39,9 +39,8 @@ LDADD = $(top_builddir)/libMDSipTest.la
 # ////  IMAGES   ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 
-CLEANFILES = *.csv *.dat *.plt
-SUFFIXES = .csv .dat .plt .eps
-.PRECIOUS: %.csv %.dat %.plt
+
+CLEANFILES += size-tcp.sh size-udt.sh
 
 IMAGES = \
 	size-tcp.eps \
@@ -54,17 +53,6 @@ size-udt.csv: SegmentSize
 	${size_udt_command}
 
 
-
-#### implicit rules ####
-.csv.dat:
-	@echo $<
-
-.dat.plt:
-	@echo $<
-
-.plt.eps:
-	@gnuplot $<
-
 PHONY: all_images
 all_images: ${IMAGES}
 
@@ -75,23 +63,6 @@ all_images: ${IMAGES}
 # ///  REPORTS  ////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 
-
-
-CLEANFILES += *.log *.idx *.out *.toc *.aux
-SUFFIXES   += .pdf .dvi
-.PRECIOUS: %.pdf %.dvi
-
-
-if HAVE_PDFLATEX
-.tex.pdf:
-	set -e
-	-$(PDFLATEX) -interaction nonstopmode $<
-#	-$(PDFLATEX) -interaction nonstopmode $<
-#	-$(PDFLATEX) -interaction nonstopmode $<
-else
-.tex.pdf: 
-	@echo "pdflatex not found in path"
-endif
 
 #
 # Set of m4 macro definitions to insert command and confguration in TeX report
@@ -131,7 +102,7 @@ dnl ------------------------------------------------------------------------
 endef
 
 
-CLEANFILES += size-tcp.sh size-udt.sh
+
 
 .PHONY: tex_subst.m4
 CLEANFILES += tex_subst.m4
@@ -159,7 +130,7 @@ header.tex: ../header.tex.template
 	cat tex_subst.m4 $< | m4 > $@
 
 
-segment_size.tex: segment_size.tex.template size-tcp.eps size-udt.eps header.tex
+segment_size.tex: segment_size.tex.template all_images header.tex
 	@ ## building tex from template ##	
 	$(MAKE) tex_subst.m4
 	cat tex_subst.m4 $< | m4 > $@

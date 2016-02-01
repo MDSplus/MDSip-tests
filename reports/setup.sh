@@ -1,7 +1,4 @@
 
-
-
-
 BACKTITLE=" MDSip throughput tests "
 DIALOG=dialog
 
@@ -32,24 +29,25 @@ TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  "speed_trend"  "${speed_trend_desc}"  ON \
 		  3>&1 1>&2 2>&3)
 exitstatus=$?
-eval main
+eval main ConfigTests
 }
 
 
 function config_tests() {
 VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
-		  --title "Tests selection" --menu \
-		  "Choose test to edit configuration" 15 60 4 \
-		  "segment_size" "${segment_size_desc}" \
-		  "speed_spread" "${speed_spread_desc}" \
-		  "speed_trend"  "${speed_trend_desc}"  \
-		  3>&1 1>&2 2>&3)
+		   --ok-button "Edit config" --cancel-button "Finish" \
+		   --title "Tests selection" --menu \
+		   "Choose test to edit configuration" 15 60 4 \
+		   "segment_size" "${segment_size_desc}" \
+		   "speed_spread" "${speed_spread_desc}" \
+		   "speed_trend"  "${speed_trend_desc}"  \
+		   3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
  make -C ${VALUES} setup
  eval config_tests
 else
- eval main
+ eval main Do
 fi
 }
 
@@ -61,7 +59,7 @@ fi
 # /////////////////////////////////////////////////////////////////////////// #
 
 function select_target() {
-VALUES=$(${DIALOG} --ok-label "Submit" \
+VALUES=$(${DIALOG} --ok-button "Submit" \
 	  --backtitle "${BACKTITLE}" \
 	  --title "Target selection" \
 	  --form "Select tests default target host/port " 15 50 0 \
@@ -72,7 +70,7 @@ VALUES=$(${DIALOG} --ok-label "Submit" \
 # export values just entered
 export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
 export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
-eval main
+eval main SelectTests
 }
 
 
@@ -81,8 +79,10 @@ eval main
 # /////////////////////////////////////////////////////////////////////////// #
 
 function main() {
-VALUES=$(${DIALOG} --cancel-label "Exit" \
+[ -n "$1" ] && DEF_ITEM="--default-item $1"
+VALUES=$(${DIALOG} --cancel-button "Exit" \
 	  --backtitle "${BACKTITLE}" --title "Main Menu" \
+	  ${DEF_ITEM} \
 	  --menu "Move using [UP] [DOWN],[Enter] to Select" 15 50 5 \
 	  Target      "Select target host/port" \
 	  SelectTests "Select active tests" \

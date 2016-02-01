@@ -109,32 +109,31 @@ AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 
 # Configure script arguments
 dnl declare --enable-* args and collect ac_help strings
-AC_ARG_ENABLE(debug,
-		AS_HELP_STRING([--enable-debug=no/yes],[turn on debugging, default: no]),
-[case "${enableval}" in
-             yes) debug=true ;;
-             no)  debug=false ;;
-             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-esac],
-		[debug=false])
+AC_ARG_ENABLE(debug, AS_HELP_STRING([--enable-debug=no/yes],[turn on debugging, default: no]),
+	      [case "${enableval}" in
+	       yes) debug=true ;;
+	       no)  debug=false ;;
+	       *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+	      esac],[debug=false])
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
-AC_ARG_ENABLE(parallel,
-		AS_HELP_STRING([--enable-parallel=no/yes],[turn on openMP parallel processing, default: yes]),
-[case "${enableval}" in
-             yes) parallel=true ;;
-             no)  parallel=false ;;
-             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-parallel]) ;;
-esac],
-		[parallel=true])
 
-AC_ARG_ENABLE(autovector,
-                AS_HELP_STRING([--enable-autovector=no/yes],[turn on gcc auto vectorize loops with simd instructions, default: no]),
-[case "${enableval}" in
-             yes) autovector=true ;;
-             no)  autovector=false ;;
-             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-autovector]) ;;
-esac],
-                [autovector=false])
+AC_ARG_ENABLE(parallel, AS_HELP_STRING([--enable-parallel=no/yes],[turn on openMP parallel processing, default: yes]),
+	      [case "${enableval}" in
+	       yes) parallel=true ;;
+	       no)  parallel=false ;;
+	       *)   AC_MSG_ERROR([bad value ${enableval} for --enable-parallel]) ;;
+	      esac],[parallel=true])
+AM_CONDITIONAL(PARAL_MP, test x"$parallel" = x"true")
+
+
+AC_ARG_ENABLE(autovector,AS_HELP_STRING([--enable-autovector=no/yes],[turn on gcc auto vectorize loops with simd instructions, default: no]),
+	      [case "${enableval}" in
+	       yes) autovector=true ;;
+	       no)  autovector=false ;;
+	       *)   AC_MSG_ERROR([bad value ${enableval} for --enable-autovector]) ;;
+	      esac], [autovector=false])
+AM_CONDITIONAL(SIMD_AUTOVECTOR, test x"$autovector" = x"true")
 
 
 AC_ARG_ENABLE([valgrind],
@@ -142,7 +141,6 @@ AC_ARG_ENABLE([valgrind],
                               [Use valgrind when running unit tests])],
               [AS_VAR_SET([use_valgrind], [yes])],
               [])
-
 if [[ "$use_valgrind" = "yes" ]]; then
  AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
  if [[ "$HAVE_VALGRIND" = "no" ]]; then
@@ -150,37 +148,6 @@ if [[ "$use_valgrind" = "yes" ]]; then
  fi
 fi
 AM_CONDITIONAL(USE_VALGRIND, test x"$use_valgrind" = "xyes")
-
-
-
-dnl AC_ARG_ENABLE(vtk,
-dnl                AS_HELP_STRING([--enable-vtk=no/yes],[turn on vtk visualization wrappers, default: no]),
-dnl [case "${enableval}" in
-dnl             yes) vtk=true ;;
-dnl             no)  vtk=false ;;
-dnl             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-vtk]) ;;
-dnl esac],
-dnl                [vtk=false])
-
-
-dnl AC_ARG_WITH([readline],
-dnl [AS_HELP_STRING([--with-readline],
-dnl [support fancy command line editing @<:@default=check@:>@])],
-dnl [],
-dnl [with_readline=check])
-
-dnl LIBREADLINE=
-dnl AS_IF([test "x$with_readline" != xno],
-dnl [AC_CHECK_LIB([readline], [main],
-dnl [AC_SUBST([LIBREADLINE], ["-lreadline -lncurses"])
-dnl AC_DEFINE([HAVE_LIBREADLINE], [1],
-dnl [Define if you have libreadline])
-dnl ],
-dnl [if test "x$with_readline" != xcheck; then
-dnl AC_MSG_FAILURE(
-dnl [--with-readline was given, but test for readline failed])
-dnl fi
-dnl ], -lncurses)])
 
 
 # Check for presence of pdfLaTeX
@@ -191,14 +158,20 @@ fi
 
 AM_CONDITIONAL([HAVE_PDFLATEX], test -n "$PDFLATEX")
 
-AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
-AM_CONDITIONAL(PARAL_MP, test x"$parallel" = x"true")
-AM_CONDITIONAL(SIMD_AUTOVECTOR, test x"$autovector" = x"true")
-dnl AM_CONDITIONAL(ENABLE_VTK, [test x"$vtk" = x"true"])
+
+AC_CHECK_PROG(MKDIR_P, mkdir, [mkdir -p])
+AC_SUBST([MKDIR_P])
+
+# TODO: add whiptail if dialog not found
+#       eventually add zenith for X11
+AC_CHECK_PROG(DIALOG, dialog, dialog)
+AC_SUBST([DIALOG])
+
+AC_CHECK_PROG([GNUPLOT], gnuplot, gnuplot)
+AC_SUBST([GNUPLOT])
 
 
-# Forcing variadic macro compiler feature (for gcc without cxx11 flag)
-dnl AC_DEFINE_UNQUOTED(BOOST_PP_VARIADICS,1,[Compiler must have variadic macros])
+
 
 # //////////////////////////////////////////////////////////////////////////// #
 # ///  CONFIG_H  ///////////////////////////////////////////////////////////// #
@@ -232,8 +205,8 @@ AH_VERBATIM([_WIN32], [
 dnl add here what goes on bottom of config.h
 AH_BOTTOM()
 
-AC_CHECK_PROG(MKDIR_P, mkdir, [mkdir -p])
-AC_SUBST([MKDIR_P])
+
+
 
 ######### MAKEFILES #########################################
 
@@ -248,7 +221,9 @@ AC_CONFIG_FILES([
 	reports/segment_size/Makefile
 	reports/segment_size/test.conf
 	reports/speed_trend/Makefile
+	reports/speed_trend/test.conf
 	reports/speed_spread/Makefile
+	reports/speed_spread/test.conf
 	])
 AC_OUTPUT
 

@@ -51,3 +51,66 @@ AM_LIBS_ALL = @LIBS@            \
 
 AM_DEFAULT_SOURCE_EXT = .cpp
 
+
+
+
+
+
+
+
+# //////////////////////////////////////////////////////////////////////////// #
+# ////  IMAGES   ///////////////////////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
+
+CLEANFILES =
+SUFFIXES   =
+
+CLEANFILES += *.csv *.dat *.plt
+SUFFIXES   += .csv .dat .plt .eps
+.PRECIOUS: %.csv %.dat %.plt
+
+
+#### implicit rules ####
+.csv.dat:
+	@echo $<
+
+.dat.plt:
+	@echo $<
+
+.plt.eps:
+	@gnuplot $<
+
+
+
+
+
+# //////////////////////////////////////////////////////////////////////////// #
+# ///  REPORTS  ////////////////////////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
+
+
+CLEANFILES += *.log *.idx *.out *.toc *.aux
+SUFFIXES   += .pdf .dvi
+.PRECIOUS: %.pdf %.dvi
+
+
+if HAVE_PDFLATEX
+.tex.pdf:
+	set -e
+	-$(PDFLATEX) -interaction nonstopmode $<
+#	-$(PDFLATEX) -interaction nonstopmode $<
+#	-$(PDFLATEX) -interaction nonstopmode $<
+else
+.tex.pdf:
+	@echo "pdflatex not found in path"
+endif
+
+
+
+
+
+
+
+

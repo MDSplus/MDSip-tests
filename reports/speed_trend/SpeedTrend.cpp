@@ -17,9 +17,94 @@
 #include "DataUtils.h"
 
 #include <time.h>
+#include <sys/types.h>
+
+#include <signal.h>
+
+
+static struct sigaction sigalarm_old_action;
+static struct sigaction sigalarm_new_action;
+
 
 using namespace MDSplus;
 using namespace mdsip_test;
+
+
+static void sig_handler(int sig_nr)
+{
+
+    switch (sig_nr)
+    {
+    case SIGALRM:
+        std::cout << "got Alarm\n";
+        break;
+    case SIGTERM:
+    case SIGINT:
+    default:
+        break;
+    }
+}
+
+#define CLOCKID CLOCK_REALTIME
+#define SIG SIGRTMIN
+
+int register_signal() {
+    memset(&sigalarm_new_action, 0, sizeof(sigalarm_new_action));
+    sigalarm_new_action.sa_handler = sig_handler;
+    sigaction(SIGALRM, &sigalarm_new_action, &sigalarm_old_action);
+
+
+    timer_t timerid;
+    struct sigevent sev;
+    struct itimerspec its;
+    long long freq_nanosecs;
+    sigset_t mask;
+    struct sigaction sa;
+
+    /* Establish handler for timer signal */
+    printf("Establishing handler for signal %d\n", SIG);
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = sig_handler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIG, &sa, NULL) == -1)
+        return 0;
+
+    /* Block timer signal temporarily */
+
+    printf("Blocking signal %d\n", SIG);
+    sigemptyset(&mask);
+    sigaddset(&mask, SIG);
+    if (sigprocmask(SIG_SETMASK, &mask, NULL) == -1)
+        return 0;
+
+    /* Create the timer */
+    sev.sigev_notify = SIGEV_SIGNAL;
+    sev.sigev_signo = SIG;
+    sev.sigev_value.sival_ptr = &timerid;
+    if (timer_create(CLOCKID, &sev, &timerid) == -1)
+        return 0;
+
+    printf("timer ID is 0x%lx\n", (long) timerid);
+
+    /* Start the timer */
+    freq_nanosecs = atoll(argv[2]);
+    its.it_value.tv_sec = freq_nanosecs / 1000000000;
+    its.it_value.tv_nsec = freq_nanosecs % 1000000000;
+    its.it_interval.tv_sec = its.it_value.tv_sec;
+    its.it_interval.tv_nsec = its.it_value.tv_nsec;
+
+    if (timer_settime(timerid, 0, &its, NULL) == -1)
+        return 0;
+
+
+    /* Unlock the timer signal, so that timer notification
+          can be delivered */
+
+//    printf("Unblocking signal %d\n", SIG);
+//    if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+//        errExit("sigprocmask");
+    return 1;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
