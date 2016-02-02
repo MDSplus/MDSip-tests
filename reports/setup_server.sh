@@ -98,9 +98,9 @@ function set_path() {
 function start() {
   eval set_path
   ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${SPOOLDIR}/tcp.log &
-  echo "$!" > ${SPOOLDIR}/run/tcp.pid
+  echo "$!" > ${SPOOLDIR}/run/tcp.pid && echo "mdsip TCP server started"
   ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${SPOOLDIR}/udt.log &
-  echo "$!" > ${SPOOLDIR}/run/udt.pid
+  echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
 }
 
 
@@ -196,10 +196,11 @@ function xinetd() {
   # UDT session
   ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -P udt -m -h ${SPOOLDIR}/mdsip.hosts \
     >> ${SPOOLDIR}/log/udt.access 2>>${SPOOLDIR}/log/udt.errors &
-  echo "$!" > ${SPOOLDIR}/run/udt.pid
+   echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
   
   # TCP session in xinetd
-  sh -c "xinetd -f ${SPOOLDIR}/mdsipd.xinetd -pidfile ${SPOOLDIR}/run/tcp.pid"  
+  sh -c "xinetd -f ${SPOOLDIR}/mdsipd.xinetd -pidfile ${SPOOLDIR}/run/tcp.pid" && \
+   echo "mdsip TCP server started"
 }
 
 
