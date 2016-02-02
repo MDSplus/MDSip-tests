@@ -9,7 +9,7 @@ TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 setup:
-	. $(srcdir)/setup.sh
+	. $(srcdir)/setup_client.sh
 
 server-setup:
 	. $(srcdir)/setup_server.sh
