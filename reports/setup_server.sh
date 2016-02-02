@@ -111,7 +111,7 @@ function start() {
 XINETD_CONF="
 defaults
 {
-        log_type                = FILE mdsip_xinetd.log
+        log_type                = FILE ${SPOOLDIR}/log/mdsip_xinetd.log
         log_on_success          = HOST PID
         log_on_failure          = HOST
 }
@@ -195,7 +195,7 @@ function xinetd() {
   
   # UDT session
   ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -P udt -m -h ${SPOOLDIR}/mdsip.hosts \
-    >> ${SPOOLDIR}/log/udt.access 2>>$ {SPOOLDIR}/log/udt.errors &
+    >> ${SPOOLDIR}/log/udt.access 2>>${SPOOLDIR}/log/udt.errors &
   echo "$!" > ${SPOOLDIR}/run/udt.pid
   
   # TCP session in xinetd
