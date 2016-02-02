@@ -1,6 +1,5 @@
-
-
 .ONESHELL:
+include $(top_srcdir)/Common.am
 
 PKG = fetamont.zip \
       fontaxes.zip \
@@ -15,31 +14,18 @@ PKG_URL = http://mirrors.ctan.org/fonts/fetamont.zip \
           http://mirrors.ctan.org/install/fonts/roboto.tds.zip
           
 
-TEXMFHOME = $(abs_builddir)/texmf
-
-
-CLEANFILES = ${PKG}
+DISTCLEANFILES = ${PKG}
 ${PKG}:
 	@echo "downloading"
-	@for i in ${PKG_URL}; do \
-	wget -q $$i; \
-	done
-
-
-.PHONY: download
-download: ${PKG}
-
-.PHONY: explode
-explode: ${PKG}
-	@echo "exploding"
-	@for i in ${PKG}; do \
-	unzip -o $$i; \
+	for i in ${PKG_URL}; do
+	 echo "downloading from: $$i ...";
+	 wget -q $$i;
 	done
 
 define prepare_texinstall =
  unzip -o $<
  export TEXMFHOME=${TEXMFHOME}
- export TEXMFCONFIG=${TEXMFHOME}
+ export TEXMFCONFIG=${TEXMFCONFIG}
  cd $@
  latex -interaction nonstopmode $@.ins
 endef
@@ -47,9 +33,8 @@ endef
 
 .PHONY: fetamont
 fetamont: fetamont.zip
-	@ 
-	echo "fetamont"
-	eval ${prepare_texinstall}
+	@ echo "fetamont"
+	${prepare_texinstall}
 	mkdir -p ${TEXMFHOME}/fonts/tfm/public/fetamont
 	install tfm/* ${TEXMFHOME}/fonts/tfm/public/fetamont
 	mkdir -p ${TEXMFHOME}/fonts/afm/public/fetamont
@@ -66,14 +51,13 @@ fetamont: fetamont.zip
 	updmap
 	
 fontaxes: fontaxes.zip
-	@ 
-	echo "fontaxes"
+	@ echo "fontaxes"
 	eval ${prepare_texinstall}
 	mkdir -p ${TEXMFHOME}/tex/latex/fontaxes
 	install fontaxes.sty ${TEXMFHOME}/tex/latex/fontaxes
 	
 mweights: mweights.zip
-	@
+	@ echo "mweights"
 	unzip -o $<
 	cd $@
 	mkdir -p ${TEXMFHOME}/tex/latex/$@
@@ -81,13 +65,14 @@ mweights: mweights.zip
 	
 .PHONY: pgfplots
 pgfplots: pgfplots.tds.zip
-	@
+	@ echo "pgfplots"
 	cd ${TEXMFHOME}
 	unzip -o ../$<
 	
 .PHONY: roboto
 roboto: roboto.tds.zip
-	@
+	@ echo "roboto"
+	mkdir -p ${TEXMFHOME}
 	cd ${TEXMFHOME}
 	unzip -o ../$<
 	updmap --enable Map roboto.map
