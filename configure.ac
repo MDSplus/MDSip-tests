@@ -16,14 +16,18 @@ m4_define([MDSipTest_minor_version], [0])
 
 ########### INIT #######################################
 AC_INIT([MdsPlus MDSipTest],[MDSipTest_major_version.MDSipTest_minor_version],[andrea.rigoni@igi.cnr.it])
-AM_INIT_AUTOMAKE([subdir-objects])
-
-##AC_PREREQ([2.67])
-AC_CONFIG_MACRO_DIR([m4])
-
-
+AC_CONFIG_AUX_DIR([conf])
 AC_CONFIG_SRCDIR([Common.am])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
+
+dnl docker helpers
+DK_SET_DOCKER_BUILD
+
+AC_CANONICAL_TARGET
+AM_INIT_AUTOMAKE([subdir-objects])
+AM_MAINTAINER_MODE
+
 
 # Checks for programs.
 CFLAGS=""
@@ -78,30 +82,8 @@ PKG_CHECK_MODULES([CHECK], [check], [have_check=yes], [have_check=no])
 AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 
 
-# Check for BOOST Libraries
-# BOOST_REQUIRE([1.34])
-
-# BOOST_ARRAY
-# BOOST_DATE_TIME
-# BOOST_SERIALIZATION
-# BOOST_SIGNALS
-# BOOST_PROGRAM_OPTIONS(mt-p)
 
 
-# Check for Vtk installation
-# AM_OPTIONS_VTK
-# AM_PATH_VTK([5.0],[HAVE_VTK=1],[HAVE_VTK=0])
-# AM_CONDITIONAL([HAVE_VTK], [test HAVE_VTK=1] ) # fix?
-# AM_CONDITIONAL([VTK_5_x], [1])
-
-
-# PKG_CHECK_MODULES([EIGEN3],[eigen3 >= 0.1])
-
-# PKG_CHECK_MODULES(QT4, [QtCore QtGui >= 4.4.0], [
-#   AC_PATH_PROGS(MOC, [moc-qt4 moc], moc,`eval pkg-config --variable=exec_prefix QtCore`/bin)
-#   AC_PATH_PROG(RCC, rcc, rcc,`eval pkg-config --variable=exec_prefix QtCore`/bin)
-#   AC_PATH_PROGS(UIC, [uic-qt4 uic], uic,`eval pkg-config --variable=exec_prefix QtCore`/bin)
-# ],[HAVE_QT=0])
 
 
 ########## CONDITIONALS ##################################
@@ -217,6 +199,7 @@ AC_CONFIG_FILES([
         recipes/Makefile
         tex/Makefile
 	tex/img/Makefile
+	tex/packages/Makefile
 	reports/Makefile
 	reports/segment_size/Makefile
 	reports/segment_size/test.conf
