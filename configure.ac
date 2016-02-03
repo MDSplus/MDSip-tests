@@ -19,7 +19,7 @@ AC_INIT([MdsPlus MDSipTest],[MDSipTest_major_version.MDSipTest_minor_version],[a
 AC_CONFIG_AUX_DIR([conf])
 AC_CONFIG_SRCDIR([Common.am])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([m4])
+# AC_CONFIG_MACRO_DIR([m4])
 
 dnl docker helpers
 DK_SET_DOCKER_BUILD
@@ -82,8 +82,13 @@ PKG_CHECK_MODULES([CHECK], [check], [have_check=yes], [have_check=no])
 AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 
 
-
-
+AC_ARG_WITH([mdsplus-dir],
+            [AS_HELP_STRING([--with-mdsplus-dir],[specify mdsplus directory])],[],
+            [AS_VAR_SET_IF([MDSPLUS_DIR],[AS_VAR_SET([with_mdsplus_dir], ["${MDSPLUS_DIR}"])])])
+AS_VAR_SET_IF([with_mdsplus_dir],              
+              [AS_VAR_SET([MDSPLUS_DIR],["${with_mdsplus_dir}"])],
+              [AS_VAR_SET([MDSPLUS_DIR],["/usr/local"])])
+AC_SUBST(MDSPLUS_DIR)
 
 
 ########## CONDITIONALS ##################################
