@@ -69,8 +69,8 @@ SUFFIXES   += .csv .dat .plt .eps
 # //////////////////////////////////////////////////////////////////////////// #
 
 
-TEXMFHOME   ?= $(abs_top_builddir)/tex/packages/texmf
-TEXMFCONFIG ?= ${TEXMFHOME}
+TEXMFHOME   = $(abs_top_builddir)/tex/packages/texmf
+TEXMFCONFIG = ${TEXMFHOME}
 
 CLEANFILES += *.log *.idx *.out *.toc *.aux
 SUFFIXES   += .pdf .dvi
@@ -82,6 +82,7 @@ if HAVE_PDFLATEX
 	set -e
 	-$(MAKE) -C $(top_builddir)/tex/packages all
 	export TEXMFHOME=${TEXMFHOME}
+	export TEXMFVAR=${TEXMFHOME}
 	export TEXMFCONFIG=${TEXMFCONFIG}
 	-$(PDFLATEX) -interaction nonstopmode $<
 #	-$(PDFLATEX) -interaction nonstopmode $<

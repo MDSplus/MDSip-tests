@@ -25,6 +25,7 @@ ${PKG}:
 define prepare_texinstall =
  unzip -o $<
  export TEXMFHOME=${TEXMFHOME}
+ export TEXMFVAR=${TEXMFHOME}
  export TEXMFCONFIG=${TEXMFCONFIG}
  cd $@
  latex -interaction nonstopmode $@.ins
