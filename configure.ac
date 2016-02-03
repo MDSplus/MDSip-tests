@@ -91,6 +91,14 @@ AS_VAR_SET_IF([with_mdsplus_dir],
 AC_SUBST(MDSPLUS_DIR)
 
 
+dnl AC_ARG_ENABLE([mdsplus-build],
+dnl              [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])
+              
+dnl AS_VAR_SET_IF([enable_mdsplus_build],
+dnl              [git submodule init;
+dnl AC_CONFIG_SUBDIRS([mdsplus])
+
+
 ########## CONDITIONALS ##################################
 
 

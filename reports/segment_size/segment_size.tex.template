@@ -26,10 +26,13 @@ The transmission content is here represented by signal segments. Segments are
 MDSplus objects that were designed to cluster signals in many shorter fragments
 and they are particularly suited to be network handled.
 ~
-The software is set to send many uncorrelated parallel streams of segments (
-channels in the following ) each collected into a single signal at the target
-server. In the figures below the total speed reached by those channels is
-plotted against the per segment size for both protocols.
+The software is set to send _channels_ uncorrelated parallel streams of
+segments ( channels in the following ) each collected into a single signal at
+the target server. In the figures below the total speed reached by those
+channels is plotted against the per segment size for both protocols. A total of
+_samples_ segments are sent for each of the selected size to collect the
+statistical values for each measure.
+
 
 \end{reportTabItem}
 

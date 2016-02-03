@@ -78,6 +78,11 @@ define([_recipe_command_],[${COMMAND}])
 
 define([_ping_result_],[esyscmd([ping ${TARGET_HOST} -i .2 -c 20 | tail -n 1 | tr -d '\n' ])])
 
+define([_channels_],[${channels}])
+define([_segments_],[${segments}])
+define([_samples_],[${samples}])
+
+
 dnl ------------------------------------------------------------------------
 endef
 

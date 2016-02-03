@@ -4,7 +4,7 @@ TARGET_PORT  ?= default_port
 PROTOCOL     ?= udt
 
 # Time interval to wait between each speed probe
-time_range = 10,60
+time_range = 10,2
 
 # List of the parallel channels to be used in connection
 channels = "1 2"

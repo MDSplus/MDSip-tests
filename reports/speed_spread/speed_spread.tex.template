@@ -18,7 +18,12 @@
  
 \begin{reportTabItem}{Description} 
 
-This test measures the data transfer spread using TCP and UDT protocols.
+This test shows the throughput spread of the per segment speed using TCP and
+UDT protocols. This can be used to check the behavior of the two different
+protocols to face the network congestion and the multiple channels transfer. A
+set of sine segmented signals are sent from the client and stored in a MDSplus
+tree at the server side. Each segment brings _segments_ [KB] of signal data and
+the a total of _samples_ segments are sent for each of the _channels_ channels.
 
 \end{reportTabItem}
 

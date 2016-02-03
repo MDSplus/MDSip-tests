@@ -268,7 +268,7 @@ static int fill_trend()
         // stores only start time for now //
         time_t now; time(&now);
         Point2D trend_point;
-        trend_point << difftime(now,timer_start),speed(0),speed(1);
+        trend_point << difftime(now,timer_start)/60,speed(0),speed(1);
         ch_value.push_back(trend_point);
         trend_time.push_back(start_time);
     }
@@ -363,9 +363,9 @@ int main(int argc, char *argv[])
     {
         Plot2D plot("Speed Trend");
         std::cout << " ---- COLLECTED TRENDS  ------ \n";
-        foreach (Curve2D &speed, trend_value) {
+        foreach (Curve2D &speed, trend_value) {            
             std::cout << speed << "\n";
-            plot.AddCurve(speed);
+            plot.AddCurve(speed);            
         }
         
         {
@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " 
                     + g_target_tree.Path().server;
             plot.SetSubtitle(subtitle);
-            plot.XAxis().name = "Time for test start [min]";
+            plot.XAxis().name = "Time [min]";
             plot.YAxis().name = "Transmission speed";
         }
         
