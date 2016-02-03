@@ -21,7 +21,7 @@ bin_PROGRAMS = \
 
 SpeedSpread_SOURCES = SpeedSpread.cpp
 
-LDADD = $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 
 
 # //////////////////////////////////////////////////////////////////////////// #

@@ -62,32 +62,6 @@ _recipe_command_
 \end{reportTabItem}
 
 
-
-
-% //////////////////////////////////////////////////////////////////////////// %
-% ////   NUMERICAL RESULTS   ///////////////////////////////////////////////// %
-% //////////////////////////////////////////////////////////////////////////// %
-
-\begin{reportTabItem}{Numerical results}
-\centerline{
-\begin{minipage}{0.49\linewidth} 
- \begin{center}
- \reportcsvfile{size-tcp.csv} \\
- \tiny
- The software is set to send many parallel streams in TCP
- \end{center} 
-\end{minipage}
-\begin{minipage}{0.49\linewidth}
- \begin{center}
- \reportcsvfile{size-udt.csv} \\
- \tiny
- The software is set to send many parallel streams in UDT
- \end{center} 
-\end{minipage}
-}
-\end{reportTabItem}
-
-
 % //////////////////////////////////////////////////////////////////////////// %
 % ////   ANALISYS OF RESULTS   /////////////////////////////////////////////// %
 % //////////////////////////////////////////////////////////////////////////// %
@@ -101,9 +75,22 @@ The maximum TCP connection speed is [$]_tcp_max_y_[$] [[MBps]], achieved using
 throughput of [$]_udt_max_y_[$] [[MBps]] using segments of size
 [$]_udt_max_x_[$] [[KB]].
 
-
-
 \end{reportTabItem}
+
+
+
+% //////////////////////////////////////////////////////////////////////////// %
+% ////   NUMERICAL RESULTS   ///////////////////////////////////////////////// %
+% //////////////////////////////////////////////////////////////////////////// %
+
+\begin{reportTabItem}{Numerical results}
+\centerline{
+ \reportcsvfile{size-tcp.csv} 
+ \hspace{1cm}
+ \reportcsvfile{size-udt.csv}
+}
+\end{reportTabItem}
+
 
 
 

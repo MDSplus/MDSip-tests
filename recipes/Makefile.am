@@ -20,6 +20,6 @@ SpeedDistribution_SOURCES = SpeedDistribution.cpp
 SegmentContent_SOURCES = SegmentContent.cpp
 CustomSignal_SOURCES = CustomSignal.cpp
 
-LDADD = $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 
 

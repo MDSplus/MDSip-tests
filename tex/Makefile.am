@@ -1,4 +1,4 @@
-SUBDIRS = . img
+SUBDIRS = . img packages
 
 CLEANFILES = *.log *.idx *.out *.toc *.aux
 

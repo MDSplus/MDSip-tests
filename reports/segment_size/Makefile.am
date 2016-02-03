@@ -11,10 +11,10 @@ TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-		   --channels "${channels}" --segments ${segments} --samples ${samples}
+		   --channels ${channels} --segments ${segments} --samples ${samples}
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-		   --channels "${channels}" --segments ${segments} --samples ${samples}
+		   --channels ${channels} --segments ${segments} --samples ${samples}
 
 define COMMAND =
 ${size_tcp_command}
@@ -32,7 +32,7 @@ bin_PROGRAMS = \
 
 SegmentSize_SOURCES = SegmentSize.cpp
 
-LDADD = $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 
 
 # //////////////////////////////////////////////////////////////////////////// #

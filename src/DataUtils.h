@@ -551,7 +551,8 @@ public:
                 & h.m_underf & h.m_overf
                 & h.m_stat;
     }
-
+    
+    
 private:
 
     T get_spacing() const {

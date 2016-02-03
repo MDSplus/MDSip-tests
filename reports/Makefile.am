@@ -1,6 +1,5 @@
 SUBDIRS = segment_size speed_spread speed_trend
-
-
+include $(top_srcdir)/Common.am
 
 TARGET_HOST    ?= localhost
 TARGET_PORT    ?= 8000
@@ -19,10 +18,6 @@ server-setup:
 # //////////////////////////////////////////////////////////////////////////// #
 # ////  IMAGES   ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
-
-CLEANFILES = *.csv *.dat *.plt
-SUFFIXES = .csv .dat .plt .eps
-.PRECIOUS: %.csv %.dat %.plt
 
 IMAGES = 
 
@@ -135,7 +130,7 @@ SUFFIXES   += .tex.template .tex
 CLEANFILES += segment_size.pdf
 segment_size.pdf:
 	@echo "Making segment size test"
-	@$(MAKE) -k -C segment_size $@ \
+	@$(MAKE) -k -C segment_size clean $@ \
 	 TARGET_HOST=${TARGET_HOST}  \
 	 TARGET_PORT=${TARGET_PORT}; \
 	 cp -a $(builddir)/segment_size/$@ $@
@@ -145,7 +140,7 @@ segment_size.pdf:
 CLEANFILES += speed_trend.pdf
 speed_trend.pdf:
 	@echo "Making speed trend test"
-	@$(MAKE) -k -C speed_trend $@ \
+	@$(MAKE) -k -C speed_trend clean $@ \
 	 TARGET_HOST=${TARGET_HOST}  \
 	 TARGET_PORT=${TARGET_PORT}; \
 	 cp -a $(builddir)/speed_trend/$@ $@
@@ -155,7 +150,7 @@ speed_trend.pdf:
 CLEANFILES += speed_spread.pdf
 speed_spread.pdf:
 	@echo "Making speed trend test"
-	@$(MAKE) -k -C speed_spread $@ \
+	@$(MAKE) -k -C speed_spread clean $@ \
 	 TARGET_HOST=${TARGET_HOST}  \
 	 TARGET_PORT=${TARGET_PORT}; \
 	 cp -a $(builddir)/speed_spread/$@ $@

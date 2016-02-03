@@ -201,6 +201,7 @@ AC_CONFIG_FILES([
         Makefile
         src/Makefile
         src/testing/Makefile
+        src/ext_tools/Makefile
         recipes/Makefile
         tex/Makefile
 	tex/img/Makefile

@@ -19,7 +19,7 @@ ${PKG}:
 	@echo "downloading"
 	for i in ${PKG_URL}; do
 	 echo "downloading from: $$i ...";
-	 wget -q $$i;
+	 wget -q -N $$i;
 	done
 
 define prepare_texinstall =
@@ -78,5 +78,15 @@ roboto: roboto.tds.zip
 	updmap --enable Map roboto.map
 	updmap
 	
-	
-	
+CLEANFILES += texfm.stamp
+texfm.stamp: 
+	@ echo "Making latex packages"
+	$(MAKE) -k fetamont fontaxes mweights pgfplots roboto
+	touch $@
+
+
+all: texfm.stamp
+
+
+
+

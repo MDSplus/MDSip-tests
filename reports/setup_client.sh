@@ -114,7 +114,7 @@ if [ $opt = 0 ]; then
   Target) select_target;;
   SelectTests) select_tests;;
   ConfigTests) config_tests;;
-  Do) make clean; make ${TESTS};;
+  Do) make ${TESTS};;
   *) main;;
  esac
 fi

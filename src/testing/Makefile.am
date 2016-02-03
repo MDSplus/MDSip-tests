@@ -20,7 +20,7 @@ else
 endif
 
 
-LDADD = ../libMDSipTest.la
+LDADD = $(AM_LIBS) ../libMDSipTest.la
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind

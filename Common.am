@@ -80,6 +80,7 @@ SUFFIXES   += .pdf .dvi
 if HAVE_PDFLATEX
 .tex.pdf:
 	set -e
+	-$(MAKE) -C $(top_builddir)/tex/packages all
 	export TEXMFHOME=${TEXMFHOME}
 	export TEXMFCONFIG=${TEXMFCONFIG}
 	-$(PDFLATEX) -interaction nonstopmode $<
@@ -106,7 +107,7 @@ reconfigure:
 	echo " -------------------------------------------------------------"; \
 	echo ; \
 	cd '$(top_builddir)' && \
-	$(top_srcdir)/configure $(shell $(abs_top_builddir)/config.status --config);
+	$(abs_top_srcdir)/configure $(shell $(abs_top_builddir)/config.status --config);
 
 
 
