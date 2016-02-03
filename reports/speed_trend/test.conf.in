@@ -1,9 +1,16 @@
 
+# //////////////////////////////////////////////////////////////////////////// #
+# // Speed Trend Configuration file ////////////////////////////////////////// #
+# //////////////////////////////////////////////////////////////////////////// #
+
 TARGET_HOST  ?= default_selected_target
 TARGET_PORT  ?= default_port
+
+# Protocol to be used, select [tcp/udt]
 PROTOCOL     ?= udt
 
-# Time interval to wait between each speed probe
+# Time interval to wait between each speed probe 
+# The first number are: interval [seconds],  duration [minutes]
 time_range = 10,2
 
 # List of the parallel channels to be used in connection
