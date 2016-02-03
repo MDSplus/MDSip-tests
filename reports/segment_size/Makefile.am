@@ -97,6 +97,10 @@ define([_udt_max_x_],[esyscmd([. ./size-udt.sh; printf  \$${max_x} ])])
 define([_udt_max_y_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_y} ])])
 define([_udt_max_e_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_e} ])])
 
+define([_channels_],[${channels}])
+define([_segments_],[${segments}])
+define([_samples_],[${samples}])
+
 
 dnl ------------------------------------------------------------------------
 endef
