@@ -120,6 +120,8 @@ AC_DEFUN([DK_CMD_CNTRUN], [
 ])
 
 
+dnl autoconf < 2.63 compatibility
+m4_ifndef([AS_VAR_APPEND], AC_DEFUN([AS_VAR_APPEND], $1=$$1$2))
 
 AC_DEFUN([DK_CONFIGURE],[
 
@@ -127,9 +129,9 @@ AC_DEFUN([DK_CONFIGURE],[
          AS_VAR_SET([dk_configure_args])
          DK_GET_CONFIGURE_ARGS_WITHOUT_DOCKER([dk_configure_args])
          AS_VAR_APPEND([dk_configure_args],[" "])
-         AS_VAR_SET_IF([DOCKER_IMAGE],AS_VAR_APPEND([dk_configure_args],["DOCKER_IMAGE=\"${DOCKER_IMAGE}\" "]));
-         AS_VAR_SET_IF([DOCKER_CONTAINER],AS_VAR_APPEND([dk_configure_args],["DOCKER_CONTAINER=\"${DOCKER_CONTAINER}\" "]));
-         AS_VAR_SET_IF([DOCKER_FILE],AS_VAR_APPEND([dk_configure_args],["DOCKER_FILE=\"${DOCKER_FILE}\" "]));
+         AS_VAR_SET_IF([DOCKER_IMAGE],AS_VAR_APPEND([dk_configure_args],["DOCKER_IMAGE=\"${DOCKER_IMAGE}\" "]))
+         AS_VAR_SET_IF([DOCKER_CONTAINER],AS_VAR_APPEND([dk_configure_args],["DOCKER_CONTAINER=\"${DOCKER_CONTAINER}\" "]))
+         AS_VAR_SET_IF([DOCKER_FILE],AS_VAR_APPEND([dk_configure_args],["DOCKER_FILE=\"${DOCKER_FILE}\" "]))
     
          m4_pushdef([dk_configure_cmd], m4_normalize([
            docker exec -t
@@ -423,6 +425,24 @@ m4_ifdef([AM_SUBST_NOTMAKE], [AM_SUBST_NOTMAKE([DK_DOCKER_TARGETS])])
 ])
 
 
+
+dnl autoconf < 2.63 compatibility
+# m4_escape(STRING)
+m4_ifndef([m4_escape], 
+ m4_define([m4_escape],
+   [m4_if(m4_index(m4_translit([$1],
+   [[]#,()]]m4_dquote(m4_defn([m4_cr_symbols2]))[, [$$$]), [$]),
+   [-1], [m4_echo], [_$0])([$1])]))
+
+m4_ifndef([_m4_escape], 
+ m4_define([_m4_escape],
+ [m4_changequote([-=<{(],[)}>=-])]dnl
+ [m4_bpatsubst(m4_bpatsubst(m4_bpatsubst(m4_bpatsubst(
+          -=<{(-=<{(-=<{(-=<{(-=<{($1)}>=-)}>=-)}>=-)}>=-)}>=-,
+        -=<{(#)}>=-, -=<{(@%:@)}>=-),
+      -=<{(\[)}>=-, -=<{(@<:@)}>=-),
+    -=<{(\])}>=-, -=<{(@:>@)}>=-),
+  -=<{(\$)}>=-, -=<{(@S|@)}>=-)m4_changequote([,])]))
 
 
 AC_DEFUN([DK_WRITE_DSHELLFILE],[

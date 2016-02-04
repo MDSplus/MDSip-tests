@@ -19,7 +19,8 @@ AC_INIT([MdsPlus MDSipTest],[MDSipTest_major_version.MDSipTest_minor_version],[a
 AC_CONFIG_AUX_DIR([conf])
 AC_CONFIG_SRCDIR([Common.am])
 AC_CONFIG_HEADERS([config.h])
-# AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([m4])
+
 
 dnl docker helpers
 DK_SET_DOCKER_BUILD
