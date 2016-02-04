@@ -14,8 +14,10 @@ m4_define([MDSipTest_minor_version], [0])
 ##	  [m4_if(m4_eval(IB_minor_version % 2), [1], [yes])])
 
 
+
 ########### INIT #######################################
 AC_INIT([MdsPlus MDSipTest],[MDSipTest_major_version.MDSipTest_minor_version],[andrea.rigoni@igi.cnr.it])
+
 AC_CONFIG_AUX_DIR([conf])
 AC_CONFIG_SRCDIR([Common.am])
 AC_CONFIG_HEADERS([config.h])
@@ -146,8 +148,14 @@ fi
 AM_CONDITIONAL(USE_VALGRIND, test x"$use_valgrind" = "xyes")
 
 
+
+
+
+
 # Check for presence of pdfLaTeX
-AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)
+AS_VAR_SET_IF([PDFLATEX],
+              [],
+              [AC_CHECK_PROG(PDFLATEX, pdflatex, pdflatex)])
 if test -z "$PDFLATEX"; then
   AC_MSG_WARN([Unable to create PDF report.])
 fi

@@ -5,13 +5,19 @@ PKG = fetamont.zip \
       fontaxes.zip \
       mweights.zip \
       pgfplots.tds.zip \
-      roboto.tds.zip
+      roboto.tds.zip \
+      ifxetex.tds.zip \
+      oberdiek.tds.zip \
+      koma-script.tds.zip
 
 PKG_URL = http://mirrors.ctan.org/fonts/fetamont.zip \
           http://mirrors.ctan.org/macros/latex/contrib/fontaxes.zip \
           http://mirrors.ctan.org/macros/latex/contrib/mweights.zip \
           http://mirrors.ctan.org/install/graphics/pgf/contrib/pgfplots.tds.zip \
-          http://mirrors.ctan.org/install/fonts/roboto.tds.zip
+          http://mirrors.ctan.org/install/fonts/roboto.tds.zip \
+          http://mirrors.ctan.org/install/macros/generic/ifxetex.tds.zip \
+          http://mirrors.ctan.org/install/macros/latex/contrib/oberdiek.tds.zip \
+          http://mirrors.ctan.org/install/macros/latex/contrib/koma-script.tds.zip
           
 
 DISTCLEANFILES = ${PKG}
@@ -23,12 +29,10 @@ ${PKG}:
 	done
 
 define prepare_texinstall =
- unzip -o $<
+ mkdir -p ${TEXMFHOME} 
  export TEXMFHOME=${TEXMFHOME}
  export TEXMFVAR=${TEXMFHOME}
  export TEXMFCONFIG=${TEXMFCONFIG}
- cd $@
- latex -interaction nonstopmode $@.ins
 endef
 
 
@@ -36,6 +40,9 @@ endef
 fetamont: fetamont.zip
 	@ echo "fetamont"
 	${prepare_texinstall}
+	unzip -o $<	
+	cd $@
+	latex -interaction nonstopmode $@.ins	
 	mkdir -p ${TEXMFHOME}/fonts/tfm/public/fetamont
 	install tfm/* ${TEXMFHOME}/fonts/tfm/public/fetamont
 	mkdir -p ${TEXMFHOME}/fonts/afm/public/fetamont
@@ -54,6 +61,9 @@ fetamont: fetamont.zip
 fontaxes: fontaxes.zip
 	@ echo "fontaxes"
 	eval ${prepare_texinstall}
+	unzip -o $<	
+	cd $@
+	latex -interaction nonstopmode $@.ins	
 	mkdir -p ${TEXMFHOME}/tex/latex/fontaxes
 	install fontaxes.sty ${TEXMFHOME}/tex/latex/fontaxes
 	
@@ -73,16 +83,42 @@ pgfplots: pgfplots.tds.zip
 .PHONY: roboto
 roboto: roboto.tds.zip
 	@ echo "roboto"
-	mkdir -p ${TEXMFHOME}
+	${prepare_texinstall}	
 	cd ${TEXMFHOME}
 	unzip -o ../$<
 	updmap --enable Map roboto.map
 	updmap
+
+# ifxetex.sty
+.PHONY: ifxetex
+ifxetex: ifxetex.tds.zip
+	@ echo "ifxetex"
+	${prepare_texinstall}	
+	cd ${TEXMFHOME}
+	unzip -o ../$<
+
+
+# ifluatex.sty
+.PHONY: oberdiek
+oberdiek: oberdiek.tds.zip
+	@ echo "oberdiek"
+	${prepare_texinstall}	
+	cd ${TEXMFHOME}
+	unzip -o ../$<
+	
+.PHONY: oberdiek
+koma-script: koma-script.tds.zip
+	@ echo "oberdiek"
+	${prepare_texinstall}	
+	cd ${TEXMFHOME}
+	unzip -o ../$<
+
+
 	
 CLEANFILES += texfm.stamp
 texfm.stamp: 
 	@ echo "Making latex packages"
-	$(MAKE) -k fetamont fontaxes mweights pgfplots roboto
+	$(MAKE) -k fetamont fontaxes mweights pgfplots roboto ifxetex oberdiek koma-script
 	touch $@
 
 
