@@ -11,8 +11,16 @@ BUILDDIR=${BUILDDIR:=$(pwd)}
 SPOOLDIR=${SPOOLDIR:=$(pwd)/spool}
 
 MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local}
-PORT=8000
+export TARGET_PORT=${TARGET_PORT:=8000}
 
+DIALOG=dialog
+
+MDSIP=${MDSIP}
+if [ -z "${MDSIP}" ]; then
+[ -x ${MDSPLUS_DIR}/bin/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin/mdsip
+[ -x ${MDSPLUS_DIR}/bin32/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin32/mdsip
+[ -x ${MDSPLUS_DIR}/bin64/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin64/mdsip
+fi
 
 print_help() {
 cat << EOF
@@ -49,7 +57,7 @@ while [[ "$1" == -* ]] ; do
                         shift
                         ;;
                 -p|--port)
-                        PORT=$2
+			TARGET_PORT=$2
                         shift 2
                         ;;
                 -m|--mdsplus)
@@ -97,9 +105,9 @@ function set_path() {
 
 function start() {
   eval set_path
-  ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${SPOOLDIR}/tcp.log &
+  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${SPOOLDIR}/tcp.log &
   echo "$!" > ${SPOOLDIR}/run/tcp.pid && echo "mdsip TCP server started"
-  ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${SPOOLDIR}/udt.log &
+  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${SPOOLDIR}/udt.log &
   echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
 }
 
@@ -129,9 +137,9 @@ service mdsip_tcp
         flags            = KEEPALIVE NODELAY NOLIBWRAP
 
         user             = ${USER}
-        port             = ${PORT}
+	port             = ${TARGET_PORT}
         server           = ${SPOOLDIR}/mdsipd
-        server_args      = ${PORT} tcp ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
+	server_args      = ${TARGET_PORT} tcp ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
 }
 
 # Currently UDT is not supported in xinetd connection #
@@ -144,9 +152,9 @@ service mdsip_tcp
 #        type             = UNLISTED
 
 #        user             = ${USER}
-#        port             = ${PORT}
+#        port             = ${TARGET_PORT}
 #        server           = ${SPOOLDIR}/mdsipd
-#        server_args      = ${PORT} udt ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
+#        server_args      = ${TARGET_PORT} udt ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
 # }
 "
 
@@ -179,7 +187,7 @@ MDSIP_HOSTS="
 
 MDSIPD_SCRIPT="#!/bin/sh
 source $MDSPLUS_DIR/setup.sh
-exec   $MDSPLUS_DIR/bin/mdsip -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
+exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
 "
 
 
@@ -194,7 +202,7 @@ function xinetd() {
   mkdir -p ${SPOOLDIR}/log
   
   # UDT session
-  ${MDSPLUS_DIR}/bin/mdsip -p ${PORT} -P udt -m -h ${SPOOLDIR}/mdsip.hosts \
+  ${MDSIP} -p ${TARGET_PORT} -P udt -m -h ${SPOOLDIR}/mdsip.hosts \
     >> ${SPOOLDIR}/log/udt.access 2>>${SPOOLDIR}/log/udt.errors &
    echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
   
@@ -230,8 +238,64 @@ function clean() {
 
 
 # ///////////////////////////////////////////////////////////////////////////
+# /// GUI    ////////////////////////////////////////////////////////////////
+# ///////////////////////////////////////////////////////////////////////////
+
+BACKTITLE=" MDSip throughput tests - Server configuration "
+DIALOG=dialog
+
+# SELECT PORT #
+function gui_select_port() {
+VALUES=$(${DIALOG} --ok-label "Submit" \
+	  --backtitle "${BACKTITLE}" \
+	  --title "Server port selection" \
+	  --form "\nSelect tests default server port \n " 15 50 0 \
+	  "Port:"     2 1	"$TARGET_PORT" 	2 10 20 0 \
+3>&1 1>&2 2>&3)
+opt=$?
+
+if [ $opt = 0 ]; then
+ export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
+fi
+eval gui_main Start
+}
+
+IS_SERVER_RUNNING=
+
+# MAIN #
+function gui_main() {
+[ -n "$1" ] && DEF_ITEM="--default-item $1"
+VALUES=$(${DIALOG} --cancel-label "Exit" \
+	  --backtitle "${BACKTITLE}" --title "Main Menu" \
+	  ${DEF_ITEM} \
+	  --menu "\n\
+Navigate options using [UP] [DOWN],[Enter] to Select items.\
+The current selected connection port is ${TARGET_PORT}\n \
+\n ${IS_SERVER_RUNNING} \n \
+	  \n " \
+	  18 50 5 \
+	  Target      "Select ports " \
+	  Start       "Start serer daemons " \
+	  Stop        "Stop server daemons " \
+3>&1 1>&2 2>&3)
+opt=$?
+
+if [ $opt = 0 ]; then
+ case ${VALUES} in
+  Target) gui_select_port;;
+  Start)  eval start; IS_SERVER_RUNNING="[Server running]"; eval gui_main Stop;;
+  Stop)   eval stop;  IS_SERVER_RUNNING=""; eval gui_main Start;;
+  *) gui_main;;
+ esac
+fi
+clear
+}
+
+function gui() { eval gui_main; }
+
+# ///////////////////////////////////////////////////////////////////////////
 # /// execute commands   ////////////////////////////////////////////////////
 # ///////////////////////////////////////////////////////////////////////////
 
 eval $1 ${@:2}
-exit
+

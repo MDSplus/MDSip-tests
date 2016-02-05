@@ -2,8 +2,8 @@
 BACKTITLE=" MDSip throughput tests "
 DIALOG=dialog
 
-export TARGET_HOST=${TARGET_HOST:=rat}
-export TARGET_PORT=${TARGET_PORT:=8100}
+export TARGET_HOST=${TARGET_HOST:=localhost}
+export TARGET_PORT=${TARGET_PORT:=8000}
 export PROTOCOL=${PROTOCOL:=tcp}
 
 
