@@ -29,3 +29,8 @@ reports: all
 	@$(MAKE) -C reports all
 
 
+mdsplus:
+	@echo "Building mdsplus submodule"
+if BUILD_MDSPLUS
+	@$(MAKE) -C mdsplus all
+endif

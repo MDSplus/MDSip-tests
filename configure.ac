@@ -94,13 +94,13 @@ AS_VAR_SET_IF([with_mdsplus_dir],
 AC_SUBST(MDSPLUS_DIR)
 
 
-dnl AC_ARG_ENABLE([mdsplus-build],
-dnl              [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])
-              
-dnl AS_VAR_SET_IF([enable_mdsplus_build],
-dnl              [git submodule init;
-dnl AC_CONFIG_SUBDIRS([mdsplus])
-
+AC_ARG_ENABLE([mdsplus-build],
+              [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])              
+AS_VAR_SET_IF([enable_mdsplus_build],[
+               source ${srcdir}/conf/update_submodules.sh
+               AC_CONFIG_SUBDIRS([mdsplus])
+              ])
+AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
 
 ########## CONDITIONALS ##################################
 
