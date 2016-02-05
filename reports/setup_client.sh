@@ -41,7 +41,7 @@ eval main ConfigTests
 
 function config_tests() {
 VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
-		   --ok-button "Edit config" --cancel-button "Finish" \
+		   --ok-label "Edit config" --cancel-label "Finish" \
 		   --title "Tests selection" --menu \
 		   "Choose test to edit configuration" 15 60 4 \
 		   "segment_size" "${segment_size_desc}" \
@@ -65,7 +65,7 @@ fi
 # /////////////////////////////////////////////////////////////////////////// #
 
 function select_target() {
-VALUES=$(${DIALOG} --ok-button "Submit" \
+VALUES=$(${DIALOG} --ok-label "Submit" \
 	  --backtitle "${BACKTITLE}" \
 	  --title "Target selection" \
 	  --form "\nSelect tests default target host/port \n " 15 50 0 \
@@ -93,7 +93,7 @@ eval main SelectTests
 
 function main() {
 [ -n "$1" ] && DEF_ITEM="--default-item $1"
-VALUES=$(${DIALOG} --cancel-button "Exit" \
+VALUES=$(${DIALOG} --cancel-label "Exit" \
 	  --backtitle "${BACKTITLE}" --title "Main Menu" \
 	  ${DEF_ITEM} \
 	  --menu "\n\
