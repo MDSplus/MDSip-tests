@@ -29,6 +29,7 @@ TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  "speed_trend"  "${speed_trend_desc}"  ON \
 		  3>&1 1>&2 2>&3)
 exitstatus=$?
+TESTS=$(echo "${TESTS}" | sed -e 's/"//g') # remove quotes
 eval main ConfigTests
 }
 
