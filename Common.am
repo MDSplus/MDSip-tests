@@ -15,13 +15,21 @@ OPEN_MP =
 endif
 
 
+
 if BUILD_MDSPLUS
-export LD_LIBRARY_PATH = $(abs_top_builddir)/mdsplus/lib64
-export MDSPLUS_DIR     = $(abs_top_builddir)/mdsplus
-export MDS_PATH        = $(abs_top_srcdir)/mdsplus/tdi
+ export LD_LIBRARY_PATH = $(abs_top_builddir)/mdsplus/lib64
+ export MDSPLUS_DIR     = $(abs_top_builddir)/mdsplus
+ export MDS_PATH        = $(abs_top_srcdir)/mdsplus/tdi
+ MDS_SOURCEPATH = $(abs_top_srcdir)/mdsplus
+ MDS_BUILDPATH  = $(abs_top_builddir)/mdsplus
+ MDS_LIBPATH    = $(abs_top_builddir)/mdsplus/lib64
+else
+ MDS_SOURCEPATH = ${MDSPLUS_DIR}
+ MDS_BUILDPATH  = ${MDSPLUS_DIR}
+ MDS_LIBPATH    = ${MDSPLUS_DIR}/lib
 endif
 
-MDSPLUS_INCLUDES = -I${MDS_PATH}/../include
+MDSPLUS_INCLUDES = -I${MDS_SOURCEPATH}/include
 MDSPLUS_LIBS = -lMdsObjectsCppShr -lMdsShr -lTreeShr -lTdiShr -lMdsIpShr \
                -lstdc++ -lpthread -lm
 
@@ -30,8 +38,8 @@ MDSIPTEST_INCLUDES = -I$(top_srcdir) -I$(top_srcdir)/src
 
 AM_CFLAGS   =  $(OPT) $(MDSPLUS_INCLUDES) $(MDSIPTEST_INCLUDES) $(OPEN_MP)
 AM_CXXFLAGS =  $(OPT) $(MDSPLUS_INCLUDES) $(MDSIPTEST_INCLUDES) $(OPEN_MP)
-AM_LDFLAGS  =  $(OPT_LD) -L${MDSPLUS_DIR}/lib
-AM_LIBS     =  $(MDSPLUS_LIBS)
+AM_LDFLAGS  =  $(OPT_LD) -L${MDS_LIBPATH}
+AM_LIBS     =  $(MDSPLUS_LIBS) -L${MDS_LIBPATH}
 
 
 AM_DEFAULT_SOURCE_EXT = .cpp

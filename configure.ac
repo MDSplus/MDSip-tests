@@ -102,7 +102,8 @@ AC_SUBST(MDSPLUS_DIR)
 AC_ARG_ENABLE([mdsplus-build],
               [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])              
 AS_VAR_SET_IF([enable_mdsplus_build],[
-               source ${srcdir}/conf/update_submodules.sh
+               echo "ENABLE SUBMODULE MDSPLUS"
+               pushd ${srcdir}; source ./conf/update_submodules.sh; popd
 	       autoreconf -fi ${srcdir}/mdsplus -I ${srcdir}/mdsplus/m4
                AC_CONFIG_SUBDIRS([mdsplus])
               ])

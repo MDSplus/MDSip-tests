@@ -1,4 +1,9 @@
-SUBDIRS = src . recipes
+SUBDIRS =
+if BUILD_MDSPLUS
+SUBDIRS += mdsplus
+endif
+SUBDIRS += src . recipes
+
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -37,7 +42,6 @@ if BUILD_MDSPLUS
 endif
 
 
-all-local: mdsplus
 
 .PHONY: setup-client setup-server
 setup-client: reports-gui
