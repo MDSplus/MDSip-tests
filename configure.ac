@@ -104,7 +104,7 @@ AC_ARG_ENABLE([mdsplus-build],
 AS_VAR_SET_IF([enable_mdsplus_build],[
                echo "ENABLE SUBMODULE MDSPLUS"
                pushd ${srcdir}; source ./conf/update_submodules.sh; popd
-	       autoreconf -fi ${srcdir}/mdsplus -I ${srcdir}/mdsplus/m4
+	       pushd ${srcdir}/mdsplus; source ./bootstrap; popd
                AC_CONFIG_SUBDIRS([mdsplus])
               ])
 AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
