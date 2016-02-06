@@ -85,6 +85,11 @@ PKG_CHECK_MODULES([CHECK], [check], [have_check=yes], [have_check=no])
 AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 
 
+
+# ///////////////////////////////////////////////////////////////////////////////////////////////// #
+# /////  MDSPLUS  ///////////////////////////////////////////////////////////////////////////////// #
+# ///////////////////////////////////////////////////////////////////////////////////////////////// #
+
 AC_ARG_WITH([mdsplus-dir],
             [AS_HELP_STRING([--with-mdsplus-dir],[specify mdsplus directory])],[],
             [AS_VAR_SET_IF([MDSPLUS_DIR],[AS_VAR_SET([with_mdsplus_dir], ["${MDSPLUS_DIR}"])])])
@@ -94,12 +99,16 @@ AS_VAR_SET_IF([with_mdsplus_dir],
 AC_SUBST(MDSPLUS_DIR)
 
 
-dnl AC_ARG_ENABLE([mdsplus-build],
-dnl              [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])
-              
-dnl AS_VAR_SET_IF([enable_mdsplus_build],
-dnl              [git submodule init;
-dnl AC_CONFIG_SUBDIRS([mdsplus])
+AC_ARG_ENABLE([mdsplus-build],
+              [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])              
+AS_VAR_SET_IF([enable_mdsplus_build],[
+               echo "ENABLE SUBMODULE MDSPLUS"
+               pushd ${srcdir}; source ./conf/update_submodules.sh; popd
+	       autoreconf -fi ${srcdir}/mdsplus -I ${srcdir}/mdsplus/m4
+               AC_CONFIG_SUBDIRS([mdsplus])
+              ])
+AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
+
 
 
 ########## CONDITIONALS ##################################

@@ -1,4 +1,9 @@
-SUBDIRS = src . recipes
+SUBDIRS =
+if BUILD_MDSPLUS
+SUBDIRS += mdsplus
+endif
+SUBDIRS += src . recipes
+
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -28,4 +33,18 @@ reports: all
 	@echo "Entering report execution"
 	@$(MAKE) -C reports all
 
+
+.PHONY: mdsplus
+mdsplus:
+	@echo "Building mdsplus submodule"
+if BUILD_MDSPLUS
+	@$(MAKE) -C mdsplus all
+endif
+
+
+
+.PHONY: setup-client setup-server
+setup-client: reports-gui
+setup-server:
+	$(abs_top_srcdir)/reports/setup_server.sh gui_main ||:
 
