@@ -100,33 +100,74 @@ AS_VAR_SET_IF([enable_mdsplus_build],[
                AC_CONFIG_SUBDIRS([mdsplus])
               ])
 AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
-AS_VAR_IF([enable_mdsplus_build],[yes],AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus))
+AS_VAR_IF([enable_mdsplus_build],[yes],
+          # mdsplus_build enabled.           
+          # A version of mdsplus alpha should be cloned in ${srcdir}/mdsplus
+          # directory, we will need to set all env manually no library search
+          # is possible now as mdsplus is not compiled yet. We are going to
+          # clone the latest alpha so the streaming feature will already be
+          # present int the code and we don't need to check for that.          
+          [
+           AS_VAR_SET([have_mdsplus],[yes])
+           AS_VAR_SET([have_streaming],[yes])
+           AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus)
+           AS_VAR_SET([MDS_SRCDIR],${srcdir}/mdsplus)
+           AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
+           AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
+           AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin64)
+           AS_VAR_SET([MDS_CPPFLAGS],"-I${MDS_SRCDIR}/include")
+           AS_VAR_SET([MDS_LDFLAGS],"-L${MDS_LIBDIR}")
+           _jars="\
+                  javascope/jScope.jar \
+                  javascope/WaveDisaply.jar \
+                  mdsobjects/java/mdsobjects.jar \
+                  javatraverser/DeviceBeans.jar \
+                  javatraverser/jTraverser.jar \
+                  javadevices/jDevices.jar \
+                  javadispatcher/jDispatcher.jar \
+                 "           
+                 for j in ${_jars}; do
+                   AS_VAR_SET_IF([mdsplus_classpath],
+                                 [AS_VAR_SET([mdsplus_classpath],"${MDSPLUS_DIR}/${j}:${mdsplus_classpath}")],
+                                 [AS_VAR_SET([mdsplus_classpath],"${MDSPLUS_DIR}/${j}")])
+                 done
+                 AC_SUBST(MDS_CLASSPATH,"${mdsplus_classpath}")
+          ],
+          
+          # mdsplus_build disabled.           
+          # We will look if a mdsplus is installed looking for the MDSPLUS_DIR
+          # env variable or the --with-mdsplus-dir argument.          
+          [
+           # defines: have_mdsplus MDS_CPPFLAGS MDS_LDFLAGS MDSPLUS_DIR 
+           #          MDS_SRCDIR MDS_BUILDDIR MDS_LIBDIR MDS_BINDIR MDS_PATH
+           AC_SEARCH_MDSPLUS([MDS])           
+           # defines: MDS_CLASSPATH
+           AC_SEARCH_MDSPLUS_JAVA([MDS])
+           # search streaming feature in mdsplus (FINIRE)
+           AC_CHECK_MDSPLUS_LIB([MdsObjectsCppShr],[registerListener],
+                                [AS_VAR_SET([have_streaming],[yes])],
+                                [
+                                 AS_VAR_SET([have_streaming],[no])
+                                 AC_MSG_WARN([The selected mdsplus version does not support streaming])
+                                ])
+          ])
 
-# defines: MDS_CPPFLAGS MDS_LDFLAGS MDSPLUS_DIR have_mdsplus mdsplus_srcdir mdsplus_builddir
-AC_SEARCH_MDSPLUS([MDS])
 AM_CONDITIONAL([HAVE_MDSPLUS], test x"${have_mdsplus}" = x"yes")
+AM_CONDITIONAL([HAVE_MDSPLUS_STREAMING], test x"${have_streaming}" = x"yes")
 
-AS_VAR_IF([have_mdsplus],[yes],[
-  AS_VAR_SET([MDS_SRCDIR],${mdsplus_srcdir})
-  AS_VAR_SET([MDS_BUILDDIR],${mdsplus_builddir})
-  AS_VAR_SET([MDS_LIBDIR],${mdsplus_libdir})
-  AS_VAR_SET([MDS_BINDIR],${mdsplus_bindir})
-  ])
+AC_SUBST([MDSPLUS_DIR])
+AC_SUBST([MDS_CPPFLAGS])
+AC_SUBST([MDS_LDFLAGS])
 AC_SUBST([MDS_SRCDIR])
 AC_SUBST([MDS_BUILDDIR])
 AC_SUBST([MDS_LIBDIR])
 AC_SUBST([MDS_BINDIR])
+AC_SUBST([MDS_PATH])
 
 # debug
 AS_ECHO(["MDS_SRCDIR   = ${MDS_SRCDIR}"])
-AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])
-
-# defines: MDS_CLASSPATH
-AC_SEARCH_MDSPLUS_JAVA([MDS])
-
-# debug
-AS_ECHO(["MDS_CLASSPATH   = ${MDS_CLASSPATH}"])
-
+AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])          
+AS_ECHO(["MDS_CLASSPATH = ${MDS_CLASSPATH}"])          
 
 
 

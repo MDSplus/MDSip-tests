@@ -141,10 +141,18 @@ speed_spread.pdf:
 	 cp -a $(builddir)/speed_spread/$@ $@
 
 .PHONY: jscope_streamtest
+
 jscope_streamtest:
+if HAVE_MDSPLUS_STREAMING
 	@echo "Making sreaming test example "
 	@$(MAKE) -k -C jscope_streamtest $@;
-	
+else	
+	@ \
+	 echo " Streaming is not supported by the installed mdsplus version "; \
+	 read -p "Press any key to continue... " -n1 -s;
+endif
+
+
 
 segment_size: segment_size.pdf
 speed_spread: speed_spread.pdf
