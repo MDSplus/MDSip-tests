@@ -24,21 +24,21 @@ libMDSipTest_la_LIBADD  = $(AM_LIBS) ${CONLIBS}
 
 .PHONY: reports_gui
 reports-gui: all 
-	@echo "Entering interactive report execution"
-	@$(MAKE) -C reports setup
-
+	@ echo "Entering interactive report execution"
+	@ $(MAKE) -C reports setup-client
 
 .PHONY: reports
 reports: all
-	@echo "Entering report execution"
-	@$(MAKE) -C reports all
+	@ echo "Entering report execution"
+	@ $(MAKE) -C reports all
+
 
 
 .PHONY: mdsplus
 mdsplus:
-	@echo "Building mdsplus submodule"
+	@ echo "Building mdsplus submodule"
 if BUILD_MDSPLUS
-	@$(MAKE) -C mdsplus all
+	@ $(MAKE) -C mdsplus all
 endif
 
 
@@ -46,5 +46,5 @@ endif
 .PHONY: setup-client setup-server
 setup-client: reports-gui
 setup-server:
-	$(abs_top_srcdir)/reports/setup_server.sh gui_main ||:
-
+	@ echo "Entering interactive server execution"	
+	@ $(MAKE) -C reports setup-server

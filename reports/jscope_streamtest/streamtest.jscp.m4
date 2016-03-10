@@ -1,22 +1,22 @@
-Scope.geometry: 750x550+704+194
+Scope.geometry: 860x664+100+100
 Scope.update.disable: false
 Scope.update.disable_when_icon: true
-Scope.font: java.awt.Font[family=Dialog,name=Dialog,style=plain,size=14]
+Scope.font: java.awt.Font[[family=Dialog,name=Dialog,style=plain,size=14]]
 
 
-Scope.color_0: Black,java.awt.Color[r=0,g=0,b=0]
-Scope.color_1: Blue,java.awt.Color[r=0,g=0,b=255]
-Scope.color_2: Cyan,java.awt.Color[r=0,g=255,b=255]
-Scope.color_3: Green,java.awt.Color[r=0,g=255,b=0]
-Scope.color_4: Magenta,java.awt.Color[r=255,g=0,b=255]
-Scope.color_5: Orange,java.awt.Color[r=255,g=200,b=0]
-Scope.color_6: Pink,java.awt.Color[r=255,g=175,b=175]
-Scope.color_7: Red,java.awt.Color[r=255,g=0,b=0]
-Scope.color_8: Yellow,java.awt.Color[r=255,g=255,b=0]
+Scope.color_0: Black,java.awt.Color[[r=0,g=0,b=0]]
+Scope.color_1: Blue,java.awt.Color[[r=0,g=0,b=255]]
+Scope.color_2: Cyan,java.awt.Color[[r=0,g=255,b=255]]
+Scope.color_3: Green,java.awt.Color[[r=0,g=255,b=0]]
+Scope.color_4: Magenta,java.awt.Color[[r=255,g=0,b=255]]
+Scope.color_5: Orange,java.awt.Color[[r=255,g=200,b=0]]
+Scope.color_6: Pink,java.awt.Color[[r=255,g=175,b=175]]
+Scope.color_7: Red,java.awt.Color[[r=255,g=0,b=0]]
+Scope.color_8: Yellow,java.awt.Color[[r=255,g=255,b=0]]
 
-Scope.data_server_name: localhost Streaming
+Scope.data_server_name: _TARGET_HOST_ Streaming TCP _TARGET_PORT_
 Scope.data_server_class: MDSplus.MdsStreamingDataProvider
-Scope.data_server_argument: localhost
+Scope.data_server_argument: _TARGET_HOST_:_TARGET_PORT_
 Scope.fast_network_access: false
 Scope.reversed: false
 

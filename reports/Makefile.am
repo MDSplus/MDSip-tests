@@ -1,4 +1,4 @@
-SUBDIRS = segment_size speed_spread speed_trend
+SUBDIRS = segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile
 include $(top_srcdir)/Common.am
 
 TARGET_HOST    ?= localhost
@@ -14,11 +14,11 @@ export TARGET_SPOOL
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
-setup:
+setup-client:
 	. $(srcdir)/setup_client.sh
 
-server-setup:
-	. $(srcdir)/setup_server.sh
+setup-server:
+	. $(srcdir)/setup_server.sh gui_main ||:
 
 
 
@@ -141,7 +141,6 @@ speed_spread.pdf:
 	 cp -a $(builddir)/speed_spread/$@ $@
 
 .PHONY: jscope_streamtest
-
 jscope_streamtest:
 if HAVE_MDSPLUS_STREAMING
 	@echo "Making sreaming test example "
@@ -151,6 +150,11 @@ else
 	 echo " Streaming is not supported by the installed mdsplus version "; \
 	 read -p "Press any key to continue... " -n1 -s;
 endif
+
+.PHONY: jscope_hugefile
+jscope_hugefile:
+	@echo "Making hugefile view example "
+	@$(MAKE) -k -C jscope_hugefile $@;
 
 
 

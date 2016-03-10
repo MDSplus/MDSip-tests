@@ -11,6 +11,7 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
+m4/m4_ac_search_mdsplus.m4
 m4/m4_ax_mdsplus_dockerbuild.m4
 m4/m4_ax_missing_m4_escape.m4
 m4/openmp.m4
@@ -86,6 +87,7 @@ mdsplus/ccl/ccl_commands.c
 mdsplus/ccl/ccl_verbs.c
 mdsplus/ccl/Makefile.in
 mdsplus/d3dshr/Makefile.in
+mdsplus/deploy/build_windows_mdsplus
 mdsplus/deploy/deploy.py
 mdsplus/deploy/macosx.py
 mdsplus/deploy/packaging.xml
@@ -895,7 +897,6 @@ mdsplus/mdsobjects/cpp/testing/MdsScalarTest_NumericConversion.cpp
 mdsplus/mdsobjects/cpp/testing/MdsScalarTest_NumericLimits.cpp
 mdsplus/mdsobjects/cpp/testing/MdsScalarTest_ScalarCast.cpp
 mdsplus/mdsobjects/cpp/testing/MdsSignalTest.cpp
-mdsplus/mdsobjects/cpp/testing/MdsStreamTest.cpp
 mdsplus/mdsobjects/cpp/testing/MdsStringTest.cpp
 mdsplus/mdsobjects/cpp/testing/MdsTreeNodeTest.cpp
 mdsplus/mdsobjects/cpp/testing/MdsTreeSuppression.cpp
@@ -3417,9 +3418,11 @@ recipes/PerfTestThreads.cpp
 recipes/SegmentContent.cpp
 recipes/SegmentSize.cpp
 recipes/SpeedDistribution.cpp
+reports/jscope_hugefile/Makefile.am
 reports/jscope_streamtest/Makefile.am
 reports/jscope_streamtest/Makefile.in
-reports/jscope_streamtest/streamtest.jscp
+reports/jscope_streamtest/streamtest.jscp.m4
+reports/jscope_streamtest/test.conf.in
 reports/jscope_streamtest/write_stream.cpp
 reports/segment_size/Makefile.am
 reports/segment_size/Makefile.in
@@ -3503,5 +3506,7 @@ Makefile.in
 MakeSegmentRange.fun
 README.md
 test.xml
-m4/m4_ac_search_mdsplus.m4
-reports/jscope_streamtest/test.conf.in
+reports/jscope_hugefile/test.conf.in
+reports/jscope_hugefile/write_huge.cpp
+reports/jscope_hugefile/huge_tcp.jscp.m4
+reports/jscope_hugefile/huge_udt.jscp.m4

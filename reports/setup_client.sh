@@ -9,12 +9,13 @@ export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 PROTOCOL=${PROTOCOL:=tcp}
 SPOOLDIR=${TARGET_SPOOL}
 
-TESTS="segment_size speed_spread speed_trend jscope_streamtest"
+TESTS="segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile"
 
 segment_size_desc=" TCP/UDT Throughput vs segment size "
 speed_spread_desc=" Bandwidth distribution "
 speed_trend_desc=" Throughput time trend "
 jscope_streamtest_desc=" Test streaming singnal example "
+jscope_hugefile_desc=" Test streaming singnal example "
 
 
 # /////////////////////////////////////////////////////////////////////////// #
@@ -25,11 +26,12 @@ jscope_streamtest_desc=" Test streaming singnal example "
 function select_tests() {
 TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  --title "Tests selection" --checklist \
-		  "Choose preferred tests to be launched" 15 60 4 \
+		  "Choose preferred tests to be launched" 15 60 5 \
 		  "segment_size" "${segment_size_desc}" ON \
 		  "speed_spread" "${speed_spread_desc}" ON \
 		  "speed_trend"  "${speed_trend_desc}"  ON \
 		  "jscope_streamtest" "${jscope_streamtest_desc}" ON \
+		  "jscope_hugefile" "${jscope_hugefile_desc}" ON \
 		  3>&1 1>&2 2>&3)
 exitstatus=$?
 TESTS=$(echo "${TESTS}" | sed -e 's/"//g') # remove quotes
@@ -47,11 +49,12 @@ function config_tests() {
 VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		   --ok-label "Edit config" --cancel-label "Finish" \
 		   --title "Tests selection" --menu \
-		   "Choose test to edit configuration" 15 60 4 \
+		   "Choose test to edit configuration" 15 60 5 \
 		   "segment_size" "${segment_size_desc}" \
 		   "speed_spread" "${speed_spread_desc}" \
 		   "speed_trend"  "${speed_trend_desc}"  \
 		   "jscope_streamtest"  "${jscope_streamtest_desc}"  \
+		   "jscope_hugefile" "${jscope_hugefile_desc}" \
 		   3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then

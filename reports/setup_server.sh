@@ -108,6 +108,8 @@ function set_path() {
    export speed_spread_path=${TARGET_SPOOL}
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
+   export huge_path=${TARGET_SPOOL}
+   make -C jscope_hugefile do_write_huge
 }
 
 
