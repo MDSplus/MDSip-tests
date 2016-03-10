@@ -4,15 +4,17 @@ DIALOG=dialog
 
 export TARGET_HOST=${TARGET_HOST:=localhost}
 export TARGET_PORT=${TARGET_PORT:=8000}
-export PROTOCOL=${PROTOCOL:=tcp}
+export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
+PROTOCOL=${PROTOCOL:=tcp}
+SPOOLDIR=${TARGET_SPOOL}
 
-TESTS="segment_size speed_spread speed_trend"
+TESTS="segment_size speed_spread speed_trend jscope_streamtest"
 
 segment_size_desc=" TCP/UDT Throughput vs segment size "
 speed_spread_desc=" Bandwidth distribution "
 speed_trend_desc=" Throughput time trend "
-
+jscope_streamtest_desc=" Test streaming singnal example "
 
 
 # /////////////////////////////////////////////////////////////////////////// #
@@ -27,6 +29,7 @@ TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  "segment_size" "${segment_size_desc}" ON \
 		  "speed_spread" "${speed_spread_desc}" ON \
 		  "speed_trend"  "${speed_trend_desc}"  ON \
+		  "jscope_streamtest" "${jscope_streamtest_desc}" ON \
 		  3>&1 1>&2 2>&3)
 exitstatus=$?
 TESTS=$(echo "${TESTS}" | sed -e 's/"//g') # remove quotes
@@ -48,6 +51,7 @@ VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		   "segment_size" "${segment_size_desc}" \
 		   "speed_spread" "${speed_spread_desc}" \
 		   "speed_trend"  "${speed_trend_desc}"  \
+		   "jscope_streamtest"  "${jscope_streamtest_desc}"  \
 		   3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
@@ -72,6 +76,7 @@ VALUES=$(${DIALOG} --ok-label "Submit" \
 	  --form "\nSelect tests default target host/port \n " 15 50 0 \
 	  "Host:"     1 1	"$TARGET_HOST" 	1 10 20 0 \
 	  "Port:"     2 1	"$TARGET_PORT" 	2 10 20 0 \
+	  "Spool:"    3 1	"$TARGET_SPOOL"	3 10 20 0 \
 3>&1 1>&2 2>&3)
 opt=$?
 
@@ -79,7 +84,7 @@ if [ $opt = 0 ]; then
  # export values just entered
  export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
  export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
- export PROTOCOL=$(echo ${VALUES} | awk '{print $3}')
+ export SPOOLDIR=$(echo ${VALUES} | awk '{print $3}')
 fi
 eval main SelectTests
 }

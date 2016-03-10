@@ -4,3 +4,8 @@ src
 src/testing
 recipes
 tex
+reports
+reports/jscope_streamtest
+mdsplus/mdsobjects/cpp/testing
+mdsplus
+m4

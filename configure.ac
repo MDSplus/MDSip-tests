@@ -90,14 +90,6 @@ AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 # /////  MDSPLUS  ///////////////////////////////////////////////////////////////////////////////// #
 # ///////////////////////////////////////////////////////////////////////////////////////////////// #
 
-AC_ARG_WITH([mdsplus-dir],
-            [AS_HELP_STRING([--with-mdsplus-dir],[specify mdsplus directory])],[],
-            [AS_VAR_SET_IF([MDSPLUS_DIR],[AS_VAR_SET([with_mdsplus_dir], ["${MDSPLUS_DIR}"])])])
-AS_VAR_SET_IF([with_mdsplus_dir],              
-              [AS_VAR_SET([MDSPLUS_DIR],["${with_mdsplus_dir}"])],
-              [AS_VAR_SET([MDSPLUS_DIR],["/usr/local"])])
-AC_SUBST(MDSPLUS_DIR)
-
 
 AC_ARG_ENABLE([mdsplus-build],
               [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])              
@@ -108,6 +100,33 @@ AS_VAR_SET_IF([enable_mdsplus_build],[
                AC_CONFIG_SUBDIRS([mdsplus])
               ])
 AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
+AS_VAR_IF([enable_mdsplus_build],[yes],AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus))
+
+# defines: MDS_CPPFLAGS MDS_LDFLAGS MDSPLUS_DIR have_mdsplus mdsplus_srcdir mdsplus_builddir
+AC_SEARCH_MDSPLUS([MDS])
+AM_CONDITIONAL([HAVE_MDSPLUS], test x"${have_mdsplus}" = x"yes")
+
+AS_VAR_IF([have_mdsplus],[yes],[
+  AS_VAR_SET([MDS_SRCDIR],${mdsplus_srcdir})
+  AS_VAR_SET([MDS_BUILDDIR],${mdsplus_builddir})
+  AS_VAR_SET([MDS_LIBDIR],${mdsplus_libdir})
+  AS_VAR_SET([MDS_BINDIR],${mdsplus_bindir})
+  ])
+AC_SUBST([MDS_SRCDIR])
+AC_SUBST([MDS_BUILDDIR])
+AC_SUBST([MDS_LIBDIR])
+AC_SUBST([MDS_BINDIR])
+
+# debug
+AS_ECHO(["MDS_SRCDIR   = ${MDS_SRCDIR}"])
+AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])
+
+# defines: MDS_CLASSPATH
+AC_SEARCH_MDSPLUS_JAVA([MDS])
+
+# debug
+AS_ECHO(["MDS_CLASSPATH   = ${MDS_CLASSPATH}"])
+
 
 
 
@@ -185,7 +204,6 @@ AC_SUBST([GNUPLOT])
 
 
 
-
 # //////////////////////////////////////////////////////////////////////////// #
 # ///  CONFIG_H  ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
@@ -239,6 +257,8 @@ AC_CONFIG_FILES([
 	reports/speed_trend/test.conf
 	reports/speed_spread/Makefile
 	reports/speed_spread/test.conf
+	reports/jscope_streamtest/Makefile
+	reports/jscope_streamtest/test.conf
 	])
 AC_OUTPUT
 

@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	struct timespec waitTime;
 	struct timeval currTime;
 	waitTime.tv_sec = 0;
-	waitTime.tv_nsec = 500000000;
+	waitTime.tv_nsec = 50000000;
     try {
 		MDSplus::Tree *tree = new MDSplus::Tree("stream", -1, "NEW");
 		MDSplus::TreeNode *node = tree->addNode("STREAM_0", "SIGNAL");
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 		node = tree->getNode("STREAM_0");
 		while(true)
 		{
-			MDSplus::Float32 *floatData = new MDSplus::Float32(sin(loopCount/5.));
+			MDSplus::Float32 *floatData = new MDSplus::Float32(sin(loopCount/50.));
 			int64_t currTimeVal = 0;
 			gettimeofday(&currTime, NULL);
 			currTimeVal = currTime.tv_sec * 1000L;

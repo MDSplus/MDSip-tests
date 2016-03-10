@@ -8,10 +8,11 @@ SCRIPT_DIR=$(dirname "$0")
 
 SRCDIR=${SRCDIR:=${SCRIPT_DIR}/../}
 BUILDDIR=${BUILDDIR:=$(pwd)}
-SPOOLDIR=${SPOOLDIR:=$(pwd)/spool}
+
+export TARGET_PORT=${TARGET_PORT:=8000}
+export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
 MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local}
-export TARGET_PORT=${TARGET_PORT:=8000}
 
 DIALOG=dialog
 
@@ -22,6 +23,19 @@ if [ -z "${MDSIP}" ]; then
 [ -x ${MDSPLUS_DIR}/bin64/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin64/mdsip
 fi
 
+
+[ -d ${MDSPLUS_DIR}/lib ]   && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib
+[ -d ${MDSPLUS_DIR}/lib32 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib32
+[ -d ${MDSPLUS_DIR}/lib64 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib64
+if [ -z ${MDS_LIBRARY_PATH} ]; then
+ echo "Error locating mdsplus library path";
+ exit 1;
+fi
+
+export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
+
+
+
 print_help() {
 cat << EOF
 Usage: $SCRIPTNAME [options] [commands]
@@ -31,7 +45,7 @@ Usage: $SCRIPTNAME [options] [commands]
        -h|--help)         get this help      
        -p|--port)         set server port to be used (default=8000)
        -m|--mdsplus)      set server dir (default=/usr/local)
-       -s|--spooldir)     set spool dir to store sent data (default=<pwd>/spool)
+       -s|--spool)        set spool dir to store sent data (default=<pwd>/spool)
        -v|--verbose)      show script source script
        
        commands
@@ -86,13 +100,14 @@ MDS_PATH=${MDS_PATH:=${MDSPLUS_DIR}/tdi}
 
 
 function set_path() {
-   mkdir -p ${SPOOLDIR}
-   mkdir -p ${SPOOLDIR}/log
-   mkdir -p ${SPOOLDIR}/run
-   export test_spool_path=${SPOOLDIR}
-   export segment_size_path=${SPOOLDIR}
-   export speed_spread_path=${SPOOLDIR}
-   export speed_trend_path=${SPOOLDIR}
+   mkdir -p ${TARGET_SPOOL}
+   mkdir -p ${TARGET_SPOOL}/log
+   mkdir -p ${TARGET_SPOOL}/run
+   export test_spool_path=${TARGET_SPOOL}
+   export segment_size_path=${TARGET_SPOOL}
+   export speed_spread_path=${TARGET_SPOOL}
+   export speed_trend_path=${TARGET_SPOOL}
+   export stream_path=${TARGET_SPOOL}
 }
 
 
@@ -105,10 +120,10 @@ function set_path() {
 
 function start() {
   eval set_path
-  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${SPOOLDIR}/tcp.log &
-  echo "$!" > ${SPOOLDIR}/run/tcp.pid && echo "mdsip TCP server started"
-  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${SPOOLDIR}/udt.log &
-  echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
+  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${TARGET_SPOOL}/tcp.log &
+  echo "$!" > ${TARGET_SPOOL}/run/tcp.pid && echo "mdsip TCP server started"
+  ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${TARGET_SPOOL}/udt.log &
+  echo "$!" > ${TARGET_SPOOL}/run/udt.pid && echo "mdsip UDT server started"
 }
 
 
@@ -119,7 +134,7 @@ function start() {
 XINETD_CONF="
 defaults
 {
-        log_type                = FILE ${SPOOLDIR}/log/mdsip_xinetd.log
+        log_type                = FILE ${TARGET_SPOOL}/log/mdsip_xinetd.log
         log_on_success          = HOST PID
         log_on_failure          = HOST
 }
@@ -138,8 +153,8 @@ service mdsip_tcp
 
         user             = ${USER}
 	port             = ${TARGET_PORT}
-        server           = ${SPOOLDIR}/mdsipd
-	server_args      = ${TARGET_PORT} tcp ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
+        server           = ${TARGET_SPOOL}/mdsipd
+	server_args      = ${TARGET_PORT} tcp ${TARGET_SPOOL}/mdsip.hosts ${TARGET_SPOOL}/log
 }
 
 # Currently UDT is not supported in xinetd connection #
@@ -153,8 +168,8 @@ service mdsip_tcp
 
 #        user             = ${USER}
 #        port             = ${TARGET_PORT}
-#        server           = ${SPOOLDIR}/mdsipd
-#        server_args      = ${TARGET_PORT} udt ${SPOOLDIR}/mdsip.hosts ${SPOOLDIR}/log
+#        server           = ${TARGET_SPOOL}/mdsipd
+#        server_args      = ${TARGET_PORT} udt ${TARGET_SPOOL}/mdsip.hosts ${TARGET_SPOOL}/log
 # }
 "
 
@@ -186,7 +201,9 @@ MDSIP_HOSTS="
 "
 
 MDSIPD_SCRIPT="#!/bin/sh
-source $MDSPLUS_DIR/setup.sh
+# source $MDSPLUS_DIR/setup.sh
+export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
+export stream_path=${TARGET_SPOOL}
 exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
 "
 
@@ -194,20 +211,20 @@ exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
 
 function xinetd() {
   eval set_path
-  echo "${XINETD_CONF}" > ${SPOOLDIR}/mdsipd.xinetd
-  echo "${MDSIP_HOSTS}" > ${SPOOLDIR}/mdsip.hosts
-  echo "${MDSIPD_SCRIPT}" > ${SPOOLDIR}/mdsipd
-  chmod +x ${SPOOLDIR}/mdsipd
+  echo "${XINETD_CONF}" > ${TARGET_SPOOL}/mdsipd.xinetd
+  echo "${MDSIP_HOSTS}" > ${TARGET_SPOOL}/mdsip.hosts
+  echo "${MDSIPD_SCRIPT}" > ${TARGET_SPOOL}/mdsipd
+  chmod +x ${TARGET_SPOOL}/mdsipd
   
-  mkdir -p ${SPOOLDIR}/log
+  mkdir -p ${TARGET_SPOOL}/log
   
   # UDT session
-  ${MDSIP} -p ${TARGET_PORT} -P udt -m -h ${SPOOLDIR}/mdsip.hosts \
-    >> ${SPOOLDIR}/log/udt.access 2>>${SPOOLDIR}/log/udt.errors &
-   echo "$!" > ${SPOOLDIR}/run/udt.pid && echo "mdsip UDT server started"
+  ${MDSIP} -p ${TARGET_PORT} -P udt -m -h ${TARGET_SPOOL}/mdsip.hosts \
+    >> ${TARGET_SPOOL}/log/udt.access 2>>${TARGET_SPOOL}/log/udt.errors &
+   echo "$!" > ${TARGET_SPOOL}/run/udt.pid && echo "mdsip UDT server started"
   
   # TCP session in xinetd
-  sh -c "xinetd -f ${SPOOLDIR}/mdsipd.xinetd -pidfile ${SPOOLDIR}/run/tcp.pid" && \
+  sh -c "xinetd -f ${TARGET_SPOOL}/mdsipd.xinetd -pidfile ${TARGET_SPOOL}/run/tcp.pid" && \
    echo "mdsip TCP server started"
 }
 
@@ -220,9 +237,9 @@ function xinetd() {
 # ///////////////////////////////////////////////////////////////////////////
 
 function stop() {
-_pidf=${SPOOLDIR}/run/tcp.pid
+_pidf=${TARGET_SPOOL}/run/tcp.pid
 [ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} )
-_pidf=${SPOOLDIR}/run/udt.pid
+_pidf=${TARGET_SPOOL}/run/udt.pid
 [ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} )
 }
 
@@ -237,6 +254,8 @@ function clean() {
 
 
 
+
+
 # ///////////////////////////////////////////////////////////////////////////
 # /// GUI    ////////////////////////////////////////////////////////////////
 # ///////////////////////////////////////////////////////////////////////////
@@ -244,18 +263,19 @@ function clean() {
 BACKTITLE=" MDSip throughput tests - Server configuration "
 DIALOG=dialog
 
-# SELECT PORT #
+# SELECT PARAMS #
 function gui_select_port() {
 VALUES=$(${DIALOG} --ok-label "Submit" \
 	  --backtitle "${BACKTITLE}" \
 	  --title "Server port selection" \
 	  --form "\nSelect tests default server port \n " 15 50 0 \
-	  "Port:"     2 1	"$TARGET_PORT" 	2 10 20 0 \
+	  "Port:"     1 1	"$TARGET_PORT" 	1 10 20 0 \
+	  "Spool:"    2 1	"$TARGET_SPOOL" 	2 10 20 0 \
 3>&1 1>&2 2>&3)
 opt=$?
-
 if [ $opt = 0 ]; then
- export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
+ export TARGET_PORT=$(echo ${VALUES} | awk '{print $1}')
+ export TARGET_SPOOL=$(echo ${VALUES} | awk '{print $2}')
 fi
 eval gui_main Start
 }
@@ -283,7 +303,7 @@ opt=$?
 if [ $opt = 0 ]; then
  case ${VALUES} in
   Target) gui_select_port;;
-  Start)  eval start; IS_SERVER_RUNNING="[Server running]"; eval gui_main Stop;;
+  Start)  eval xinetd; IS_SERVER_RUNNING="[Server running]"; eval gui_main Stop;;
   Stop)   eval stop;  IS_SERVER_RUNNING=""; eval gui_main Start;;
   *) gui_main;;
  esac
