@@ -6,34 +6,17 @@ set -e
 SCRIPTNAME=$(basename "$0")
 SCRIPT_DIR=$(dirname "$0")
 
-SRCDIR=${SRCDIR:=${SCRIPT_DIR}/../}
-BUILDDIR=${BUILDDIR:=$(pwd)}
 
 export TARGET_PORT=${TARGET_PORT:=8000}
 export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
-MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local}
+MDSPLUS_DIR=@MDSPLUS_DIR@
+SRCDIR=@abs_top_srcdir@
+BUILDDIR=@abs_top_builddir@
+MDSIP=@MDS_BINDIR@/mdsip
+LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
 
 DIALOG=dialog
-
-MDSIP=${MDSIP}
-if [ -z "${MDSIP}" ]; then
-[ -x ${MDSPLUS_DIR}/bin/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin/mdsip
-[ -x ${MDSPLUS_DIR}/bin32/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin32/mdsip
-[ -x ${MDSPLUS_DIR}/bin64/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin64/mdsip
-fi
-
-
-[ -d ${MDSPLUS_DIR}/lib ]   && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib
-[ -d ${MDSPLUS_DIR}/lib32 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib32
-[ -d ${MDSPLUS_DIR}/lib64 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib64
-if [ -z ${MDS_LIBRARY_PATH} ]; then
- echo "Error locating mdsplus library path";
- exit 1;
-fi
-
-export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
-
 
 
 print_help() {
@@ -44,7 +27,6 @@ Usage: $SCRIPTNAME [options] [commands]
        -------
        -h|--help)         get this help      
        -p|--port)         set server port to be used (default=8000)
-       -m|--mdsplus)      set server dir (default=/usr/local)
        -s|--spool)        set spool dir to store sent data (default=<pwd>/spool)
        -v|--verbose)      show script source script
        
@@ -74,10 +56,6 @@ while [[ "$1" == -* ]] ; do
 			TARGET_PORT=$2
                         shift 2
                         ;;
-                -m|--mdsplus)
-                        MDSPLUS_DIR=$2
-                        shift 2
-                        ;;
                 --)
                         shift
                         break
@@ -94,9 +72,6 @@ if [ $# -lt 1 ] ; then
 fi
 
 
-## ensure mdsplusdir is set abs
-MDSPLUS_DIR=$(cd ${MDSPLUS_DIR}; pwd)
-MDS_PATH=${MDS_PATH:=${MDSPLUS_DIR}/tdi}
 
 
 function set_path() {
@@ -109,7 +84,7 @@ function set_path() {
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
    export huge_path=${TARGET_SPOOL}
-   make -C jscope_hugefile do_write_huge
+   make -C ${BUILDDIR}/jscope_hugefile do_write_huge
 }
 
 
@@ -205,7 +180,12 @@ MDSIP_HOSTS="
 MDSIPD_SCRIPT="#!/bin/sh
 # source $MDSPLUS_DIR/setup.sh
 export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
+export test_spool_path=${TARGET_SPOOL}
+export segment_size_path=${TARGET_SPOOL}
+export speed_spread_path=${TARGET_SPOOL}
+export speed_trend_path=${TARGET_SPOOL}
 export stream_path=${TARGET_SPOOL}
+export huge_path=${TARGET_SPOOL}
 exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
 "
 

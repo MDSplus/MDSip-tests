@@ -294,6 +294,7 @@ AC_CONFIG_FILES([
 	tex/img/Makefile
 	tex/packages/Makefile
 	reports/Makefile
+	reports/setup_server.sh
 	reports/segment_size/Makefile
 	reports/segment_size/test.conf
 	reports/speed_trend/Makefile
