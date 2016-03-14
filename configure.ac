@@ -110,7 +110,7 @@ AS_VAR_IF([enable_mdsplus_build],[yes],
           [
            AS_VAR_SET([have_mdsplus],[yes])
            AS_VAR_SET([have_streaming],[yes])
-           AS_VAR_SET([MDSPLUS_DIR],$(cd $(pwd)/mdsplus; pwd))
+           AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus)
            AS_VAR_SET([MDS_SRCDIR],$(cd ${srcdir}/mdsplus; pwd))
            AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
            AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
