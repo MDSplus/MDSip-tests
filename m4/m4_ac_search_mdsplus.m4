@@ -11,17 +11,22 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
               [AS_VAR_SET_IF([MDSPLUS_DIR],
                              [AS_VAR_SET([with_mdsplus_dir], ["${MDSPLUS_DIR}"])])])
   AS_VAR_SET_IF([with_mdsplus_dir],              
-                [AS_VAR_SET([MDSPLUS_DIR],$(cd ${with_mdsplus_dir};pwd))],
+                [AS_VAR_SET([MDSPLUS_DIR],${with_mdsplus_dir})],
                 [AS_VAR_SET([MDSPLUS_DIR],["/usr/local"])])
-  if test -d "${with_mdsplus_dir}" ; then
+ 
+   
+  if test -d "${MDSPLUS_DIR}" ; then
+     dnl absolute path
+     MDSPLUS_DIR = $(cd ${MDSPLUS_DIR}; pwd)
+     
      dnl // find srcdir from config.status if MDSPLUS_DIR is pointing to a builddir
      if test -f ${MDSPLUS_DIR}/config.status ; then  
       AS_VAR_SET([mdsplus_srcdir], $(echo '@abs_top_srcdir@' | ${MDSPLUS_DIR}/config.status --file=-))
      else
       AS_VAR_SET([mdsplus_srcdir], ${MDSPLUS_DIR})
      fi  
-     AS_VAR_SET([mdsplus_builddir], $(cd ${MDSPLUS_DIR}; pwd))
-     
+     AS_VAR_SET([mdsplus_builddir], ${MDSPLUS_DIR})
+
      dnl // search for all possible lib directories //
      for _dir in "" "64" "32" ; do
 

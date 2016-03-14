@@ -96,7 +96,7 @@ AC_ARG_ENABLE([mdsplus-build],
 AS_VAR_SET_IF([enable_mdsplus_build],[
                echo "ENABLE SUBMODULE MDSPLUS"
                pushd ${srcdir}; source ./conf/update_submodules.sh; popd
-	       pushd ${srcdir}/mdsplus; source ./bootstrap; popd
+	       # pushd ${srcdir}/mdsplus; source ./bootstrap; popd
                AC_CONFIG_SUBDIRS([mdsplus])
               ])
 AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
@@ -110,8 +110,8 @@ AS_VAR_IF([enable_mdsplus_build],[yes],
           [
            AS_VAR_SET([have_mdsplus],[yes])
            AS_VAR_SET([have_streaming],[yes])
-           AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus)
-           AS_VAR_SET([MDS_SRCDIR],${srcdir}/mdsplus)
+           AS_VAR_SET([MDSPLUS_DIR],$(cd $(pwd)/mdsplus; pwd))
+           AS_VAR_SET([MDS_SRCDIR],$(cd ${srcdir}/mdsplus; pwd))
            AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
            AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
            AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin64)
@@ -166,7 +166,9 @@ AC_SUBST([MDS_PATH])
 
 # debug
 AS_ECHO(["MDS_SRCDIR   = ${MDS_SRCDIR}"])
-AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])          
+AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])
+AS_ECHO(["MDS_CPPFLAGS = ${MDS_CPPFLAGS}"])
+AS_ECHO(["MDS_LDFLAGS = ${MDS_LDFLAGS}"])
 AS_ECHO(["MDS_CLASSPATH = ${MDS_CLASSPATH}"])          
 
 
