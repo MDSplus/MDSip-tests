@@ -54,7 +54,7 @@ jscope_hugefile: huge_tcp.jscp huge_udt.jscp
 # //////////////////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 # Set of m4 macro definitions to insert command and confguration in jscp files #
-# 
+# NOTE: Make 4 needed for this to work
 define M4_SUBST =
 dnl ------------------------------------------------------------------------
 dnl # change quote to a m4_sugar stile that is more friendly with sh

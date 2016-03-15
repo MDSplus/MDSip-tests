@@ -6,34 +6,18 @@ set -e
 SCRIPTNAME=$(basename "$0")
 SCRIPT_DIR=$(dirname "$0")
 
-SRCDIR=${SRCDIR:=${SCRIPT_DIR}/../}
-BUILDDIR=${BUILDDIR:=$(pwd)}
 
 export TARGET_PORT=${TARGET_PORT:=8000}
 export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
-MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local}
+MDSPLUS_DIR=@MDSPLUS_DIR@
+SRCDIR=@abs_top_srcdir@
+BUILDDIR=@abs_top_builddir@
+MDSIP=@MDS_BINDIR@/mdsip
+LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
+MDS_PATH=@MDS_SRCDIR@/tdi
 
 DIALOG=dialog
-
-MDSIP=${MDSIP}
-if [ -z "${MDSIP}" ]; then
-[ -x ${MDSPLUS_DIR}/bin/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin/mdsip
-[ -x ${MDSPLUS_DIR}/bin32/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin32/mdsip
-[ -x ${MDSPLUS_DIR}/bin64/mdsip ] && MDSIP=${MDSPLUS_DIR}/bin64/mdsip
-fi
-
-
-[ -d ${MDSPLUS_DIR}/lib ]   && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib
-[ -d ${MDSPLUS_DIR}/lib32 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib32
-[ -d ${MDSPLUS_DIR}/lib64 ] && MDS_LIBRARY_PATH=${MDSPLUS_DIR}/lib64
-if [ -z ${MDS_LIBRARY_PATH} ]; then
- echo "Error locating mdsplus library path";
- exit 1;
-fi
-
-export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
-
 
 
 print_help() {
@@ -44,7 +28,6 @@ Usage: $SCRIPTNAME [options] [commands]
        -------
        -h|--help)         get this help      
        -p|--port)         set server port to be used (default=8000)
-       -m|--mdsplus)      set server dir (default=/usr/local)
        -s|--spool)        set spool dir to store sent data (default=<pwd>/spool)
        -v|--verbose)      show script source script
        
@@ -74,10 +57,6 @@ while [[ "$1" == -* ]] ; do
 			TARGET_PORT=$2
                         shift 2
                         ;;
-                -m|--mdsplus)
-                        MDSPLUS_DIR=$2
-                        shift 2
-                        ;;
                 --)
                         shift
                         break
@@ -94,9 +73,6 @@ if [ $# -lt 1 ] ; then
 fi
 
 
-## ensure mdsplusdir is set abs
-MDSPLUS_DIR=$(cd ${MDSPLUS_DIR}; pwd)
-MDS_PATH=${MDS_PATH:=${MDSPLUS_DIR}/tdi}
 
 
 function set_path() {
@@ -109,7 +85,7 @@ function set_path() {
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
    export huge_path=${TARGET_SPOOL}
-   make -C jscope_hugefile do_write_huge
+   make -C ${BUILDDIR}/reports/jscope_hugefile do_write_huge
 }
 
 
@@ -205,7 +181,12 @@ MDSIP_HOSTS="
 MDSIPD_SCRIPT="#!/bin/sh
 # source $MDSPLUS_DIR/setup.sh
 export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
+export test_spool_path=${TARGET_SPOOL}
+export segment_size_path=${TARGET_SPOOL}
+export speed_spread_path=${TARGET_SPOOL}
+export speed_trend_path=${TARGET_SPOOL}
 export stream_path=${TARGET_SPOOL}
+export huge_path=${TARGET_SPOOL}
 exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
 "
 
@@ -282,20 +263,41 @@ fi
 eval gui_main Start
 }
 
-IS_SERVER_RUNNING=
+
+function check_server_running() {  
+  tcp_running=
+  _pid=$( f=${TARGET_SPOOL}/run/tcp.pid; test -f $f && cat $f ||: )
+  [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
+  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && tcp_running="${_comm} (${_pid})"
+ 
+  
+  udt_running=
+  _pid=$( f=${TARGET_SPOOL}/run/udt.pid; test -f $f && cat $f ||: )
+  [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
+  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && udt_running="${_comm} (${_pid})"  
+
+IS_SERVER_RUNNING="
+$([ -n "${tcp_running}" ] && echo "TCP service active: ${tcp_running} \n" || echo "\n")
+$([ -n "${udt_running}" ] && echo "UDT service active: ${udt_running} \n" || echo "\n")
+"
+}
+
 
 # MAIN #
 function gui_main() {
-[ -n "$1" ] && DEF_ITEM="--default-item $1"
+ check_server_running
+[ $1 ] && DEF_ITEM="--default-item $1"
 VALUES=$(${DIALOG} --cancel-label "Exit" \
 	  --backtitle "${BACKTITLE}" --title "Main Menu" \
 	  ${DEF_ITEM} \
 	  --menu "\n\
-Navigate options using [UP] [DOWN],[Enter] to Select items.\
-The current selected connection port is ${TARGET_PORT}\n \
-\n ${IS_SERVER_RUNNING} \n \
+Navigate options using [UP] [DOWN],[Enter] to Select items.\n\
+\n\
+${TARGET_HOST}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
+\n\
+${IS_SERVER_RUNNING} \n\
 	  \n " \
-	  18 50 5 \
+	  20 50 3 \
 	  Target      "Select ports " \
 	  Start       "Start serer daemons " \
 	  Stop        "Stop server daemons " \
@@ -305,8 +307,8 @@ opt=$?
 if [ $opt = 0 ]; then
  case ${VALUES} in
   Target) gui_select_port;;
-  Start)  eval xinetd; IS_SERVER_RUNNING="[Server running]"; eval gui_main Stop;;
-  Stop)   eval stop;  IS_SERVER_RUNNING=""; eval gui_main Start;;
+  Start)  eval xinetd; eval gui_main Stop;;
+  Stop)   eval stop;   eval gui_main Start;;
   *) gui_main;;
  esac
 fi

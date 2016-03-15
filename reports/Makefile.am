@@ -10,16 +10,20 @@ export TARGET_PORT
 export TARGET_SPOOL
 
 
-
-TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
+TARGET  = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 setup-client:
-	. $(srcdir)/setup_client.sh
+	. $(builddir)/setup_client.sh
 
 setup-server:
-	. $(srcdir)/setup_server.sh gui_main ||:
+	. $(builddir)/setup_server.sh gui_main ||:
 
+start-server:
+	. $(builddir)/setup_server.sh xinetd
+
+stop-server:
+	. $(builddir)/setup_server.sh stop
 
 
 # //////////////////////////////////////////////////////////////////////////// #
