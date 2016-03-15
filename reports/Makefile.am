@@ -1,17 +1,24 @@
-SUBDIRS = segment_size speed_spread speed_trend
+SUBDIRS = segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile
 include $(top_srcdir)/Common.am
 
 TARGET_HOST    ?= localhost
 TARGET_PORT    ?= 8000
+TARGET_SPOOL   ?= /tmp/mdsip_test
+
+export TARGET_HOST
+export TARGET_PORT
+export TARGET_SPOOL
+
+
 
 TARGET = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
-setup:
+setup-client:
 	. $(srcdir)/setup_client.sh
 
-server-setup:
-	. $(srcdir)/setup_server.sh
+setup-server:
+	. $(srcdir)/setup_server.sh gui_main ||:
 
 
 
@@ -19,36 +26,22 @@ server-setup:
 # ////  IMAGES   ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 
-IMAGES = 
+# IMAGES = 
 
+# distr-tcp-speed.csv distr-tcp-time.csv:
+#	${recipes}/SpeedDistribution tcp://${TARGET} "distr-tcp-" \
+#	--channels 1 --segments 40 --samples 100 --speed_limits 0,0.8 --time_limits 0,0.5 
 
-distr-tcp-speed.csv distr-tcp-time.csv:
-	${recipes}/SpeedDistribution tcp://${TARGET} "distr-tcp-" \
-	--channels 1 --segments 40 --samples 100 --speed_limits 0,0.8 --time_limits 0,0.5 
+# distr-udt-speed.csv distr-udt-time.csv:
+#	${recipes}/SpeedDistribution udt://${TARGET} "distr-udt-" \
+#	--channels 1 --segments 40 --samples 100 --speed_limits 0,0.8 --time_limits 0,0.5
 
-distr-udt-speed.csv distr-udt-time.csv:
-	${recipes}/SpeedDistribution udt://${TARGET} "distr-udt-" \
-	--channels 1 --segments 40 --samples 100 --speed_limits 0,0.8 --time_limits 0,0.5
+# content-udt.csv:
+#	${recipes}/SegmentContent udt://${TARGET} conent-udt \
+#	--channels 1 --segments 128,128,512 --samples 10
 
-content-udt.csv:
-	${recipes}/SegmentContent udt://${TARGET} conent-udt \
-	--channels 1 --segments 128,128,512 --samples 10
-
-
-
-#### implicit rules ####
-
-.csv.dat:
-	@echo $<
-
-.dat.plt:
-	@echo $<
-
-.plt.eps:
-	@gnuplot $<
-
-PHONY: all_images
-all_images: ${IMAGES}
+# PHONY: all_images
+# all_images: ${IMAGES}
 
 
 
@@ -75,8 +68,6 @@ else
 .tex.pdf: 
 	@echo "pdflatex not found in path"
 endif
-
-
 
 
 
@@ -130,9 +121,7 @@ SUFFIXES   += .tex.template .tex
 CLEANFILES += segment_size.pdf
 segment_size.pdf:
 	@echo "Making segment size test"
-	@$(MAKE) -k -C segment_size clean $@ \
-	 TARGET_HOST=${TARGET_HOST}  \
-	 TARGET_PORT=${TARGET_PORT}; \
+	@$(MAKE) -k -C segment_size clean $@;
 	 cp -a $(builddir)/segment_size/$@ $@
 
 
@@ -140,9 +129,7 @@ segment_size.pdf:
 CLEANFILES += speed_trend.pdf
 speed_trend.pdf:
 	@echo "Making speed trend test"
-	@$(MAKE) -k -C speed_trend clean $@ \
-	 TARGET_HOST=${TARGET_HOST}  \
-	 TARGET_PORT=${TARGET_PORT}; \
+	@$(MAKE) -k -C speed_trend clean $@;
 	 cp -a $(builddir)/speed_trend/$@ $@
 
 
@@ -150,19 +137,36 @@ speed_trend.pdf:
 CLEANFILES += speed_spread.pdf
 speed_spread.pdf:
 	@echo "Making speed trend test"
-	@$(MAKE) -k -C speed_spread clean $@ \
-	 TARGET_HOST=${TARGET_HOST}  \
-	 TARGET_PORT=${TARGET_PORT}; \
+	@$(MAKE) -k -C speed_spread clean $@;
 	 cp -a $(builddir)/speed_spread/$@ $@
+
+.PHONY: jscope_streamtest
+jscope_streamtest:
+if HAVE_MDSPLUS_STREAMING
+	@echo "Making sreaming test example "
+	@$(MAKE) -k -C jscope_streamtest $@;
+else	
+	@ \
+	 echo " Streaming is not supported by the installed mdsplus version "; \
+	 read -p "Press any key to continue... " -n1 -s;
+endif
+
+.PHONY: jscope_hugefile
+jscope_hugefile:
+	@echo "Making hugefile view example "
+	@$(MAKE) -k -C jscope_hugefile $@;
+
 
 
 segment_size: segment_size.pdf
 speed_spread: speed_spread.pdf
 speed_trend: speed_trend.pdf
 
+
 TESTS = segment_size \
 	speed_spread \
-	speed_trend
+	speed_trend \
+	jscope_streamtest
 
 
 

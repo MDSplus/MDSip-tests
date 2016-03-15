@@ -6,8 +6,6 @@ include $(builddir)/test.conf
 setup:
 	nano $(builddir)/test.conf
 
-
-
 TARGET = "tcp://${TARGET_HOST}:${TARGET_PORT}::${TARGET_SPOOL}"
 
 define _envset
@@ -17,30 +15,46 @@ define _envset
  export CLASSPATH=${MDS_CLASSPATH}
 endef
 
-
-
-bin_PROGRAMS = write_stream
-
-write_stream_SOURCES = write_stream.cpp
+bin_PROGRAMS = write_huge
+write_huge_SOURCES = write_huge.cpp
 
 LDADD = $(AM_LIBS)
 
 
-jscope_streamtest: write_stream streamtest.jscp
+
+HUGE_FILES = ${TARGET_SPOOL}/huge_001.characteristics \
+             ${TARGET_SPOOL}/huge_001.datafile  \
+             ${TARGET_SPOOL}/huge_001.tree  \
+             ${TARGET_SPOOL}/huge_model.characteristics  \
+             ${TARGET_SPOOL}/huge_model.datafile  \
+             ${TARGET_SPOOL}/huge_model.tree
+
+MOSTLYCLEANFILES = ${HUGE_FILES}
+
+# // Must be triggered by server only //
+.PHONY: do_write_huge
+do_write_huge: ${TARGET_SPOOL}/huge_001.datafile
+
+# // Must be triggered by server only //
+${HUGE_FILES}: write_huge
 	@ \
 	  eval ${_envset}; \
-	  export stream_path=${TARGET}; \
-	  $(builddir)/write_stream & _wpid="$$!"; \
-	  [ -n "$${_wpid}" ] && java jScope ${builddir}/streamtest.jscp;  \
-	  [ -n "$${_wpid}" ] && kill $${_wpid};
+	  export huge_path=${TARGET_SPOOL}; \
+	  $(builddir)/write_huge
 
 
+.PHONY: jscope_hugefile
+jscope_hugefile: huge_tcp.jscp huge_udt.jscp
+	@ \
+	  eval ${_envset}; \
+	  java jScope ${builddir}/huge_tcp.jscp & \
+	  java jScope ${builddir}/huge_udt.jscp;
 
 
 # //////////////////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
-# Set of m4 macro definitions to insert command and confguration in scp files  #
-#
+# Set of m4 macro definitions to insert command and confguration in jscp files #
+# 
 define M4_SUBST =
 dnl ------------------------------------------------------------------------
 dnl # change quote to a m4_sugar stile that is more friendly with sh
@@ -54,11 +68,18 @@ define([_TARGET_SPOOL_],[${TARGET_SPOOL}])
 dnl ------------------------------------------------------------------------
 endef
 
-.PHONY: streamtest.jscp
-streamtest.jscp: streamtest.jscp.m4
+
+.PHONY: huge_tcp.jscp
+huge_tcp.jscp: huge_tcp.jscp.m4
 	@ \
 	  echo "building jscp from template"; \
 	  (echo "${M4_SUBST}"; cat $<) | m4 > $@
 
+
+.PHONY: huge_udt.jscp
+huge_udt.jscp: huge_udt.jscp.m4
+	@ \
+	  echo "building jscp from template"; \
+	  (echo "${M4_SUBST}"; cat $<) | m4 > $@
 
 all:

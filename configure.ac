@@ -90,24 +90,86 @@ AM_CONDITIONAL(HAVE_CHECK, test x"$have_check" = "xyes")
 # /////  MDSPLUS  ///////////////////////////////////////////////////////////////////////////////// #
 # ///////////////////////////////////////////////////////////////////////////////////////////////// #
 
-AC_ARG_WITH([mdsplus-dir],
-            [AS_HELP_STRING([--with-mdsplus-dir],[specify mdsplus directory])],[],
-            [AS_VAR_SET_IF([MDSPLUS_DIR],[AS_VAR_SET([with_mdsplus_dir], ["${MDSPLUS_DIR}"])])])
-AS_VAR_SET_IF([with_mdsplus_dir],              
-              [AS_VAR_SET([MDSPLUS_DIR],["${with_mdsplus_dir}"])],
-              [AS_VAR_SET([MDSPLUS_DIR],["/usr/local"])])
-AC_SUBST(MDSPLUS_DIR)
-
 
 AC_ARG_ENABLE([mdsplus-build],
               [AS_HELP_STRING([--enable-mdsplus-build],[build mdsplus as submodule])])              
 AS_VAR_SET_IF([enable_mdsplus_build],[
                echo "ENABLE SUBMODULE MDSPLUS"
                pushd ${srcdir}; source ./conf/update_submodules.sh; popd
-	       pushd ${srcdir}/mdsplus; source ./bootstrap; popd
+	       # pushd ${srcdir}/mdsplus; source ./bootstrap; popd
                AC_CONFIG_SUBDIRS([mdsplus])
               ])
 AM_CONDITIONAL(BUILD_MDSPLUS, test x"${enable_mdsplus_build}" = x"yes")
+AS_VAR_IF([enable_mdsplus_build],[yes],
+          # mdsplus_build enabled.           
+          # A version of mdsplus alpha should be cloned in ${srcdir}/mdsplus
+          # directory, we will need to set all env manually no library search
+          # is possible now as mdsplus is not compiled yet. We are going to
+          # clone the latest alpha so the streaming feature will already be
+          # present int the code and we don't need to check for that.          
+          [
+           AS_VAR_SET([have_mdsplus],[yes])
+           AS_VAR_SET([have_streaming],[yes])
+           AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus)
+           AS_VAR_SET([MDS_SRCDIR],$(cd ${srcdir}/mdsplus; pwd))
+           AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
+           AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
+           AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin64)
+           AS_VAR_SET([MDS_CPPFLAGS],"-I${MDS_SRCDIR}/include")
+           AS_VAR_SET([MDS_LDFLAGS],"-L${MDS_LIBDIR}")
+           _jars="\
+                  javascope/jScope.jar \
+                  javascope/WaveDisaply.jar \
+                  mdsobjects/java/mdsobjects.jar \
+                  javatraverser/DeviceBeans.jar \
+                  javatraverser/jTraverser.jar \
+                  javadevices/jDevices.jar \
+                  javadispatcher/jDispatcher.jar \
+                 "           
+                 for j in ${_jars}; do
+                   AS_VAR_SET_IF([mdsplus_classpath],
+                                 [AS_VAR_SET([mdsplus_classpath],"${MDSPLUS_DIR}/${j}:${mdsplus_classpath}")],
+                                 [AS_VAR_SET([mdsplus_classpath],"${MDSPLUS_DIR}/${j}")])
+                 done
+                 AC_SUBST(MDS_CLASSPATH,"${mdsplus_classpath}")
+          ],
+          
+          # mdsplus_build disabled.           
+          # We will look if a mdsplus is installed looking for the MDSPLUS_DIR
+          # env variable or the --with-mdsplus-dir argument.          
+          [
+           # defines: have_mdsplus MDS_CPPFLAGS MDS_LDFLAGS MDSPLUS_DIR 
+           #          MDS_SRCDIR MDS_BUILDDIR MDS_LIBDIR MDS_BINDIR MDS_PATH
+           AC_SEARCH_MDSPLUS([MDS])           
+           # defines: MDS_CLASSPATH
+           AC_SEARCH_MDSPLUS_JAVA([MDS])
+           # search streaming feature in mdsplus (FINIRE)
+           AC_CHECK_MDSPLUS_LIB([MdsObjectsCppShr],[registerListener],
+                                [AS_VAR_SET([have_streaming],[yes])],
+                                [
+                                 AS_VAR_SET([have_streaming],[no])
+                                 AC_MSG_WARN([The selected mdsplus version does not support streaming])
+                                ])
+          ])
+
+AM_CONDITIONAL([HAVE_MDSPLUS], test x"${have_mdsplus}" = x"yes")
+AM_CONDITIONAL([HAVE_MDSPLUS_STREAMING], test x"${have_streaming}" = x"yes")
+
+AC_SUBST([MDSPLUS_DIR])
+AC_SUBST([MDS_CPPFLAGS])
+AC_SUBST([MDS_LDFLAGS])
+AC_SUBST([MDS_SRCDIR])
+AC_SUBST([MDS_BUILDDIR])
+AC_SUBST([MDS_LIBDIR])
+AC_SUBST([MDS_BINDIR])
+AC_SUBST([MDS_PATH])
+
+# debug
+AS_ECHO(["MDS_SRCDIR   = ${MDS_SRCDIR}"])
+AS_ECHO(["MDS_BUILDDIR = ${MDS_BUILDDIR}"])
+AS_ECHO(["MDS_CPPFLAGS = ${MDS_CPPFLAGS}"])
+AS_ECHO(["MDS_LDFLAGS = ${MDS_LDFLAGS}"])
+AS_ECHO(["MDS_CLASSPATH = ${MDS_CLASSPATH}"])          
 
 
 
@@ -185,7 +247,6 @@ AC_SUBST([GNUPLOT])
 
 
 
-
 # //////////////////////////////////////////////////////////////////////////// #
 # ///  CONFIG_H  ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
@@ -239,6 +300,10 @@ AC_CONFIG_FILES([
 	reports/speed_trend/test.conf
 	reports/speed_spread/Makefile
 	reports/speed_spread/test.conf
+	reports/jscope_streamtest/Makefile
+	reports/jscope_streamtest/test.conf
+	reports/jscope_hugefile/Makefile
+	reports/jscope_hugefile/test.conf
 	])
 AC_OUTPUT
 
