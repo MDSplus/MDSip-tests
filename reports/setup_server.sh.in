@@ -263,20 +263,41 @@ fi
 eval gui_main Start
 }
 
-IS_SERVER_RUNNING=
+
+function check_server_running() {  
+  tcp_running=
+  _pid=$( f=${TARGET_SPOOL}/run/tcp.pid; test -f $f && cat $f ||: )
+  [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
+  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && tcp_running="${_comm} (${_pid})"
+ 
+  
+  udt_running=
+  _pid=$( f=${TARGET_SPOOL}/run/udt.pid; test -f $f && cat $f ||: )
+  [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
+  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && udt_running="${_comm} (${_pid})"  
+
+IS_SERVER_RUNNING="
+$([ -n "${tcp_running}" ] && echo "TCP service active: ${tcp_running} \n" || echo "\n")
+$([ -n "${udt_running}" ] && echo "UDT service active: ${udt_running} \n" || echo "\n")
+"
+}
+
 
 # MAIN #
 function gui_main() {
-[ -n "$1" ] && DEF_ITEM="--default-item $1"
+ check_server_running
+[ $1 ] && DEF_ITEM="--default-item $1"
 VALUES=$(${DIALOG} --cancel-label "Exit" \
 	  --backtitle "${BACKTITLE}" --title "Main Menu" \
 	  ${DEF_ITEM} \
 	  --menu "\n\
-Navigate options using [UP] [DOWN],[Enter] to Select items.\
-The current selected connection port is ${TARGET_PORT}\n \
-\n ${IS_SERVER_RUNNING} \n \
+Navigate options using [UP] [DOWN],[Enter] to Select items.\n\
+\n\
+${TARGET_HOST}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
+\n\
+${IS_SERVER_RUNNING} \n\
 	  \n " \
-	  18 50 5 \
+	  20 50 3 \
 	  Target      "Select ports " \
 	  Start       "Start serer daemons " \
 	  Stop        "Stop server daemons " \
@@ -286,8 +307,8 @@ opt=$?
 if [ $opt = 0 ]; then
  case ${VALUES} in
   Target) gui_select_port;;
-  Start)  eval xinetd; IS_SERVER_RUNNING="[Server running]"; eval gui_main Stop;;
-  Stop)   eval stop;  IS_SERVER_RUNNING=""; eval gui_main Start;;
+  Start)  eval xinetd; eval gui_main Stop;;
+  Stop)   eval stop;   eval gui_main Start;;
   *) gui_main;;
  esac
 fi

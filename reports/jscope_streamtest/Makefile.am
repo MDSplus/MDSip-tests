@@ -28,7 +28,7 @@ LDADD = $(AM_LIBS)
 
 jscope_streamtest: write_stream streamtest.jscp
 	@ \
-	  eval ${_envset}; \
+	  ${_envset} \
 	  export stream_path=${TARGET}; \
 	  $(builddir)/write_stream & _wpid="$$!"; \
 	  [ -n "$${_wpid}" ] && java jScope ${builddir}/streamtest.jscp;  \
