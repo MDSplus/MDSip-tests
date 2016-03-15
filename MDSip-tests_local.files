@@ -3439,7 +3439,7 @@ reports/speed_trend/test.conf.in
 reports/bashful.sty
 reports/Makefile.am
 reports/Makefile.in
-reports/setup_client.sh
+reports/setup_client.sh.in
 reports/setup_server.sh.in
 src/ext_tools/Makefile.am
 src/ext_tools/Makefile.in

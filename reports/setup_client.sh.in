@@ -6,8 +6,16 @@ export TARGET_HOST=${TARGET_HOST:=localhost}
 export TARGET_PORT=${TARGET_PORT:=8000}
 export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
+# default protocol
 PROTOCOL=${PROTOCOL:=tcp}
-SPOOLDIR=${TARGET_SPOOL}
+
+# not used at the moment
+MDSPLUS_DIR=@MDSPLUS_DIR@
+SRCDIR=@abs_top_srcdir@
+BUILDDIR=@abs_top_builddir@
+MDSIP=@MDS_BINDIR@/mdsip
+LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
+
 
 TESTS="segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile"
 
@@ -87,7 +95,7 @@ if [ $opt = 0 ]; then
  # export values just entered
  export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
  export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
- export SPOOLDIR=$(echo ${VALUES} | awk '{print $3}')
+ export TARGET_SPOOL=$(echo ${VALUES} | awk '{print $3}')
 fi
 eval main SelectTests
 }

@@ -15,6 +15,7 @@ SRCDIR=@abs_top_srcdir@
 BUILDDIR=@abs_top_builddir@
 MDSIP=@MDS_BINDIR@/mdsip
 LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
+MDS_PATH=@MDS_SRCDIR@/tdi
 
 DIALOG=dialog
 
@@ -84,7 +85,7 @@ function set_path() {
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
    export huge_path=${TARGET_SPOOL}
-   make -C ${BUILDDIR}/jscope_hugefile do_write_huge
+   make -C ${BUILDDIR}/reports/jscope_hugefile do_write_huge
 }
 
 

@@ -14,7 +14,7 @@ TARGET  = "$(TARGET_HOST):$(TARGET_PORT)"
 recipes = ${top_builddir}/recipes
 
 setup-client:
-	. $(srcdir)/setup_client.sh
+	. $(builddir)/setup_client.sh
 
 setup-server:
 	. $(builddir)/setup_server.sh gui_main ||:
