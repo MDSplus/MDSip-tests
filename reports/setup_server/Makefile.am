@@ -9,7 +9,7 @@ define tmp_Makefile
 CXX = $${CXX:=g++}
 write_huge: write_huge.cpp
 \t@ echo "build write_huge.cpp"
-\t@ $${CXX} $$< -o $$@ -I$${MDSPLUS_DIR}/include -L$${MDSPLUS_DIR}/lib -lMdsObjectsCppShr -lMdsShr -lTdiShr -lm
+\t@ $${CXX} $$< -o $$@ -I$${MDSPLUS_DIR}/include -L$${MDSPLUS_DIR}/lib -lMdsObjectsCppShr -lMdsShr -lTdiShr -lTreeShr -lMdsIpShr -lm
 endef
 
 
