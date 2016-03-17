@@ -1,3 +1,4 @@
+#!/bin/sh
 
 BACKTITLE=" MDSip throughput tests "
 DIALOG=dialog

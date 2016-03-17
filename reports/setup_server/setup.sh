@@ -6,16 +6,14 @@ set -e
 SCRIPTNAME=$(basename "$0")
 SCRIPT_DIR=$(dirname "$0")
 
-
+export TARGET_HOST=${TARGET_HOST:=localhost}
 export TARGET_PORT=${TARGET_PORT:=8000}
 export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
-MDSPLUS_DIR=@MDSPLUS_DIR@
-SRCDIR=@abs_top_srcdir@
-BUILDDIR=@abs_top_builddir@
-MDSIP=@MDS_BINDIR@/mdsip
-LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
-MDS_PATH=@MDS_SRCDIR@/tdi
+MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local/mdsplus}
+MDSIP=${MDSPLUS_DIR}/bin/mdsip
+LD_LIBRARY_PATH=${MDSPLUS_DIR}/lib:${LD_LIBRARY_PATH}
+MDS_PATH=${MDSPLUS_DIR}/tdi
 
 DIALOG=dialog
 
@@ -85,7 +83,9 @@ function set_path() {
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
    export huge_path=${TARGET_SPOOL}
-   make -C ${BUILDDIR}/reports/jscope_hugefile do_write_huge
+   
+   # write huge file making target in current directory
+   make write_huge && ./write_huge
 }
 
 
@@ -316,7 +316,9 @@ fi
 clear
 }
 
-function gui() { eval gui_main; }
+function gui() { 
+   eval gui_main
+}
 
 # ///////////////////////////////////////////////////////////////////////////
 # /// execute commands   ////////////////////////////////////////////////////

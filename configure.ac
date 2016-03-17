@@ -296,6 +296,7 @@ AC_CONFIG_FILES([
 	reports/Makefile
 	reports/setup_server.sh
 	reports/setup_client.sh
+	reports/setup_server/Makefile
 	reports/segment_size/Makefile
 	reports/segment_size/test.conf
 	reports/speed_trend/Makefile

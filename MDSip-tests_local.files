@@ -776,6 +776,7 @@ mdsplus/kbsidevices/VX4244Setup.java
 mdsplus/kbsidevices/VXI8340Setup.java
 mdsplus/LabView/Makefile.am
 mdsplus/LabView/Makefile.in
+mdsplus/m4/ax_check_java_home.m4
 mdsplus/m4/ax_compare_version.m4
 mdsplus/m4/ax_compiler_vendor.m4
 mdsplus/m4/ax_compiler_version.m4
@@ -3401,7 +3402,6 @@ mdsplus/xtreeshr/XTreeDefaultResample.c
 mdsplus/xtreeshr/XTreeDefaultSquish.c
 mdsplus/xtreeshr/XTreeGetSegmentList.c
 mdsplus/xtreeshr/XTreeGetTimedRecord.c
-mdsplus/aclocal.m4
 mdsplus/configure.ac
 mdsplus/envsyms.in
 mdsplus/Makefile.in
@@ -3418,7 +3418,12 @@ recipes/PerfTestThreads.cpp
 recipes/SegmentContent.cpp
 recipes/SegmentSize.cpp
 recipes/SpeedDistribution.cpp
+reports/jscope_hugefile/huge_tcp.jscp.m4
+reports/jscope_hugefile/huge_udt.jscp.m4
 reports/jscope_hugefile/Makefile.am
+reports/jscope_hugefile/Makefile.in
+reports/jscope_hugefile/test.conf.in
+reports/jscope_hugefile/write_huge.cpp
 reports/jscope_streamtest/Makefile.am
 reports/jscope_streamtest/Makefile.in
 reports/jscope_streamtest/streamtest.jscp.m4
@@ -3428,6 +3433,10 @@ reports/segment_size/Makefile.am
 reports/segment_size/Makefile.in
 reports/segment_size/SegmentSize.cpp
 reports/segment_size/test.conf.in
+reports/setup_server/Makefile.am
+reports/setup_server/makeself-header.sh
+reports/setup_server/makeself.sh
+reports/setup_server/setup.sh
 reports/speed_spread/Makefile.am
 reports/speed_spread/Makefile.in
 reports/speed_spread/SpeedSpread.cpp
@@ -3440,6 +3449,7 @@ reports/bashful.sty
 reports/Makefile.am
 reports/Makefile.in
 reports/setup_client.sh.in
+reports/setup_server.sh
 reports/setup_server.sh.in
 src/ext_tools/Makefile.am
 src/ext_tools/Makefile.in
@@ -3506,7 +3516,3 @@ Makefile.in
 MakeSegmentRange.fun
 README.md
 test.xml
-reports/jscope_hugefile/test.conf.in
-reports/jscope_hugefile/write_huge.cpp
-reports/jscope_hugefile/huge_tcp.jscp.m4
-reports/jscope_hugefile/huge_udt.jscp.m4
