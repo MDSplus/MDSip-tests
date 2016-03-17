@@ -85,7 +85,7 @@ function set_path() {
    export huge_path=${TARGET_SPOOL}
    
    # write huge file making target in current directory
-   make write_huge && ./write_huge
+   make write_huge && LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./write_huge
 }
 
 
