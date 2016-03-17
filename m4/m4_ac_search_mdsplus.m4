@@ -17,7 +17,7 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
    
   if test -d "${MDSPLUS_DIR}" ; then
      dnl absolute path
-     MDSPLUS_DIR = $(cd ${MDSPLUS_DIR}; pwd)
+     MDSPLUS_DIR=$(cd ${MDSPLUS_DIR}; pwd)
      
      dnl // find srcdir from config.status if MDSPLUS_DIR is pointing to a builddir
      if test -f ${MDSPLUS_DIR}/config.status ; then  
@@ -33,7 +33,7 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
         LIBS_save=$LIBS
         CPPFLAGS_save=$CPPFLAGS
         LDFLAGS_save=$LDFLAGS
-        
+        LD_LIBRARY_PATH_save=$LD_LIBRARY_PATH
         AS_VAR_SET([mdsplus_libdir],[${mdsplus_builddir}/lib${_dir}])
         AS_VAR_SET([mdsplus_bindir],[${mdsplus_builddir}/bin${_dir}])
         _mdsplus_cppflags="-I${mdsplus_srcdir}/include"
@@ -43,7 +43,7 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
         CPPFLAGS="${_mdsplus_cppflags} $CPPFLAGS"
         LDFLAGS="${_mdsplus_ldflags} $LDFLAGS"
         LIBS="-lMdsLib -lMdsShr -lTdiShr $LIBS"
-
+        LD_LIBRARY_PATH=${mdsplus_libdir}
         dnl ////////////////////////////////////////////////////////////////////
         dnl // test program source  ////////////////////////////////////////////
         dnl ////////////////////////////////////////////////////////////////////
@@ -69,9 +69,10 @@ int main(int argc, char **argv)
                                   ) dnl AC_TRY_RU
                 
         dnl restore LIBS 
-        LIBS=$LIBS_save
-        CPPFLAGS=$CPPFLAGS_save
-        LDFLAGS=$LDFLAGS_save
+        LIBS=${LIBS_save}
+        CPPFLAGS=${CPPFLAGS_save}
+        LDFLAGS=${LDFLAGS_save}
+        LD_LIBRARY_PATH=${LD_LIBRARY_PATH_save}
         
         if test $have_mdsplus = yes ; then 
           break 
@@ -79,7 +80,7 @@ int main(int argc, char **argv)
      done 
      dnl end for
      
-     AS_VAR_IF([have_mdsplus],[yes],
+     AS_VAR_IF([have_mdsplus],[yes],    
      [
       AS_VAR_SET($1[]_CPPFLAGS,"${_mdsplus_cppflags}")
       AS_VAR_SET($1[]_LDFLAGS, "${_mdsplus_ldflags}")
