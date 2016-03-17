@@ -8,6 +8,7 @@ setup:
 
 TARGET = "tcp://${TARGET_HOST}:${TARGET_PORT}::${TARGET_SPOOL}"
 
+
 define _envset
  export LD_LIBRARY_PATH=${MDS_LIBDIR}:${LD_LIBRARY_PATH}
  export MDS_PATH=${MDS_SRCDIR}/tdi
@@ -18,9 +19,8 @@ endef
 bin_PROGRAMS = write_huge
 write_huge_SOURCES = write_huge.cpp
 
+
 LDADD = $(AM_LIBS)
-
-
 
 HUGE_FILES = ${TARGET_SPOOL}/huge_001.characteristics \
              ${TARGET_SPOOL}/huge_001.datafile  \
@@ -47,9 +47,9 @@ ${HUGE_FILES}: write_huge
 jscope_hugefile: huge_tcp.jscp huge_udt.jscp
 	@ \
 	  eval ${_envset}; \
-	  java jScope ${builddir}/huge_tcp.jscp & \
-	  java jScope ${builddir}/huge_udt.jscp;
-
+	  p=$$(echo "${PROTOCOL}" | awk '{print tolower($$0)}')
+	  java jScope ${builddir}/huge_$$p.jscp
+	  
 
 # //////////////////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
