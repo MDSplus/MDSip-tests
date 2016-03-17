@@ -232,7 +232,7 @@ _pidf=${TARGET_SPOOL}/run/udt.pid
 # ///////////////////////////////////////////////////////////////////////////
 
 function clean() {
- (stop && rm -rf ${TARGET_SPOOL} ) && \
+ (stop; rm -rf ${TARGET_SPOOL} ) && \
   echo "Spool directory succesfully cleaned"
 }
 
