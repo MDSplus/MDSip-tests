@@ -154,13 +154,16 @@ AC_DEFUN([AC_CHECK_MDSPLUS_LIB],
   AS_VAR_IF([have_mdsplus],[yes],[
              CPPFLAGS_save=$CPPFLAGS
              LDFLAGS_save=$LDFLAGS
+             LD_LIBRARY_FLAGS_save=$LD_LIBRARY_FLAGS
              dnl // setting test program flags //        
              CPPFLAGS="${MDS_CPPFLAGS} $CPPFLAGS"
-             LDFLAGS="${MDS_LDFLAGS} $LDFLAGS"             
+             LDFLAGS="${MDS_LDFLAGS} $LDFLAGS"
+             LD_LIBRARY_FLAGS=${MDS_LIBDIR}
              AC_CHECK_LIB([$1],[$2],[$3],[$4])
              dnl restore LIBS 
              CPPFLAGS=$CPPFLAGS_save
              LDFLAGS=$LDFLAGS_save   
+             LD_LIBRARY_FLAGS=$LD_LIBRARY_FLAGS_save
   ])
 ])
 
