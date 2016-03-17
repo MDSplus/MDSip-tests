@@ -20,7 +20,7 @@ DIALOG=dialog
 
 print_help() {
 cat << EOF
-Usage: $SCRIPTNAME [options] [command]
+Usage: $SCRIPTNAME -- [options] [command]
 
        options
        -------
