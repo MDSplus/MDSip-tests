@@ -1,8 +1,6 @@
 #
-# use:     AC_SEARCH_MDSPLUS([MDS])
-# defines: MDS_CPPFLAGS MDS_LDFLAGS MDSPLUS_DIR have_mdsplus mdsplus_srcdir mdsplus_builddir
+# usage:     AC_SEARCH_MDSPLUS([MDS])
 #
-
 AC_DEFUN([AC_SEARCH_MDSPLUS],
 [
   AC_ARG_WITH([mdsplus-dir],
@@ -36,7 +34,7 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
         LD_LIBRARY_PATH_save=$LD_LIBRARY_PATH
         AS_VAR_SET([mdsplus_libdir],[${mdsplus_builddir}/lib${_dir}])
         AS_VAR_SET([mdsplus_bindir],[${mdsplus_builddir}/bin${_dir}])
-        _mdsplus_cppflags="-I${mdsplus_srcdir}/include -I${mdsplus_builddir}/include"
+        _mdsplus_cppflags="-I${mdsplus_builddir}/include -I${mdsplus_srcdir}/include"
         _mdsplus_ldflags="-L${mdsplus_libdir}"
         
         dnl // setting test program flags //        
@@ -154,16 +152,16 @@ AC_DEFUN([AC_CHECK_MDSPLUS_LIB],
   AS_VAR_IF([have_mdsplus],[yes],[
              CPPFLAGS_save=$CPPFLAGS
              LDFLAGS_save=$LDFLAGS
-             LD_LIBRARY_FLAGS_save=$LD_LIBRARY_FLAGS
+             LD_LIBRARY_PATH_save=$LD_LIBRARY_PATH
              dnl // setting test program flags //        
              CPPFLAGS="${MDS_CPPFLAGS} $CPPFLAGS"
              LDFLAGS="${MDS_LDFLAGS} $LDFLAGS"
-             LD_LIBRARY_FLAGS=${MDS_LIBDIR}
+             LD_LIBRARY_PATH=${MDS_LIBDIR}
              AC_CHECK_LIB([$1],[$2],[$3],[$4])
              dnl restore LIBS 
              CPPFLAGS=$CPPFLAGS_save
              LDFLAGS=$LDFLAGS_save   
-             LD_LIBRARY_FLAGS=$LD_LIBRARY_FLAGS_save
+             LD_LIBRARY_PATH=$LD_LIBRARY_PATH_save
   ])
 ])
 

@@ -115,7 +115,7 @@ AS_VAR_IF([enable_mdsplus_build],[yes],
            AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
            AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
            AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin64)
-           AS_VAR_SET([MDS_CPPFLAGS],"-I${MDS_SRCDIR}/include")
+           AS_VAR_SET([MDS_CPPFLAGS],"-I${MDS_BUILDDIR}/include -I${MDS_SRCDIR}/include")
            AS_VAR_SET([MDS_LDFLAGS],"-L${MDS_LIBDIR}")
            _jars="\
                   javascope/jScope.jar \
