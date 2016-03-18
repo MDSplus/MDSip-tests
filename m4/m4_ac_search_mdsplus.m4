@@ -36,7 +36,7 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
         LD_LIBRARY_PATH_save=$LD_LIBRARY_PATH
         AS_VAR_SET([mdsplus_libdir],[${mdsplus_builddir}/lib${_dir}])
         AS_VAR_SET([mdsplus_bindir],[${mdsplus_builddir}/bin${_dir}])
-        _mdsplus_cppflags="-I${mdsplus_srcdir}/include"
+        _mdsplus_cppflags="-I${mdsplus_srcdir}/include -I${mdsplus_builddir}/include"
         _mdsplus_ldflags="-L${mdsplus_libdir}"
         
         dnl // setting test program flags //        
