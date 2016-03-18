@@ -42,8 +42,8 @@ AC_DEFUN([AC_SEARCH_MDSPLUS],
         dnl // setting test program flags //        
         CPPFLAGS="${_mdsplus_cppflags} $CPPFLAGS"
         LDFLAGS="${_mdsplus_ldflags} $LDFLAGS"
-        LIBS="-lMdsLib -lMdsShr -lTdiShr $LIBS"
-        LD_LIBRARY_PATH=${mdsplus_libdir}
+        LIBS="-lMdsLib -lMdsShr -lTdiShr -lTreeShr -lMdsIpShr $LIBS"
+        export LD_LIBRARY_PATH=${mdsplus_libdir}
         dnl ////////////////////////////////////////////////////////////////////
         dnl // test program source  ////////////////////////////////////////////
         dnl ////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         LIBS=${LIBS_save}
         CPPFLAGS=${CPPFLAGS_save}
         LDFLAGS=${LDFLAGS_save}
-        LD_LIBRARY_PATH=${LD_LIBRARY_PATH_save}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH_save}
         
         if test $have_mdsplus = yes ; then 
           break 
