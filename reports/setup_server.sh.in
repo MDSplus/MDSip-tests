@@ -181,6 +181,8 @@ MDSIP_HOSTS="
 MDSIPD_SCRIPT="#!/bin/sh
 # source $MDSPLUS_DIR/setup.sh
 export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
+export MDSPLUS_DIR=${MDSPLUS_DIR}
+export MDS_PATH=${MDS_PATH}
 export test_spool_path=${TARGET_SPOOL}
 export segment_size_path=${TARGET_SPOOL}
 export speed_spread_path=${TARGET_SPOOL}
