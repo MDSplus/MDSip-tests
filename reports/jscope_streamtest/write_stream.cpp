@@ -8,7 +8,6 @@
 
 int main(int argc, char *argv[])
 {
-	int loopCount = 0;
 	struct timespec waitTime;
 	struct timeval currTime;
 	waitTime.tv_sec = 0;
@@ -24,16 +23,16 @@ int main(int argc, char *argv[])
 		delete tree;
 		tree = new MDSplus::Tree("stream", 1);
 		node = tree->getNode("STREAM_0");
-		while(true)
+
+        
+        int64_t currTimeVal = 0;
+        while(true)
 		{
-			MDSplus::Float32 *floatData = new MDSplus::Float32(sin(loopCount/50.));
-			int64_t currTimeVal = 0;
-			gettimeofday(&currTime, NULL);
-			currTimeVal = currTime.tv_sec * 1000L;
-			currTimeVal += currTime.tv_usec/1000;
+            gettimeofday(&currTime, NULL);
+			currTimeVal = currTime.tv_sec * 1E3 + currTime.tv_usec / 1E3;
+			MDSplus::Float32 *floatData = new MDSplus::Float32(sin(currTimeVal/2E3));
 			node->putRow(floatData, &currTimeVal);
 			MDSplus::deleteData(floatData);
-			loopCount++;
 			nanosleep(&waitTime, NULL);
 		}
 	} catch(MDSplus::MdsException &exc)
