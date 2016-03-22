@@ -61,12 +61,12 @@ TestTree g_target_tree;
 /// \param nseg total number of segment per channel
 /// \return mean and rms of average speed for all channels togheter
 ///
-/// Test for segment size in Multi Process using Thin Client connection.
+/// Test for segment size in Multi Thread using Thin Client connection.
 /// In histogram a value of equivalent data troughput is added in MB/s
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-Point2D segment_size_throughput_MP(size_t size_KB,
+Point2D segment_size_throughput_MT(size_t size_KB,
                                    int nch = 1,
                                    int nseg = g_options.samples)
 {
@@ -153,19 +153,25 @@ int main(int argc, char *argv[])
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
+
+
     std::vector<Curve2D> speeds;
-    foreach(int nch, g_options.n_channels)
-    {
+    foreach(int nch, g_options.n_channels) {
         std::stringstream curve_name;
         curve_name << nch << " ch";
         Curve2D curve(curve_name.str().c_str());
         speeds.push_back(curve);
+    }
 
-        Vector3i &range = g_options.seg_range;
-        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )
+        
+    Vector3i &range = g_options.seg_range;
+    for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )    
+    {
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
         {            
-            Point2D pt = segment_size_throughput_MP(seg,nch);
-            Curve2D &speed = speeds.back();
+            int nch = g_options.n_channels[nch_id];
+            Point2D pt = segment_size_throughput_MT(seg, nch);
+            Curve2D &speed = speeds[nch_id];
             speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
         }
     }
