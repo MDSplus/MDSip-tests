@@ -522,7 +522,11 @@ public:
         return o;
     }
 
-
+    Histogram & operator +=( const Histogram &other ) {
+        Histogram result = Histogram::merge(*this,other);
+        return (*this) = result;
+    }
+    
     static Histogram merge(const Histogram &h1, const Histogram &h2) {
         // TODO: very bad ... works only if h have the same bins //
         assert(h1.BinSize() == h2.BinSize());
