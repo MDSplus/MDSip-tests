@@ -19,6 +19,8 @@ LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
 
 
 TESTS="segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile"
+TESTS_ACTIVE="segment_size"
+
 
 segment_size_desc=" TCP/UDT Throughput vs segment size "
 speed_spread_desc=" Bandwidth distribution "
@@ -32,19 +34,31 @@ jscope_hugefile_desc=" Test streaming singnal example "
 # /////////////////////////////////////////////////////////////////////////// #
 
 
+function test_active() {
+  echo "${TESTS_ACTIVE}" | grep -c $1  > /dev/null && echo ON || echo OFF
+}
+
+function test_desc() {
+  tmp=$1_desc
+  echo $tmp
+}
+
+
 function select_tests() {
-TESTS=$(${DIALOG} --backtitle "${BACKTITLE}" \
+_TESTS_ACTIVE=${TESTS_ACTIVE}
+_TESTS_ACTIVE=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  --title "Tests selection" --checklist \
 		  "Choose preferred tests to be launched" 15 60 5 \
-		  "segment_size" "${segment_size_desc}" ON \
-		  "speed_spread" "${speed_spread_desc}" ON \
-		  "speed_trend"  "${speed_trend_desc}"  ON \
-		  "jscope_streamtest" "${jscope_streamtest_desc}" ON \
-		  "jscope_hugefile" "${jscope_hugefile_desc}" ON \
+		  $(for i in ${TESTS}; do
+		     echo "$i $(test_desc $i) $(test_active $i)"
+		    done) \
 		  3>&1 1>&2 2>&3)
 exitstatus=$?
-TESTS=$(echo "${TESTS}" | sed -e 's/"//g') # remove quotes
+if [ $exitstatus = 0 ]; then
+ TESTS_ACTIVE=$(echo "${_TESTS_ACTIVE}" | sed -e 's/"//g') # remove quotes
+fi
 eval main ConfigTests
+
 }
 
 
@@ -59,11 +73,9 @@ VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		   --ok-label "Edit config" --cancel-label "Finish" \
 		   --title "Tests selection" --menu \
 		   "Choose test to edit configuration" 15 60 5 \
-		   "segment_size" "${segment_size_desc}" \
-		   "speed_spread" "${speed_spread_desc}" \
-		   "speed_trend"  "${speed_trend_desc}"  \
-		   "jscope_streamtest"  "${jscope_streamtest_desc}"  \
-		   "jscope_hugefile" "${jscope_hugefile_desc}" \
+		   $(for i in ${TESTS_ACTIVE}; do
+		      echo "$i $(test_desc $i)"
+		     done) \
 		   3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
@@ -132,7 +144,7 @@ if [ $opt = 0 ]; then
   Target) select_target;;
   SelectTests) select_tests;;
   ConfigTests) config_tests;;
-  Do) make ${TESTS};;
+  Do) make ${TESTS_ACTIVE};;
   *) main;;
  esac
 fi
