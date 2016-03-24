@@ -177,7 +177,6 @@ int main(int argc, char *argv[])
             {                            
                 int nch = g_options.n_channels[nch_id];
                 Histogram<double> sh = segment_size_throughput_MT(seg, nch);
-                std::cout << sh << "\n";
                 // add probe //
                 if(seg_id < speed_probes[nch_id].size())
                     speed_probes[nch_id].at(seg_id) += sh;
