@@ -289,7 +289,7 @@ static int fill_trend()
 
 
 
-
+std::string g_start_date;
 
 
 int main(int argc, char *argv[])
@@ -306,14 +306,12 @@ int main(int argc, char *argv[])
     std::string filename_out = "test_distribution";
     if(argc > 2) filename_out = argv[2];
     
+    g_start_date = FileUtils::CurrentDateTime();
     
-    
-    
-    
+        
     std::cout << "CONNECTING TARGET: " << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
     
-    typedef TestConnection::TimeHistogram Histogram;
-    
+    typedef TestConnection::TimeHistogram Histogram;    
     trend_value = std::vector<Curve2D>(g_options.n_channels.size());
     trend_time = std::vector<time_t>(g_options.n_channels.size());
     
@@ -346,7 +344,6 @@ int main(int argc, char *argv[])
                << " segsize = " << g_options.seg_size << " [KB]";
             plot.SetName( ss.str()  );
             std::string subtitle;
-            subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
             const char * hostname = FileUtils::GetEnv("HOSTNAME");
             if(hostname) subtitle += " " + std::string(hostname) + "  -->  " 
                     + g_target_tree.Path().server;
@@ -378,10 +375,7 @@ int main(int argc, char *argv[])
                << " segsize = " << g_options.seg_size << " [KB]";
             plot.SetName( ss.str()  );
             std::string subtitle;
-            subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
-            const char * hostname = FileUtils::GetEnv("HOSTNAME");
-            if(hostname) subtitle += " " + std::string(hostname) + "  -->  " 
-                    + g_target_tree.Path().server;
+            subtitle = "(started at: " + g_start_date + " -- ended at: " + FileUtils::CurrentDateTime() + ")";
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Time [min]";
             plot.YAxis().name = "Transmission speed";
