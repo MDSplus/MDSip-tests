@@ -100,14 +100,16 @@ function start() {
   eval set_path
   check_server_running
 
-  [ ! ${tcp_running} ] && \
+  if [ ! ${tcp_running} ]; then
   ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${TARGET_SPOOL}/tcp.log &
   echo "$!" > ${TARGET_SPOOL}/run/tcp.pid && echo "mdsip TCP server started"
-  
-  [ ! ${udt_running} ] && \
+  fi  
+
+  if [ ! ${udt_running} ]; then
   ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${TARGET_SPOOL}/udt.log &
   echo "$!" > ${TARGET_SPOOL}/run/udt.pid && echo "mdsip UDT server started"
-
+  fi
+  
   check_server_running
   echo "${IS_SERVER_RUNNING}"
 }
@@ -287,13 +289,13 @@ function check_server_running() {
   tcp_running=
   _pid=$( f=${TARGET_SPOOL}/run/tcp.pid; test -f $f && cat $f ||: )
   [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
-  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && tcp_running="${_comm} (${_pid})"
+  [ "${_comm}" = "xinetd" -o "${_comm}" = "mdsip" ] && tcp_running="${_comm} (${_pid})"
  
   
   udt_running=
   _pid=$( f=${TARGET_SPOOL}/run/udt.pid; test -f $f && cat $f ||: )
   [ -n "${_pid}" ] && _comm=$(ps -q ${_pid} -o comm=) || _comm=
-  [ ${_comm} = "xinetd" -o ${_comm} = "mdsip" ] && udt_running="${_comm} (${_pid})"  
+  [ "${_comm}" = "xinetd" -o "${_comm}" = "mdsip" ] && udt_running="${_comm} (${_pid})"  
 
 IS_SERVER_RUNNING="
 $([ -n "${tcp_running}" ] && echo "TCP service active: ${tcp_running} \n" || echo "\n")
