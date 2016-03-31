@@ -40,7 +40,7 @@ setup_server.sh: ${TMP_DIR}
 	
 
 .PHONY: update
-update: setup_server.sh
+update: clean setup_server.sh
 	@ \
 	echo " Update the distributed version "
 	cp $(builddir)/setup_server.sh $(top_srcdir)/reports/setup_server.sh
