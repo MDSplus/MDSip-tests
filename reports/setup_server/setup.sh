@@ -241,9 +241,9 @@ function xinetd() {
 
 function stop() {
 _pidf=${TARGET_SPOOL}/run/tcp.pid
-[ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} )
+[ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} ) ||:
 _pidf=${TARGET_SPOOL}/run/udt.pid
-[ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} )
+[ -f ${_pidf} ] && ( kill $(cat ${_pidf}); rm -f ${_pidf} ) ||:
 }
 
 
