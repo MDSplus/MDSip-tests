@@ -27,10 +27,11 @@ struct Parameters : Options {
     Vector2d h_speed_limits;
     Vector2d h_time_limits;
     size_t samples;
+    size_t probes;
 
     Parameters() :
         seg_range(2048,2048,20480),
-        samples(20),
+        samples(20),probes(1),
         h_speed_limits(0,10),
         h_time_limits(0,5)
     {
@@ -39,6 +40,7 @@ struct Parameters : Options {
                 ("channels",&n_channels,"parallel channels to build")
                 ("segments",&seg_range,"segment size [KB] (start,delta,stop)")
                 ("samples",&samples,"number of samples to average")
+                ("probes",&probes,"number of subsequent overall test probes to ease network fluctuations")
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ;
@@ -66,12 +68,10 @@ TestTree g_target_tree;
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-Point2D segment_size_throughput_MT(size_t size_KB,
+Histogram<double> segment_size_throughput_MT(size_t size_KB,
                                    int nch = 1,
                                    int nseg = g_options.samples)
 {
-    typedef TestConnection::TimeHistogram _Histogram;
-
     TestConnectionMT conn(g_target_tree);
 
     std::vector< unique_ptr<ContentFunction> > functions; // function generators //
@@ -84,8 +84,8 @@ Point2D segment_size_throughput_MT(size_t size_KB,
     ////////////////////////////////////////////////////////////////////////////
     const Vector2d &l1 = g_options.h_speed_limits;
     const Vector2d &l2 = g_options.h_time_limits;
-    _Histogram speed_h("ch speed",100,l1(0),l1(1));
-    _Histogram time_h ("ch time ",100,l2(0),l2(1));
+    TestConnection::TimeHistogram speed_h("ch speed",100,l1(0),l1(1));
+    TestConnection::TimeHistogram time_h ("ch time ",100,l2(0),l2(1));
     ////////////////////////////////////////////////////////////////////////////
 
     // prepare channels //
@@ -104,26 +104,35 @@ Point2D segment_size_throughput_MT(size_t size_KB,
 
     conn.StartConnection();
 
-    std::cout << "CHANNELS TIMES:\n";
-    Point2D time, speed;
+//    std::cout << "CHANNELS TIMES:\n";
+//    Point2D time, speed;
+//    for(int i=0; i<nch; ++i) {
+//        Channel *ch = channels[i];
+//        TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
+//        TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
+//        std::cout << "times dist: " << time_h << "\n";
+//        std::cout << "speed dist: " << speed_h << "\n";
+//        time(0) += time_h.MeanAll();
+//        time(1) += time_h.VarianceAll();
+//        speed(0) += speed_h.MeanAll();
+//        speed(1) += speed_h.VarianceAll();
+//    }
+//    time(0) /= nch;
+//    time(1) = sqrt( time(1)/nch );
+//    speed(0);
+//    speed(1) = sqrt( speed(1) );
+//    std::cout << "SPEED: " << speed << "\n";
+
+    // here we assume that speed_h is empty //
+    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
-        TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
-        std::cout << "times dist: " << time_h << "\n";
-        std::cout << "speed dist: " << speed_h << "\n";
-        time(0) += time_h.MeanAll();
-        time(1) += time_h.VarianceAll();
-        speed(0) += speed_h.MeanAll();
-        speed(1) += speed_h.VarianceAll();
+        speed_h += conn.ChannelSpeed(ch);
+        std::cout << "    ch" << i << " --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
+//        std::cout << "           dist: " << conn.ChannelSpeed(ch) << "\n";
     }
-    time(0) /= nch;
-    time(1) = sqrt( time(1)/nch );
-    speed(0);
-    speed(1) = sqrt( speed(1) );
-    std::cout << "SPEED: " << speed << "\n";
-
-    return speed;
+    std::cout << speed_h << "\n";
+    return speed_h;    
 }
 
 
@@ -154,41 +163,59 @@ int main(int argc, char *argv[])
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
 
 
-
-    std::vector<Curve2D> speeds;
-    foreach(int nch, g_options.n_channels) {
-        std::stringstream curve_name;
-        curve_name << nch << " ch";
-        Curve2D curve(curve_name.str().c_str());
-        speeds.push_back(curve);
-    }
-
-        
+    
+    
+    // collect probes //
+    typedef std::vector<Histogram<double> > Probe_T;
+    std::vector<Probe_T> speed_probes(g_options.n_channels.size());
     Vector3i &range = g_options.seg_range;
-    for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg) )    
-    {
-        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
-        {            
-            int nch = g_options.n_channels[nch_id];
-            Point2D pt = segment_size_throughput_MT(seg, nch);
-            Curve2D &speed = speeds[nch_id];
-            speed.AddPoint( Point2D(seg,pt(0),pt(1)) );
+    for(int prb = 0; prb < g_options.probes; ++prb ) {
+        int seg_id = 0;
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id )
+        {
+            for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+            {                            
+                int nch = g_options.n_channels[nch_id];
+                Histogram<double> sh = segment_size_throughput_MT(seg, nch);
+                // add probe //
+                if(seg_id < speed_probes[nch_id].size())
+                    speed_probes[nch_id].at(seg_id) += sh;
+                else
+                    speed_probes[nch_id].push_back(sh);
+            }
         }
     }
 
-    Plot2D plot("Throughput vs Segment Size");
+    // speed plots //
+    std::vector<Curve2D> speeds;
+    //    foreach(int nch, g_options.n_channels)
+    for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+    {
+        int nch = g_options.n_channels[nch_id];
+        std::stringstream curve_name;
+        curve_name << nch << " ch";
+        Curve2D curve(curve_name.str().c_str());
+        int seg_id = 0;
+        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id ) {
+            const Histogram<double> &sh = speed_probes[nch_id].at(seg_id);
+            curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
+        }
+        speeds.push_back(curve);
+    }
 
+    
+    Plot2D plot("Throughput vs Segment Size");
     std::cout << " ---- COLLECTED SPEEDS  ------ \n";
     foreach (Curve2D &speed, speeds) {
         std::cout << speed << "\n";
         plot.AddCurve(speed);
     }
 
-    
+
     // make short X axis name before to write into csv //
     plot.XAxis().name = "size";
     plot.PrintToCsv(filename_out);
-    
+
     {
         // SET PLOT TITLES AND LABELS //
         std::string prtcl = "tcp";
@@ -205,22 +232,22 @@ int main(int argc, char *argv[])
 
     // Print Plot file //
     plot.PrintToGnuplotFile(filename_out);
-    
+
 
     {
         std::ofstream o;
         o.open( (filename_out + ".sh").c_str() );
-        assert(o.is_open());        
+        assert(o.is_open());
         o << "# Exports parameters and results in shell like script \n\n";
-        
+
         o << "target=" << argv[1] << "\n"
           << "filename_out=" << filename_out << "\n"
           << "channels=\"" << g_options.n_channels << "\"\n"
           << "segments=" << g_options.seg_range << "\n"
           << "samples=" << g_options.samples << "\n";
-          
+
         // doing analisys //
-        
+
         Curve2D::Point max(0,0,0);
         foreach (const Curve2D &curve, plot.Curves()) {
             if(!curve.Points().empty()) {
@@ -229,18 +256,18 @@ int main(int argc, char *argv[])
                     if ( p(1) < curve[i](1) ) p = curve[i];
                 if( max(1) < p(1)) max = p;
             }
-        }        
+        }
         o << "max_pt=" << max << "\n";
         o << "max_x=" << max(0) << "\n";
         o << "max_y=" << max(1) << "\n";
         o << "max_e=" << max(2) << "\n";
-        
-        
+
+
         o.close();
     }
-    
-    
-    
+
+
+
     return 0;
 }
 

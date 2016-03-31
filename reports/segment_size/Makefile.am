@@ -11,10 +11,10 @@ TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-		   --channels ${channels} --segments ${segments} --samples ${samples}
+		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-		   --channels ${channels} --segments ${segments} --samples ${samples}
+		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
 
 define COMMAND =
 ${size_tcp_command}

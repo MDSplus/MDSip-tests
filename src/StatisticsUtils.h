@@ -119,18 +119,24 @@ public:
     double rms() const { return sqrt(variance()); }
 
     void operator += (const incremental_statistic & other) {
-        size_t nx = other.m_count + m_count;
-        double d = other.m_mean - m_mean;
-        double mx;
-        if(m_count > 50 && other.m_count > 50)
-            mx = (m_mean*m_count + other.m_mean*other.m_count) /
-                    m_count + other.m_count;
+        if(m_count == 0) 
+            *this = other;
+        else if (other.m_count == 0) 
+            return;
         else {
+            size_t nx = other.m_count + m_count;
+            double d = other.m_mean - m_mean;
+            double mx, M2;
             mx = m_mean + d * other.m_count / nx;
+            //        m_M2 = other.m_M2 + m_M2 + d*d*m_count*other.m_count/nx;        
+            M2  = (m_M2 + m_mean*m_mean*m_count) +
+                    (other.m_M2 + other.m_mean*other.m_mean*other.m_count) -
+                    mx*mx*nx;
+            
+            m_M2 = M2;
+            m_mean = mx;
+            m_count = nx;
         }
-        m_M2 = other.m_M2 + m_M2 + d*d*m_count*other.m_count/nx;
-        m_mean = mx;
-        m_count = nx;
     }
 
 
@@ -146,6 +152,8 @@ private:
     double m_mean;
     double m_M2;
 };
+
+
 
 } // detail
 

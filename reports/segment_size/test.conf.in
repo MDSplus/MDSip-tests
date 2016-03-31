@@ -15,6 +15,8 @@ channels = "1 2 4"
 segments = 128,256,1024
 
 # Number of samples to collect per segment size
-samples = 20
+samples = 5
 
+# Number of probes to collect per channel
+probes = 5
 
