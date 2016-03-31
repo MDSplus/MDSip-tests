@@ -12,7 +12,7 @@ export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
 
 MDSPLUS_DIR=${MDSPLUS_DIR:=/usr/local/mdsplus}
 MDSIP=${MDSPLUS_DIR}/bin/mdsip
-LD_LIBRARY_PATH=${MDSPLUS_DIR}/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${MDSPLUS_DIR}/lib:${LD_LIBRARY_PATH}
 export MDS_PATH=${MDSPLUS_DIR}/tdi
 
 DIALOG=dialog
