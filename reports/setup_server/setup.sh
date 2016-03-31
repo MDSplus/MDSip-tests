@@ -98,11 +98,20 @@ function set_path() {
 
 function start() {
   eval set_path
+  check_server_running
+
+  [ ! ${tcp_running} ] && \
   ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P tcp > ${TARGET_SPOOL}/tcp.log &
   echo "$!" > ${TARGET_SPOOL}/run/tcp.pid && echo "mdsip TCP server started"
+  
+  [ ! ${udt_running} ] && \
   ${MDSIP} -p ${TARGET_PORT} -m -h ${MDSPLUS_DIR}/etc/mdsip.hosts -P udt > ${TARGET_SPOOL}/udt.log &
   echo "$!" > ${TARGET_SPOOL}/run/udt.pid && echo "mdsip UDT server started"
+
+  check_server_running
+  echo "${IS_SERVER_RUNNING}"
 }
+
 
 
 # ///////////////////////////////////////////////////////////////////////////
@@ -203,16 +212,23 @@ function xinetd() {
   
   mkdir -p ${TARGET_SPOOL}/log
   
+  check_server_running
   # UDT session
+  if [ ! ${udt_running} ]; then
   ${MDSIP} -p ${TARGET_PORT} -P udt -m -h ${TARGET_SPOOL}/mdsip.hosts \
     >> ${TARGET_SPOOL}/log/udt.access 2>>${TARGET_SPOOL}/log/udt.errors &
    echo "$!" > ${TARGET_SPOOL}/run/udt.pid && echo "mdsip UDT server started"
+  fi
   
   # TCP session in xinetd
+  if [ ! ${tcp_running} ]; then
   sh -c "xinetd -f ${TARGET_SPOOL}/mdsipd.xinetd -pidfile ${TARGET_SPOOL}/run/tcp.pid" && \
    echo "mdsip TCP server started"
+  fi
+  
+  check_server_running
+  echo "${IS_SERVER_RUNNING}"
 }
-
 
 
 
