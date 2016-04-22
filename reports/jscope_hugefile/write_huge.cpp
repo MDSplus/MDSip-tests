@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include<math.h>
 
-#define SEGMENT_SAMPLES 50000
+#define SEGMENT_SAMPLES 500000
 #define NUM_SEGMENTS 1000
 int main(int argc, char *argv[])
 {
@@ -17,7 +17,9 @@ int main(int argc, char *argv[])
     try {
 		MDSplus::Tree *tree = new MDSplus::Tree("huge", -1, "NEW");
 		MDSplus::TreeNode *node = tree->addNode("HUGE_0", "SIGNAL");
+        MDSplus::TreeNode *node1 = tree->addNode("HUGE_0_RES", "SIGNAL");
 		delete node;
+        delete node1;
 		tree->write();
 		delete tree;
 		tree = new MDSplus::Tree("huge", -1);
@@ -25,6 +27,7 @@ int main(int argc, char *argv[])
 		delete tree;
 		tree = new MDSplus::Tree("huge", 1);
 		node = tree->getNode("HUGE_0");
+        node1 = tree->getNode("HUGE_0_RES");
 		
 		float *values = new float[SEGMENT_SAMPLES];
 		double currTime = 0;
@@ -45,7 +48,7 @@ int main(int argc, char *argv[])
 			MDSplus::Data *deltaData = new MDSplus::Float64(deltaTime);
 			MDSplus::Data *dimData = new MDSplus::Range(startData, endData, deltaData);
 			MDSplus::Array *valsData = new MDSplus::Float32Array(values, SEGMENT_SAMPLES);
-			node->makeSegment(startData, endData, dimData, valsData);
+			node->makeSegmentMinMax(startData, endData, dimData, valsData, node1);
 			deleteData(dimData);
 			deleteData(valsData);
 		}
