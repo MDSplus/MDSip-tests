@@ -155,4 +155,4 @@ exit 0
 
 
 # DO ############
-eval main
+eval main ||:
