@@ -51,6 +51,16 @@ jscope_hugefile: huge_tcp.jscp huge_udt.jscp
 	  java jScope ${builddir}/huge_$$p.jscp
 	  
 
+.PHONY: jscope_traverser
+jscope_traverser:
+	 \
+	  eval ${_envset}; \
+	  export huge_path=${TARGET_SPOOL}; \
+	  java jTraverser
+
+
+
+
 # //////////////////////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 # Set of m4 macro definitions to insert command and confguration in jscp files #
