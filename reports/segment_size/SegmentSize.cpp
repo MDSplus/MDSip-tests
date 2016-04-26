@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
-
+#include <unistd.h> // sleep
 #include <mdsobjects.h>
 
 
@@ -49,6 +49,20 @@ struct Parameters : Options {
 } g_options;
 
 TestTree g_target_tree;
+
+
+
+static void count_down(int sec, const char *msg=0) {
+    if(msg) 
+        std::cerr << msg;
+    else
+        std::cerr << "Exception caught: ";
+    std::cerr << std::endl;
+    for(int i=sec; i-->0;) {
+        std::cerr << " retrying in " << i+1 << " sec \r";
+        sleep(1);
+    }
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -102,7 +116,13 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << "\n /////// connecting " << nch 
               << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
 
-    conn.StartConnection();
+    for(int i=0; i<10; ++i) {
+        try { conn.StartConnection(); break; }
+        catch (MdsException &e) { 
+            std::cerr << "Exception: " << e.what();
+            count_down(5);
+        }
+    }
 
 //    std::cout << "CHANNELS TIMES:\n";
 //    Point2D time, speed;
