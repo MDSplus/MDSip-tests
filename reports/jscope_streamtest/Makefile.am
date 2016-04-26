@@ -23,17 +23,30 @@ bin_PROGRAMS = write_stream
 
 write_stream_SOURCES = write_stream.cpp
 
-LDADD = $(AM_LIBS)
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 
 
+.PHONY: jscope_streamtest
 jscope_streamtest: write_stream streamtest.jscp
 	@ \
-	  ${_envset} \
+	  ${_envset}; \
 	  export stream_path=${TARGET}; \
-	  $(builddir)/write_stream & _wpid="$$!"; \
+	  $(builddir)/write_stream tcp://${TARGET_HOST}:${TARGET_PORT} & _wpid="$$!"; \
 	  [ -n "$${_wpid}" ] && java jScope ${builddir}/streamtest.jscp;  \
 	  [ -n "$${_wpid}" ] && kill $${_wpid};
 
+
+.PHONY: start_write
+start_write: write_stream
+	@ \
+	  ${_envset}; \
+	  $(builddir)/write_stream tcp://${TARGET_HOST}:${TARGET_PORT}
+
+.PHONY: start_jscope
+start_jscope: streamtest.jscp
+	@ \
+	  ${_envset}; \
+	  java jScope ${builddir}/streamtest.jscp;
 
 
 
