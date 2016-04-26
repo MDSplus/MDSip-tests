@@ -7,7 +7,11 @@ tex
 reports
 reports/jscope_streamtest
 mdsplus/mdsobjects/cpp/testing
+mdsplus/mdstcpip/udt4/udtc
+mdsplus/mdstcpip/udt4/src
+
 mdsplus
 m4
 mdsplus/deploy
 reports/jscope_hugefile
+

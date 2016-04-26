@@ -162,6 +162,7 @@ jscope_hugefile:
 
 
 
+#.PHONY: segment_size speed_spread speed_trend
 segment_size: segment_size.pdf
 speed_spread: speed_spread.pdf
 speed_trend: speed_trend.pdf
