@@ -4,7 +4,7 @@
 #include "SerializeUtils.h"
 #include "DataUtils.h"
 #include "Threads.h"
-
+#include <unistd.h>
 #include "TestChannel.h"
 
 using namespace MDSplus;
@@ -79,13 +79,29 @@ public:
     void Open(TestTree &tree) {
         if(m_cnx) Close();       
         std::string cnx_path = TestTree::TreePath::toString(tree.Path());
-        m_cnx = new mds::Connection((char *)cnx_path.c_str());
-        m_cnx->openTree((char*)tree.Name().c_str(), 0);
+        for(int i=0; i<100; ++i) {
+            try{
+                m_cnx = new mds::Connection((char *)cnx_path.c_str());
+                m_cnx->openTree((char*)tree.Name().c_str(), 0);
+                break;
+            } catch (MdsException &e) {
+                std::cerr << " [per Giammaria] Error opening tree (exception caught: " << e.what() << ") try:" << i; 
+                usleep(20000);                
+            }
+        }
     }
 
     void Close() {
         if(m_cnx) {
-            m_cnx->closeAllTrees();
+            for(int i=0; i<100; ++i) {
+                try{            
+                    m_cnx->closeAllTrees();
+                    break;
+                } catch (MdsException &e) {
+                    std::cerr << " [per Giammaria] Error closing tree (exception caught: " << e.what() << ") try:" << i; 
+                    usleep(20000);                
+                }
+            }
             delete m_cnx;
             m_cnx = NULL;
         }
@@ -113,7 +129,13 @@ public:
                << "$1" << ",,"
                << el.data->getSize() << ")";            
             // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
-            m_cnx->get(ss.str().c_str(),args,1);
+            for(int i=0; i<100; ++i) {
+                try { m_cnx->get(ss.str().c_str(),args,1); break; }
+                catch (MdsException &e) { 
+                    std::cerr << " [per Giammaria] Error sending segment (exception caught: " << e.what() << ") try:" << i; 
+                    usleep(20000);
+                } 
+            }
             delete[] begin;
             delete[] end;
             delete[] delta;      

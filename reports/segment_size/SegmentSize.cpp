@@ -86,6 +86,8 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
                                    int nch = 1,
                                    int nseg = g_options.samples)
 {
+    
+    
     TestConnectionMT conn(g_target_tree);
 
     std::vector< unique_ptr<ContentFunction> > functions; // function generators //
@@ -196,7 +198,17 @@ int main(int argc, char *argv[])
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
             {                            
                 int nch = g_options.n_channels[nch_id];
-                Histogram<double> sh = segment_size_throughput_MT(seg, nch);
+                Histogram<double> sh;
+                // launch segment_size_througput
+                for(int i=0; i<10; ++i) {
+                    try { sh = segment_size_throughput_MT(seg, nch); break; }
+                    catch (MdsException &e) { 
+                        std::cerr << "Error collecting seg=" << seg 
+                                  << " for number of channels=" << nch << "\n"
+                                  << "Exception: " << e.what();
+                        count_down(5);
+                    }
+                }                                
                 // add probe //
                 if(seg_id < speed_probes[nch_id].size())
                     speed_probes[nch_id].at(seg_id) += sh;
