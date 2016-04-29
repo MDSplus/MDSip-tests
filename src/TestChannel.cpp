@@ -85,7 +85,8 @@ public:
                 m_cnx->openTree((char*)tree.Name().c_str(), 0);
                 break;
             } catch (MdsException &e) {
-                std::cerr << " [per Giammaria] Error opening tree (exception caught: " << e.what() << ") try:" << i; 
+                std::cerr << " Error opening tree (exception caught: " 
+                          << e.what() << ") try:" << i << std::endl; 
                 usleep(20000);                
             }
         }
@@ -98,7 +99,8 @@ public:
                     m_cnx->closeAllTrees();
                     break;
                 } catch (MdsException &e) {
-                    std::cerr << " [per Giammaria] Error closing tree (exception caught: " << e.what() << ") try:" << i; 
+                    std::cerr << " Error closing tree (exception caught: " 
+                              << e.what() << ") try:" << i << std::endl; 
                     usleep(20000);                
                 }
             }
@@ -128,11 +130,13 @@ public:
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
                << el.data->getSize() << ")";            
-            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
+            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, 
+            //          as_is _dim, in _array, optional _idx, in _rows_filled)
             for(int i=0; i<100; ++i) {
                 try { m_cnx->get(ss.str().c_str(),args,1); break; }
                 catch (MdsException &e) { 
-                    std::cerr << " [per Giammaria] Error sending segment (exception caught: " << e.what() << ") try:" << i; 
+                    std::cerr << " Error sending segment (exception caught: " 
+                              << e.what() << ") try:" << i << std::endl; 
                     usleep(20000);
                 } 
             }
