@@ -78,10 +78,10 @@ int main(int argc, char *argv[])
         plot.YAxis() = curve1.YAxis();
         plot.YAxis().name = "Y-Axis";
 
-        std::ofstream fout;
-        fout.open("test_gnuplot.csv");
-        plot.PrintToCsv(fout);
-        fout.close();
+//        std::ofstream fout;
+//        fout.open("test_gnuplot.csv");
+        plot.PrintToCsv("test_gnuplot.csv");
+//        fout.close();
 
         plot.PrintToGnuplotFile();
 

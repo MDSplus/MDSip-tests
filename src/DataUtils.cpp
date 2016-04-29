@@ -60,48 +60,69 @@ static ColorRGBList init_color_list() {
 Singleton<ColorRGBList> Plot2D::s_chart_colors = init_color_list();
 
 
-void Plot2D::PrintToCsv(std::ostream &o, const char sep)
+void Plot2D::PrintToCsv(std::string file_name, const char sep)
 {
     typedef std::vector<PointType>::iterator ItrType;
     std::vector<ItrType> itr,itr_end;
-    o << this->XAxis().name;
+    std::ofstream o;
+    // TODO: throw //   
+    if(m_curves.empty()) return;
+    bool split_files = false;
     foreach (Curve2D &curve, m_curves) {
-        curve.Update();
-        if(curve.Size()) {
-            o << sep << curve.GetName() << sep << curve.GetName()+" err";
-            itr.push_back( curve.Points().begin() );
-            itr_end.push_back( curve.Points().end() );
+        const int &n_points = m_curves.front().Size();
+        if(n_points != curve.Size()) split_files = true;
+        else for(int i=0; i<n_points; ++i)
+            if(curve[i](0) != m_curves.front()[i](0))
+                split_files = true;
+    }
+    
+    if(split_files) {
+        int curve_index = 0;
+        foreach (Curve2D curve, m_curves) {            
+            ++curve_index;
+            if(curve.GetName().empty())
+                curve.SetName(std::string("curve_"+curve_index));
+            o.open(std::string(file_name+"_"+curve.GetName()+".csv").c_str());
+            assert(o.is_open());
+            o << this->XAxis().name << sep << curve.GetName() << sep << curve.GetName()+" err" << std::endl;
+            foreach (Point2D &pt, curve.Points())
+                o << pt(0) << sep << pt(1) << sep << pt(2) << std::endl;
+            o.close();
         }
     }
-    o << std::endl;
-
-    // TODO: find a better implementation //
-    for(itr; itr != itr_end;) {
-        ItrType min_pt;
-        for(unsigned int i=0; i<itr.size(); ++i) {
-            if(itr[i] != itr_end[i]) { min_pt = itr[i]; break; }
+    else {        
+        o.open(std::string(file_name+".csv").c_str());
+        assert(o.is_open());        
+        o << this->XAxis().name;
+        foreach (Curve2D &curve, m_curves) {
+            curve.Update();
+            if(curve.Size()) {
+                o << sep << curve.GetName() << sep << curve.GetName()+" err";
+                itr.push_back( curve.Points().begin() );
+                itr_end.push_back( curve.Points().end() );            
+            }
         }
-        for(unsigned int i=0; i<itr.size(); ++i) {
-            if (itr[i] != itr_end[i] && *itr[i] < *min_pt ) min_pt = itr[i];
+        o << std::endl;        
+        // TODO: find a better implementation //
+        for(itr.front(); itr.front() != itr_end.front();) {
+            ItrType min_pt;
+            for(unsigned int i=0; i<itr.size(); ++i) {
+                if(itr[i] != itr_end[i]) { min_pt = itr[i]; break; }
+            }
+            for(unsigned int i=0; i<itr.size(); ++i) {
+                if (itr[i] != itr_end[i] && *itr[i] < *min_pt ) min_pt = itr[i];
+            }
+            o << (*min_pt)(0);
+            for(unsigned int i=0; i<itr.size(); ++i) {
+                ItrType &pt = itr[i];
+                if( itr[i] != itr_end[i] && are_same((*pt)(0),(*min_pt)(0)))
+                { o << sep << (*pt)(1) << sep << (*pt)(2); pt++; }
+                else { o << sep << sep; }
+            }
+            o << std::endl;
         }
-        o << (*min_pt)(0);
-        for(unsigned int i=0; i<itr.size(); ++i) {
-            ItrType &pt = itr[i];
-            if( itr[i] != itr_end[i] && are_same((*pt)(0),(*min_pt)(0)))
-            { o << sep << (*pt)(1) << sep << (*pt)(2); pt++; }
-            else { o << sep << sep; }
-        }
-        o << std::endl;
+        o.close();
     }
-}
-
-void Plot2D::PrintToCsv(std::string file_name, const char sep)
-{
-    std::ofstream file;
-    file.open(std::string(file_name+".csv").c_str());
-    assert(file.is_open());
-    this->PrintToCsv(file,sep);
-    file.close();
 }
 
 

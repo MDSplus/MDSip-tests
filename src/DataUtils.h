@@ -251,8 +251,8 @@ class Curve2D : /*Lockable,*/ public Named
 public:
     typedef Vector3d Point;   // (X, Y, RMS ERROR) //
 
-public:    
-
+public:     
+    
     struct Axis {
         Axis() : ticks(1)
         {
@@ -686,17 +686,15 @@ public:
     std::vector<Curve2D> & Curves() { return m_curves; }
     const std::vector<Curve2D> & Curves() const { return m_curves; }
 
-    void PrintToCsv( std::ostream &o, const char sep = ';' );
-
     void PrintToCsv( std::string file_name, const char sep = ';' );
 
     void PrintToGnuplotFile(std::string file_name = "") const;
 
-    friend CsvDataFile &
-    operator << (CsvDataFile &csv, Plot2D &plot) {
-        plot.PrintToCsv(csv, csv.Separator());
-        return csv;
-    }
+//    friend CsvDataFile &
+//    operator << (CsvDataFile &csv, Plot2D &plot) {
+//        plot.PrintToCsv(csv, csv.Separator());
+//        return csv;
+//    }
 
     enum OptionEnum {
         Smoothed    = 1 << 0,
