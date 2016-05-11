@@ -116,44 +116,19 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     }
 
     std::cout << "\n /////// connecting " << nch 
-              << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
-
-    for(int i=0; i<10; ++i) {
-        try { conn.StartConnection(); break; }
-        catch (MdsException &e) { 
-            std::cerr << "Exception: " << e.what();
-            count_down(5);
-        }
-    }
-
-//    std::cout << "CHANNELS TIMES:\n";
-//    Point2D time, speed;
-//    for(int i=0; i<nch; ++i) {
-//        Channel *ch = channels[i];
-//        TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
-//        TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
-//        std::cout << "times dist: " << time_h << "\n";
-//        std::cout << "speed dist: " << speed_h << "\n";
-//        time(0) += time_h.MeanAll();
-//        time(1) += time_h.VarianceAll();
-//        speed(0) += speed_h.MeanAll();
-//        speed(1) += speed_h.VarianceAll();
-//    }
-//    time(0) /= nch;
-//    time(1) = sqrt( time(1)/nch );
-//    speed(0);
-//    speed(1) = sqrt( speed(1) );
-//    std::cout << "SPEED: " << speed << "\n";
-
+              << " channels [" << size_KB << " KB]: ////////"
+              << "\n" << std::flush;            
+    
+    conn.StartConnection(); 
+    
     // here we assume that speed_h is empty //
-    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
+    //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
         speed_h += conn.ChannelSpeed(ch);
-        std::cout << "    ch" << i << " --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
-//        std::cout << "           dist: " << conn.ChannelSpeed(ch) << "\n";
     }
     std::cout << speed_h << "\n";
+    
     return speed_h;    
 }
 
@@ -200,15 +175,10 @@ int main(int argc, char *argv[])
                 int nch = g_options.n_channels[nch_id];
                 Histogram<double> sh;
                 // launch segment_size_througput
-                for(int i=0; i<10; ++i) {
+                for(int i=0;; ++i) {
                     try { sh = segment_size_throughput_MT(seg, nch); break; }
-                    catch (MdsException &e) { 
-                        std::cerr << "Error collecting seg=" << seg 
-                                  << " for number of channels=" << nch << "\n"
-                                  << "Exception: " << e.what();
-                        count_down(5);
-                    }
-                }                                
+                    catch (std::exception &e) { count_down(5,e.what()); }
+                }
                 // add probe //
                 if(seg_id < speed_probes[nch_id].size())
                     speed_probes[nch_id].at(seg_id) += sh;
@@ -293,7 +263,6 @@ int main(int argc, char *argv[])
         o << "max_x=" << max(0) << "\n";
         o << "max_y=" << max(1) << "\n";
         o << "max_e=" << max(2) << "\n";
-
 
         o.close();
     }

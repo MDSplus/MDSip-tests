@@ -41,7 +41,7 @@ public:
     virtual double StartConnection();
 
     virtual void AddChannel(Content *cnt, Channel *chn) {
-        chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
+        //chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
         
         m_channels.push_back(chn);
         m_contents.push_back(cnt);        

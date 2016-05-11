@@ -31,6 +31,8 @@ double TestConnection::StartConnection()
     m_tree.CreatePulse(++pulse);
     m_tree.SetCurrentPulse(pulse);
 
+    foreach(Channel *ch, m_channels) ch->Reset();
+    
     // DO NOTHING //
 
     return 0;
@@ -123,7 +125,8 @@ public:
     ConnectionThread(TestConnectionMT *con, Channel *chn, Content *cnt) :
         m_connection(con),
         m_channel(chn),
-        m_content(cnt)
+        m_content(cnt),
+        m_integrity(true)
     {}
 
     void InternalThreadEntry() {
@@ -132,29 +135,37 @@ public:
         TestConnection::TimeHistogram &speed = m_connection->ChannelSpeed(m_channel);
         time.Clear();
         speed.Clear();
-
-        m_channel->Open(m_connection->Tree());
-
-        if( m_content )
-        while (  m_content->GetSize() > 0 )
-        {
-            Content::Element el;
-            m_content->GetNextElement(m_channel->Size(), el);
-            timer.Start();
-            m_channel->PutSegment(el);
-            double t = timer.StopWatch();
-            time << t;
-            speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
-            // FIX: the actual size of el may not be of this size //
+        try {
+            m_integrity = true;
+            m_channel->Open(m_connection->Tree());
+            if( m_content )
+                while (  m_content->GetSize() > 0 )
+                {
+                    Content::Element el;
+                    m_content->GetNextElement(m_channel->Size(), el);
+                    timer.Start();
+                    m_channel->PutSegment(el);
+                    double t = timer.StopWatch();
+                    time << t;
+                    speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
+                    // FIX: the actual size of el may not be of this size //
+                }
+            m_channel->Close();
+        } 
+        catch (std::exception &e) {
+            m_integrity = false;
+            error = e;
         }
-
-        m_channel->Close();
     }
-
+    
+    bool HasErrors() const { return m_integrity == false; }
+    const std::exception &Error() const { return error; }
 private:
     TestConnectionMT * m_connection;
     Channel *m_channel;
     Content *m_content;
+    bool     m_integrity;
+    std::exception error;
 };
 
 
@@ -196,8 +207,6 @@ double TestConnectionMT::StartConnection()
 {
     BaseClass::StartConnection();
 
-    std::cout << "START MULTITHREADED CONNECTION\n";
-
     Timer conn_timer;
     conn_timer.Start();
 
@@ -211,7 +220,11 @@ double TestConnectionMT::StartConnection()
         thread->WaitForThreadToExit();
     }
 
-    //    pulse++;
+    foreach (const Thread *t, m_threads) {
+        const ConnectionThread *ct = static_cast<const ConnectionThread *>(t);
+        if(ct->HasErrors()) throw (ct->Error());
+    }
+    
     return conn_timer.StopWatch();
 }
 
@@ -257,8 +270,6 @@ SerializeToShm g_shm_timings[20];
 double TestConnectionMP::StartConnection()
 {
     BaseClass::StartConnection();
-
-    std::cout << "START MULTIPROCESS CONNECTION\n";
 
     // TOTAL CONNECTION TIMER //
     Timer conn_timer; conn_timer.Start();
