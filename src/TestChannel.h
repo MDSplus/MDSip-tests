@@ -8,32 +8,52 @@
 //  Channel  ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+
+
+
+
 namespace mdsip_test {
 
 
 class Channel {
 
 public:
-    virtual ~Channel() {}
+    typedef enum {
+        DC,
+        TC
+    } ChannelTypeEnum;
     
-    virtual void SetContent(Content *cnt) { m_content = cnt; }
-
-    static Channel * NewDC(int size_KB);
-    static Channel * NewTC(int size_KB);
-
-    virtual void Open(TestTree &tree) = 0;
-
-    virtual void Close() = 0;
-
-    virtual size_t Size() const = 0;
+    Channel(int size_KB,  const ChannelTypeEnum &kind = TC);
+    ~Channel();
     
-    virtual void PutSegment(Content::Element &el) {}
+    static Channel *NewTC(int size_KB);
+    static Channel *NewDC(int size_KB);
     
-    virtual void SetNoDisk(bool value) {}
+    void Open(TestTree &tree);
 
+    void Close();
+
+    size_t Size();
+    
+    void PutSegment(Content::Element &el);
+    
+    const size_t & GetErrorsCount() const;
+    
+    void Reset();
+
+    void SetNoDisk(bool value);
+    
+    
 protected:
-    Content *m_content;
-    Channel() {}
+    size_t   m_cnxerr_count;
+    size_t   m_cnxerr_threshold;
+    size_t   m_cnxerr_usleep;
+    size_t   m_size;
+
+private:
+    friend class ChannelImpl;
+    class ChannelImpl *d;
+    
 };
 
 

@@ -28,7 +28,8 @@
 using namespace MDSplus;
 using namespace mdsip_test;
 
-
+#define MAX_CONNECTION_ATTEMPTS 100
+#define WAIT_CONNECTION_SECONDS 5
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +114,8 @@ static void handler(int sig, siginfo_t *si, void *uc)
     
     time_t now; time(&now);
     elapsed_seconds = difftime(now,timer_start);
-    if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
-        signal(sig, SIG_IGN); // stop handling  
+    //        if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
+    //            signal(sig, SIG_IGN); // stop handling  
     
     /* unlock timer signal */
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
@@ -219,15 +220,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
               << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
     
     
-    for(int i=0; i<10; ++i) {
-        try { conn.StartConnection(); break; }
-        catch (MdsException &e) { 
-            std::cerr << "Exception: " << e.what();
-            count_down(5);
-        }
-    }
-    
-    
+    conn.StartConnection();
+        
     Vector2d speed;
     
     for(int i=0; i<nch; ++i) {
@@ -275,8 +269,23 @@ static int fill_trend()
         Vector2d  speed;
         time_t start_time,end_time;
         
-        time(&start_time);        
-        speed = segment_speed_distr_MT(g_options.seg_size,speed_h,nch,g_options.samples);
+        time(&start_time);
+        while(true) {
+            try {
+                speed = segment_speed_distr_MT(g_options.seg_size,speed_h,nch,g_options.samples);
+                break; 
+            }
+            catch (std::exception &e) 
+            {
+                std::cerr << "Exception: " << e.what();
+                static int count = 0;
+                if(++count == MAX_CONNECTION_ATTEMPTS) { 
+                    std::cerr << "Too many faild attempts to connect.. aborting test\n"; 
+                    exit(1);
+                } 
+                else count_down(WAIT_CONNECTION_SECONDS);
+            }
+        }
         time(&end_time);
         
         std::stringstream curve_name;
@@ -336,7 +345,7 @@ int main(int argc, char *argv[])
     
     // loop until end of time //
     register_timer(g_options.timer_interval_duration(0));
-    fill_trend(); // start also from now //
+    handler(0,0,0); // start also from now //
     while(elapsed_seconds < g_options.timer_interval_duration(1) * 60) sleep(1);
     
     

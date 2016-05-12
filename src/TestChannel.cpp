@@ -4,25 +4,43 @@
 #include "SerializeUtils.h"
 #include "DataUtils.h"
 #include "Threads.h"
-
+#include <unistd.h>
 #include "TestChannel.h"
+
+
+#define MAX_CONNECTION_ATTEMPTS 500
+#define WAIT_CONNECTION_USECONDS 20000
+
+
 
 using namespace MDSplus;
 
 namespace mdsip_test {
 
 
+class ChannelImpl {
+public:
+    ChannelImpl(const Channel *parent) : p(parent), m_nodisk(0) {}
+    virtual ~ChannelImpl() {}
+    virtual void Open(TestTree &tree) = 0;
+    virtual void Close() = 0;
+    virtual void PutSegment(Content::Element &el) = 0;
 
+    bool     m_nodisk;
+    const Channel *p;
+};
+        
 ////////////////////////////////////////////////////////////////////////////////
 //  CHANNEL DC  ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 
 
-class ChannelDC : public Channel {
+class ChannelDC : public ChannelImpl {
+    typedef ChannelImpl BaseClass;
 public:
-    ChannelDC(int size) :
-        m_size(size),
+    ChannelDC(const Channel *parent) :
+        BaseClass(parent),
         m_tree(NULL)
     {}
 
@@ -43,16 +61,7 @@ public:
         node->makeSegment(el.dim->getBegin(), el.dim->getEnding(), el.dim, el.data);
     }
     
-    void Evaluate(std::string cmd) {        
-        throw( new MDSplus::MdsException("remote evaluation not available in DC channels\n") );
-    }
-
-    size_t Size() const { return m_size; }
-    
-    void SetNoDisk(bool) { std::cerr << "NoDisk option unavailable in DC\n"; }
-
 private:
-    size_t m_size;
     Tree  *m_tree;    
 };
 
@@ -64,31 +73,25 @@ private:
 
 
 
-class ChannelTC : public Channel {
+class ChannelTC : public ChannelImpl {
+    typedef ChannelImpl BaseClass;
 public:
-    ChannelTC(int size) :
-        m_cnx(0),
-        m_size(size),
-        m_nodisk(0)
+    ChannelTC(const Channel *parent) :
+        BaseClass(parent),
+        m_cnx(NULL)
     {}
 
-    ~ChannelTC() {
-        // Close();
-    }
-
     void Open(TestTree &tree) {
-        if(m_cnx) Close();       
+        if(m_cnx) Close();
         std::string cnx_path = TestTree::TreePath::toString(tree.Path());
         m_cnx = new mds::Connection((char *)cnx_path.c_str());
         m_cnx->openTree((char*)tree.Name().c_str(), 0);
     }
 
     void Close() {
-        if(m_cnx) {
-            m_cnx->closeAllTrees();
-            delete m_cnx;
-            m_cnx = NULL;
-        }
+        if(m_cnx) m_cnx->closeAllTrees();
+        delete m_cnx;
+        m_cnx = NULL;
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
@@ -105,6 +108,8 @@ public:
             char * end = el.dim->getEnding()->getString();
             char * delta = el.dim->getDeltaVal()->getString();
             std::stringstream ss;
+            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, 
+            //          as_is _dim, in _array, optional _idx, in _rows_filled)
             ss << "MakeSegment(" 
                << el.path << "," 
                << begin << ","
@@ -112,22 +117,16 @@ public:
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
                << el.data->getSize() << ")";            
-            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, as_is _dim, in _array, optional _idx, in _rows_filled)
             m_cnx->get(ss.str().c_str(),args,1);
             delete[] begin;
             delete[] end;
-            delete[] delta;      
+            delete[] delta;
         }
     }
 
-    void SetNoDisk(bool value) { m_nodisk = value; }
-
-    size_t Size() const { return m_size; }
-
 private:
     mds::Connection *m_cnx;
-    size_t m_size;
-    bool m_nodisk;
+
 };
 
 
@@ -135,13 +134,92 @@ private:
 //  Channel  ///////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-Channel *Channel::NewDC(int size_KB) {
-    return new ChannelDC(size_KB);
+
+Channel::Channel(int size_KB, const ChannelTypeEnum &kind) : 
+    m_cnxerr_count(0), 
+    m_cnxerr_threshold(MAX_CONNECTION_ATTEMPTS), 
+    m_cnxerr_usleep(WAIT_CONNECTION_USECONDS),
+    m_size(size_KB)
+{
+    switch (kind) {
+    case DC:
+        d = new ChannelDC(this);
+        break;
+    case TC:
+    default:
+        d = new ChannelTC(this);
+        break;
+    }
 }
 
-Channel *Channel::NewTC(int size_KB) {
-    return new ChannelTC(size_KB);
+Channel::~Channel()
+{
+    delete d;
 }
+
+Channel *Channel::NewTC(int size_KB)
+{
+    return new Channel(size_KB,Channel::TC);
+}
+
+Channel *Channel::NewDC(int size_KB)
+{
+    return new Channel(size_KB,Channel::DC);    
+}
+
+
+
+void Channel::Open(TestTree &tree)
+{
+    for(int count = 0;; ++count, ++m_cnxerr_count) {
+        try{ d->Open(tree); break; }
+        catch (MdsException &e) {
+            std::cerr << " Error opening tree (exception caught: " 
+                      << e.what() << ")" << std::endl;
+            if(count > m_cnxerr_threshold) { throw e;  }
+            usleep(m_cnxerr_usleep);
+        }
+    }        
+}
+
+void Channel::Close()
+{
+    for(int count = 0;; ++count, ++m_cnxerr_count) {
+        try{ d->Close(); break; }
+        catch (MdsException &e) {
+            std::cerr << " Error closing tree (exception caught: " 
+                      << e.what() << ")" << std::endl;
+            if(count > m_cnxerr_threshold) { throw e;  }
+            usleep(m_cnxerr_usleep);
+        }
+    }            
+}
+
+size_t Channel::Size()
+{
+    return m_size;
+}
+
+void Channel::PutSegment(Content::Element &el) {
+    for(int count = 0;; ++count, ++m_cnxerr_count) {
+        try{ d->PutSegment(el); break; }
+        catch (MdsException &e) {
+            if(count > m_cnxerr_threshold) { throw e;  }
+            usleep(m_cnxerr_usleep);
+        }
+    }                
+}
+
+const size_t &Channel::GetErrorsCount() const { return m_cnxerr_count; }
+
+void Channel::Reset()
+{
+    this->Close();
+    m_cnxerr_count = 0;
+}
+
+void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
+
 
 
 

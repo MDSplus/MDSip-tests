@@ -53,8 +53,7 @@ struct Parameters : Options {
 } g_options;
 
 TestTree g_target_tree;
-
-
+ProgressOutput g_progress;
 
 
 
@@ -114,13 +113,7 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     std::cout << "\n /////// connecting " << nch
               << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
     
-    for(int i=0; i<10; ++i) {
-        try { conn.StartConnection(); break; }
-        catch (MdsException &e) { 
-            std::cerr << "Exception: " << e.what();
-            count_down(5);
-        }
-    }
+    conn.StartConnection(); 
     
     Vector2d time, speed;
     
@@ -180,17 +173,22 @@ int main(int argc, char *argv[])
     std::vector<Histogram> speeds;
     std::vector<Histogram> times;
     
+    g_progress = ProgressOutput(g_options.n_channels);
     foreach (int nch, g_options.n_channels)
     {
         Histogram speed;
         Histogram time;
-        segment_speed_distr_MT(g_options.seg_size,speed,time,nch,g_options.samples);
+        while(true) { 
+            try { segment_speed_distr_MT(g_options.seg_size,speed,time,nch,g_options.samples); break; } 
+            catch (std::exception &e) { count_down(5,e.what()); }
+        }
         std::stringstream curve_name;
         curve_name << "ch" << nch;
         speed.SetName(curve_name.str().c_str());
         time.SetName(curve_name.str().c_str());
         speeds.push_back(speed);
         times.push_back(time);
+        g_progress.Completed();
     }
     
     {

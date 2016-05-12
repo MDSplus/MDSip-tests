@@ -30,18 +30,18 @@ public:
 
     TestConnection( const TestTree &tree) :
         m_tree(tree)
-    { m_tree.Create(); }
+    { /*m_tree.Create();*/ }
 
     TestConnection( const char *name, const char *path = 0 ) :
         m_tree(name,path)
-    { m_tree.Create(); }
+    { /*m_tree.Create();*/ }
 
     ~TestConnection() { this->ClearChannels(); }
 
     virtual double StartConnection();
 
     virtual void AddChannel(Content *cnt, Channel *chn) {
-        chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
+        //chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
         
         m_channels.push_back(chn);
         m_contents.push_back(cnt);        
