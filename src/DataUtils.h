@@ -96,17 +96,29 @@ public:
     ProgressOutput(size_t size = 0, const char *msg = "Completed: ") :
         Named(msg),
         m_expected_count(size),
+        m_expected_time_sec(0),
         m_count(0)
     { time(&m_starttime); }
-    
+
+    void SetExpectedTime(float time) { this->m_expected_time_sec = time; }
+        
     float Completed() {
         float pos = 100.*++m_count/m_expected_count;
         time_t now; time(&now);
+        float pos_time;
+        float eta = (static_cast<float>(m_expected_count)/m_count-1)*difftime(now,m_starttime);
+        
+        if(m_expected_time_sec > 0) {
+            pos_time = 100.*difftime(now,m_starttime)/m_expected_time_sec;
+            if( fabs(pos_time-pos) > 20 ) pos = pos_time;
+        }
+        
+        
         if(m_expected_count) {
             std::cout << this->GetName() 
                       << (int)pos << " %"
                       << " elapsed: " << difftime(now,m_starttime) << "s"
-                      << " eta: " << difftime(now,m_starttime)*(m_expected_count/m_count -1) << "s"
+                      << " eta: " << (int)eta << "s"
                       << std::endl << std::flush;
             return pos;
         }
@@ -117,6 +129,7 @@ private:
     size_t m_expected_count;
     size_t m_count;
     time_t m_starttime;
+    float  m_expected_time_sec;
 };
 
 //////////////////////////////////////////////////////////////////////////////////

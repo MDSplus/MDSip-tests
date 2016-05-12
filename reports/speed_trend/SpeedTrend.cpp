@@ -345,8 +345,9 @@ int main(int argc, char *argv[])
     trend_time = std::vector<time_t>(g_options.n_channels.size());
     
     { // calculate steps
-        int steps = g_options.timer_interval_duration(1) * 60 / g_options.timer_interval_duration(0);
-        g_progress = ProgressOutput(steps);
+        g_progress = ProgressOutput(g_options.timer_interval_duration(1) * 60 /
+                                    g_options.timer_interval_duration(0));
+        g_progress.SetExpectedTime(g_options.timer_interval_duration(1)*60);
     }
     
     // loop until end of time //
