@@ -68,7 +68,7 @@ struct Parameters : Options {
 } g_options;
 
 TestTree g_target_tree;
-
+ProgressOutput g_progress;
 
 
 static void count_down(int sec, const char *msg=0) {
@@ -111,6 +111,7 @@ static void handler(int sig, siginfo_t *si, void *uc)
     
     // DO TEST //
     fill_trend();
+    g_progress.Completed();
     
     time_t now; time(&now);
     elapsed_seconds = difftime(now,timer_start);
@@ -342,6 +343,11 @@ int main(int argc, char *argv[])
     typedef TestConnection::TimeHistogram Histogram;    
     trend_value = std::vector<Curve2D>(g_options.n_channels.size());
     trend_time = std::vector<time_t>(g_options.n_channels.size());
+    
+    { // calculate steps
+        int steps = g_options.timer_interval_duration(1) * 60 / g_options.timer_interval_duration(0);
+        g_progress = ProgressOutput(steps);
+    }
     
     // loop until end of time //
     register_timer(g_options.timer_interval_duration(0));
