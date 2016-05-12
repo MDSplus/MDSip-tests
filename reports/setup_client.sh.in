@@ -144,7 +144,7 @@ if [ $opt = 0 ]; then
   Target) select_target;;
   SelectTests) select_tests;;
   ConfigTests) config_tests;;
-  Do) make ${TESTS_ACTIVE};;
+  Do) make ${TESTS_ACTIVE} DIALOG_BAR=${DIALOG_BAR:=yes};;
   *) main;;
  esac
 fi

@@ -44,10 +44,12 @@ distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
 
 
 distr-tcp-speed.csv distr-tcp-time.csv: SpeedSpread
-	@${distr_tcp_command}
+	@${addfunc_dialog_bar}
+	${distr_tcp_command} 2>&1 | tee -a SpeedSpread-tcp.log | dialog_bar "SpeedSpread Test TCP"
 
 distr-udt-speed.csv distr-udt-time.csv: SpeedSpread
-	@${distr_udt_command}
+	@${addfunc_dialog_bar}
+	${distr_udt_command} 2>&1 | tee -a SpeedSpread-udt.log | dialog_bar "SpeedSpread Test UDT"
 
 PHONY: all_images
 all_images: ${IMAGES}

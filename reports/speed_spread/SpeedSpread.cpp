@@ -53,8 +53,7 @@ struct Parameters : Options {
 } g_options;
 
 TestTree g_target_tree;
-
-
+ProgressOutput g_progress;
 
 
 
@@ -174,6 +173,7 @@ int main(int argc, char *argv[])
     std::vector<Histogram> speeds;
     std::vector<Histogram> times;
     
+    g_progress = ProgressOutput(g_options.n_channels);
     foreach (int nch, g_options.n_channels)
     {
         Histogram speed;
@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
         time.SetName(curve_name.str().c_str());
         speeds.push_back(speed);
         times.push_back(time);
+        g_progress.Completed();
     }
     
     {

@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <algorithm>
+#include <ctime>
 
 #include "ClassUtils.h"
 #include "Threads.h"
@@ -85,8 +86,39 @@ private:
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+//  PROGRESS OUTPUT  ///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 
+class ProgressOutput : public Named, public Lockable {
+public:
+    ProgressOutput(size_t size, const char *msg = "Completed: ") :
+        Named(msg),
+        m_expected_count(size),
+        m_count(0)
+    { time(&m_starttime); }
+    
+    float Completed() {
+        float pos = 100.*m_count++/m_expected_count;
+        time_t now; time(&now);
+        if(m_expected_count) {
+            MDS_LOCK_SCOPE(*this);
+            std::cout << this->GetName() 
+                      << (int)pos << " %"
+                      << " elapsed: " << difftime(now,m_starttime) << "s"
+                      << " eta: " << difftime(now,m_starttime)*(m_expected_count/m_count -1) << "s"
+                      << std::endl << std::flush;
+            return pos;
+        }
+        else return 0;
+    }
+    
+private:
+    size_t m_expected_count;
+    size_t m_count;
+    time_t m_starttime;
+};
 
 //////////////////////////////////////////////////////////////////////////////////
 ////  Point2D  ///////////////////////////////////////////////////////////////////

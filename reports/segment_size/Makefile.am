@@ -47,10 +47,12 @@ IMAGES = \
 	size-udt.eps 
 
 size-tcp.csv: SegmentSize
-	${size_tcp_command}
+	@${addfunc_dialog_bar}
+	${size_tcp_command} 2>&1 | tee -a SegmentSize-tcp.log | dialog_bar "SegmentSize Test TCP"
 
 size-udt.csv: SegmentSize
-	${size_udt_command}
+	@${addfunc_dialog_bar}
+	${size_udt_command} 2>&1 | tee -a SegmentSize-udt.log | dialog_bar "SegmentSize Test UDT"
 
 
 PHONY: all_images

@@ -135,6 +135,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
 
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 //  MAIN  //////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,9 +167,12 @@ int main(int argc, char *argv[])
     typedef std::vector<Histogram<double> > Probe_T;
     std::vector<Probe_T> speed_probes(g_options.n_channels.size());
     Vector3i &range = g_options.seg_range;
+    
+    ProgressOutput progress(g_options.probes * (int)(range(2)-range(0))/range(1));
     for(int prb = 0; prb < g_options.probes; ++prb ) {
         int seg_id = 0;
-        for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id )
+        for(int seg = range(0); seg < range(2); 
+            seg += std::min(range(1), range(2)-seg), ++seg_id, progress.Completed() )
         {
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
             {                            
