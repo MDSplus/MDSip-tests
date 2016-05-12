@@ -100,6 +100,14 @@ public:
         m_count(0)
     { time(&m_starttime); }
 
+    static std::string eta_tostring(float eta_s) {
+        std::stringstream ss;
+        ss << (int)floor(eta_s/3600) << "h:"
+           << (int)floor(fmod(eta_s,3600)/60) << "m:"
+           << (int)floor(fmod(eta_s,60)) << "s";
+        return ss.str();
+    }
+    
     void SetExpectedTime(float time) { this->m_expected_time_sec = time; }
         
     float Completed() {
@@ -110,15 +118,17 @@ public:
         
         if(m_expected_time_sec > 0) {
             pos_time = 100.*difftime(now,m_starttime)/m_expected_time_sec;
-            if( fabs(pos_time-pos) > 20 ) pos = pos_time;
+            if( fabs(pos_time-pos) > 20 ) {
+                pos = pos_time;
+                eta = m_expected_time_sec - difftime(now,m_starttime);
+            }
         }
-        
         
         if(m_expected_count) {
             std::cout << this->GetName() 
                       << (int)pos << " %"
                       << " elapsed: " << difftime(now,m_starttime) << "s"
-                      << " eta: " << (int)eta << "s"
+                      << " eta: " << eta_tostring(eta)
                       << std::endl << std::flush;
             return pos;
         }
