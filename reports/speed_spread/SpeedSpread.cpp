@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     std::vector<Histogram> speeds;
     std::vector<Histogram> times;
     
-    g_progress = ProgressOutput(g_options.n_channels);
+    g_progress = ProgressOutput(g_options.n_channels.size());
     foreach (int nch, g_options.n_channels)
     {
         Histogram speed;

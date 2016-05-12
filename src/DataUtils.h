@@ -93,14 +93,14 @@ private:
 
 class ProgressOutput : public Named, public Lockable {
 public:
-    ProgressOutput(size_t size, const char *msg = "Completed: ") :
+    ProgressOutput(size_t size = 0, const char *msg = "Completed: ") :
         Named(msg),
         m_expected_count(size),
         m_count(0)
     { time(&m_starttime); }
     
     float Completed() {
-        float pos = 100.*m_count++/m_expected_count;
+        float pos = 100.*++m_count/m_expected_count;
         time_t now; time(&now);
         if(m_expected_count) {
             MDS_LOCK_SCOPE(*this);
