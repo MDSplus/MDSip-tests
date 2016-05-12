@@ -114,8 +114,8 @@ static void handler(int sig, siginfo_t *si, void *uc)
     
     time_t now; time(&now);
     elapsed_seconds = difftime(now,timer_start);
-    if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
-        signal(sig, SIG_IGN); // stop handling  
+    //        if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
+    //            signal(sig, SIG_IGN); // stop handling  
     
     /* unlock timer signal */
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
     
     // loop until end of time //
     register_timer(g_options.timer_interval_duration(0));
-    fill_trend(); // start also from now //
+    handler(0,0,0); // start also from now //
     while(elapsed_seconds < g_options.timer_interval_duration(1) * 60) sleep(1);
     
     
