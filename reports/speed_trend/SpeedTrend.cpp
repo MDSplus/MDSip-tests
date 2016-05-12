@@ -351,7 +351,8 @@ int main(int argc, char *argv[])
     
     // loop until end of time //
     register_timer(g_options.timer_interval_duration(0));
-    handler(0,0,0); // start also from now //
+//    handler(0,0,0); // start also from now //
+    fill_trend();
     while(elapsed_seconds < g_options.timer_interval_duration(1) * 60) sleep(1);
     
     
