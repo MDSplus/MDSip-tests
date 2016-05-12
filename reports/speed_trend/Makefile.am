@@ -42,7 +42,7 @@ IMAGES = distr-speed.eps \
 
 distr-speed.csv distr-trend.csv: SpeedTrend
 	@${addfunc_dialog_bar}
-	@${COMMAND}  2>&1 | tee -a SpeedTrend.log | | dialog_bar "SpeedTrend Test"
+	@${COMMAND}  2>&1 | tee -a SpeedTrend.log | dialog_bar "SpeedTrend Test"
 
 
 PHONY: all_images
