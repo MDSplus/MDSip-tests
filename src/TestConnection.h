@@ -30,11 +30,11 @@ public:
 
     TestConnection( const TestTree &tree) :
         m_tree(tree)
-    { m_tree.Create(); }
+    { /*m_tree.Create();*/ }
 
     TestConnection( const char *name, const char *path = 0 ) :
         m_tree(name,path)
-    { m_tree.Create(); }
+    { /*m_tree.Create();*/ }
 
     ~TestConnection() { this->ClearChannels(); }
 
