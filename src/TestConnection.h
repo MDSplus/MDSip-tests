@@ -28,13 +28,9 @@ public:
 
     typedef Histogram<double> TimeHistogram;
 
-    TestConnection( const TestTree &tree) :
-        m_tree(tree)
-    { /*m_tree.Create();*/ }
+    TestConnection( const TestTree &tree);
 
-    TestConnection( const char *name, const char *path = 0 ) :
-        m_tree(name,path)
-    { /*m_tree.Create();*/ }
+    TestConnection( const char *name, const char *path = 0 );
 
     ~TestConnection() { this->ClearChannels(); }
 

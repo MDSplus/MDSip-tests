@@ -19,10 +19,46 @@ using namespace MDSplus;
 
 namespace mdsip_test {
   
+static void count_down(int sec, const char *msg=0) {
+    if(msg) 
+        std::cerr << msg;
+    else
+        std::cerr << "Exception caught: ";
+    std::cerr << std::endl;
+    for(int i=sec; i-->0;) {
+        std::cerr << " retrying in " << i+1 << " sec \r";
+        sleep(1);
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // SIGLE CHANNEL DC CONNECTION /////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
+
+
+TestConnection::TestConnection(const TestTree &tree) :
+    m_tree(tree)
+{ 
+    while(1) {
+        try{ m_tree.Create(); break; }
+        catch (MDSplus::MdsException &e) { 
+            std::cerr << "Error creating Tree: " << e.what() << "\n";
+            count_down(5);
+        }
+    }
+}
+
+TestConnection::TestConnection(const char *name, const char *path) :
+    m_tree(name,path)
+{
+    while(1) {
+        try{ m_tree.Create(); break; }
+        catch (MDSplus::MdsException &e) {
+            std::cerr << "Error creating Tree: " << e.what() << "\n";
+            count_down(5);            
+        }
+    }
+}
 
 
 double TestConnection::StartConnection()
@@ -30,7 +66,7 @@ double TestConnection::StartConnection()
     static int pulse = 0;
     m_tree.CreatePulse(++pulse);
     m_tree.SetCurrentPulse(pulse);
-
+    
     foreach(Channel *ch, m_channels) ch->Reset();
     
     // DO NOTHING //
