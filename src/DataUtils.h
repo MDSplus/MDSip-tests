@@ -91,7 +91,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 
-class ProgressOutput : public Named, public Lockable {
+class ProgressOutput : public Named {
 public:
     ProgressOutput(size_t size = 0, const char *msg = "Completed: ") :
         Named(msg),
