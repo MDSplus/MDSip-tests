@@ -115,8 +115,8 @@ static void handler(int sig, siginfo_t *si, void *uc)
     
     time_t now; time(&now);
     elapsed_seconds = difftime(now,timer_start);
-    //        if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
-    //            signal(sig, SIG_IGN); // stop handling  
+    if(elapsed_seconds > g_options.timer_interval_duration(1) * 60)
+        signal(sig, SIG_IGN); // stop handling  
     
     /* unlock timer signal */
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
@@ -163,10 +163,10 @@ int register_timer(long long seconds) {
     its.it_interval.tv_sec = its.it_value.tv_sec;
     its.it_interval.tv_nsec = its.it_value.tv_nsec;
 
+    time(&timer_start);
     if (timer_settime(timerid, 0, &its, NULL) == -1)
         return false;
     
-    time(&timer_start);
     /* Unlock the timer signal, so that timer notification can be delivered */
     if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
         return false;
@@ -351,8 +351,7 @@ int main(int argc, char *argv[])
     
     // loop until end of time //
     register_timer(g_options.timer_interval_duration(0));
-//    handler(0,0,0); // start also from now //
-    fill_trend();
+    raise(SIG); // start also from now //
     while(elapsed_seconds < g_options.timer_interval_duration(1) * 60) sleep(1);
     
     

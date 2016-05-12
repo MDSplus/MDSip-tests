@@ -43,11 +43,11 @@ distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
 		    --speed_limits ${speed_limits} 
 
 
-distr-tcp-speed.csv distr-tcp-time.csv: SpeedSpread
+distr-tcp-speed.dat distr-tcp-time.dat: SpeedSpread
 	@${addfunc_dialog_bar}
 	${distr_tcp_command} 2>&1 | tee -a SpeedSpread-tcp.log | dialog_bar "SpeedSpread Test TCP"
 
-distr-udt-speed.csv distr-udt-time.csv: SpeedSpread
+distr-udt-speed.dat distr-udt-time.dat: SpeedSpread
 	@${addfunc_dialog_bar}
 	${distr_udt_command} 2>&1 | tee -a SpeedSpread-udt.log | dialog_bar "SpeedSpread Test UDT"
 

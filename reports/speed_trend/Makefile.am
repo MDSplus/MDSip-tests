@@ -40,9 +40,9 @@ endef
 IMAGES = distr-speed.eps \
          distr-trend.eps
 
-distr-speed.csv distr-trend.csv: SpeedTrend
+distr-speed.dat distr-trend.dat: SpeedTrend
 	@${addfunc_dialog_bar}
-	@${COMMAND}  2>&1 | tee -a SpeedTrend.log | dialog_bar "SpeedTrend Test"
+	${COMMAND}  2>&1 | tee -a SpeedTrend.log | dialog_bar "SpeedTrend Test"
 
 
 PHONY: all_images

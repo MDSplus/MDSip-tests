@@ -103,7 +103,6 @@ public:
         float pos = 100.*++m_count/m_expected_count;
         time_t now; time(&now);
         if(m_expected_count) {
-            MDS_LOCK_SCOPE(*this);
             std::cout << this->GetName() 
                       << (int)pos << " %"
                       << " elapsed: " << difftime(now,m_starttime) << "s"
