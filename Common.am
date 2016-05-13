@@ -40,7 +40,8 @@ export LD_LIBRARY_PATH
 define addfunc_dialog_bar
   dialog_bar() {
   if [ -n "${DIALOG_BAR}" -a x"${DIALOG_BAR}" != x"no" ]; then
-   (stdbuf -oL awk '/Completed:/ {print $$2}' | dialog --title "$$1" --gauge "Please wait" 7 70);
+   (stdbuf -oL awk '/Completed:/ {print "XXX\n"$$2"\n"$$0"\nXXX"}' \
+   | dialog --title "$$1" --gauge "Please wait" 7 70);
   else
    cat; 
   fi

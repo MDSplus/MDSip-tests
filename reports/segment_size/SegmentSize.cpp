@@ -168,11 +168,20 @@ int main(int argc, char *argv[])
     std::vector<Probe_T> speed_probes(g_options.n_channels.size());
     Vector3i &range = g_options.seg_range;
     
-    ProgressOutput progress(g_options.probes * (int)(range(2)-range(0))/range(1));
+    // Progress output (for dialog status bar)    
+    ProgressOutput progress;    
+    {
+        size_t tot_steps = g_options.probes  * (int)(range(2)-range(0))/range(1);
+        foreach (int nch, g_options.n_channels) {
+            tot_steps *= nch;
+        }
+        progress.SetExpectedCount(tot_steps);
+    }
+    
     for(int prb = 0; prb < g_options.probes; ++prb ) {
         int seg_id = 0;
         for(int seg = range(0); seg < range(2); 
-            seg += std::min(range(1), range(2)-seg), ++seg_id, progress.Completed() )
+            seg += std::min(range(1), range(2)-seg), ++seg_id )
         {
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
             {                            
@@ -188,6 +197,7 @@ int main(int argc, char *argv[])
                     speed_probes[nch_id].at(seg_id) += sh;
                 else
                     speed_probes[nch_id].push_back(sh);
+                progress.Completed(nch);
             }
         }
     }
