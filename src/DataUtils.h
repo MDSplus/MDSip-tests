@@ -1,7 +1,6 @@
 #ifndef DATAUTILS_H
 #define DATAUTILS_H
 
-
 #include <cmath>
 #include <limits>
 
@@ -92,6 +91,7 @@ private:
 
 
 class ProgressOutput : public Named {
+        
 public:
     ProgressOutput(size_t size = 0, const char *msg = "Completed: ") :
         Named(msg),
@@ -100,18 +100,7 @@ public:
         m_count(0)
     { time(&m_starttime); }
 
-    static std::string eta_tostring(float eta_s) {
-        std::stringstream ss;
-        int d = (int)floor(eta_s/3600/24); eta_s = fmod(eta_s,3600*24);
-        int h = (int)floor(eta_s/3600); eta_s = fmod(eta_s,3600);
-        int m = (int)floor(eta_s/60); eta_s = fmod(eta_s,60);
-        int s = (int)floor(eta_s);
-        if(d) ss << d << "d:";
-        if(d || h) ss << h << "h:";
-        if(d || h || m) ss << m << "m:";
-        ss << s << "s";
-        return ss.str();
-    }
+
     
     void SetExpectedCount(size_t count) { this->m_expected_count = count; }
     void SetExpectedTime(float time) { this->m_expected_time_sec = time; }
@@ -145,7 +134,22 @@ public:
         else return 0;
     }
     
+    size_t GetExpectedCount() const { return m_expected_count; }
 private:
+    
+    static std::string eta_tostring(float eta_s) {
+        std::stringstream ss;
+        int d = (int)floor(eta_s/3600/24); eta_s = fmod(eta_s,3600*24);
+        int h = (int)floor(eta_s/3600); eta_s = fmod(eta_s,3600);
+        int m = (int)floor(eta_s/60); eta_s = fmod(eta_s,60);
+        int s = (int)floor(eta_s);
+        if(d) ss << d << "d:";
+        if(d || h) ss << h << "h:";
+        if(d || h || m) ss << m << "m:";
+        ss << s << "s";
+        return ss.str();
+    }
+    
     size_t m_expected_count;
     size_t m_count;
     time_t m_starttime;
@@ -223,13 +227,15 @@ public:
         for(unsigned int i = 0; i<_Dim; ++i)
             m_data[i] = *args[i];
     }
+    
+    Tuple(const std::string &str) { *this << str; }
 
     typedef CommaInitializer< ThisClass , _Scalar >  CommaInit;
 
     inline CommaInit operator << (_Scalar scalar) {
         return CommaInit(this, scalar);
     }
-
+    
     _Scalar & operator() (const size_t i) { assert(i<_Dim); return m_data[i]; }
     const _Scalar & operator() (const size_t i) const { assert(i<_Dim); return m_data[i]; }
 
@@ -272,6 +278,13 @@ public:
         return is;
     }
 
+    friend ThisClass &
+    operator << (ThisClass &v, const std::string &str) {
+        std::istringstream is(str);
+        is >> v;
+        return v;
+    }
+    
 private:
     friend class CommaInitializer< Tuple<_Scalar,_Dim> , _Scalar >;
     template <typename _Other, unsigned int _OtherDim> friend class Tuple;
@@ -411,8 +424,12 @@ public:
 
 
     void Push(const T data) {
-        m_min = std::min(m_min,data);
-        m_max = std::max(m_max,data);
+        if(this->Size()) {
+            m_min = std::min(m_min,data);
+            m_max = std::max(m_max,data);
+        } else {
+            m_min = m_max = data;
+        }
         m_sum += data;
         m_stat << data;
     }
@@ -434,8 +451,13 @@ public:
     double Rms() const { return m_stat.rms(); }
 
     void operator += (const Accumulator &other) {
-        m_min = std::min(m_min, other.m_min);
-        m_max = std::max(m_max, other.m_max);
+        if(this->Size()) {
+            m_min = std::min(m_min, other.m_min);
+            m_max = std::max(m_max, other.m_max);
+        } else {
+            m_min = other.m_min;
+            m_max = other.m_max;
+        }
         m_sum += other.m_sum;
         m_stat += other.m_stat; // see stat operator //
     }

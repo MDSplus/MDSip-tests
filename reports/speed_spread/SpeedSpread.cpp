@@ -17,7 +17,6 @@
 
 #include "DataUtils.h"
 
-
 using namespace MDSplus;
 using namespace mdsip_test;
 
@@ -31,14 +30,14 @@ struct Parameters : Options {
     
     std::vector<int> n_channels;
     size_t seg_size, samples;
-    Vector2d h_speed_limits;
-    Vector2d h_time_limits;
+    std::string h_speed_limits;
+    std::string h_time_limits;
     
     Parameters() :
         seg_size(128),
         samples(250),
-        h_speed_limits(0,10),
-        h_time_limits(0,5)
+        h_speed_limits("auto"),
+        h_time_limits("auto")
     {
         n_channels << 1,2,4; // default channels number;
         this->AddOptions()
@@ -91,8 +90,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     
     size_t tot_size = size_KB * nseg;
     
-    const Vector2d &l1 = g_options.h_speed_limits;
-    const Vector2d &l2 = g_options.h_time_limits;
+    const Vector2d l1 = g_options.h_speed_limits;
+    const Vector2d l2 = g_options.h_time_limits;
     Histogram speed_h_sum("speed_sum",100,l1(0),l1(1));
     Histogram time_h_sum("time_sum",100,l2(0),l2(1));
     
@@ -173,7 +172,60 @@ int main(int argc, char *argv[])
     std::vector<Histogram> speeds;
     std::vector<Histogram> times;
     
-    g_progress = ProgressOutput(g_options.n_channels.size());
+    
+    {
+        int size = 0;
+        foreach(int nch, g_options.n_channels)
+            size += nch;
+        g_progress = ProgressOutput(size*2);
+    }
+    
+    { // trim heading and trailing spaces //
+        std::string &str = g_options.h_speed_limits;
+        size_t endpos = str.find_last_not_of(" \t");
+        if( std::string::npos != endpos )
+            str = str.substr( 0, endpos+1 );
+        size_t startpos = str.find_first_not_of(" \t");
+        if( std::string::npos != startpos )
+            str = str.substr( startpos );
+    }
+    
+    // training for plot limits //
+    if( g_options.h_speed_limits == "auto" 
+            /*|| g_options.h_time_limits == "auto"*/) {
+        g_progress = ProgressOutput(g_progress.GetExpectedCount() * 2);
+        std::cout << "Start trainig plot limits...\n";
+        double s_min=0, s_max=0;
+        double t_min=0, t_max=0;
+        double s_rms=0,t_rms=0;
+        const int training_samples = std::min((int)g_options.samples,10);
+        foreach(int nch, g_options.n_channels) {
+            Histogram speed;
+            Histogram time;
+            while(true) { 
+                try { segment_speed_distr_MT(g_options.seg_size,speed,time,nch,training_samples); break; } 
+                catch (std::exception &e) { count_down(5,e.what()); }
+            }
+            s_min = std::min(s_min, speed.Min());
+            s_max = std::max(s_max, speed.Max());
+            t_min = std::min(t_min, time.Min());
+            t_max = std::max(t_max, time.Max());
+            s_rms = std::max(s_rms, speed.RmsAll());
+            t_rms = std::max(t_rms, time.RmsAll());
+            g_progress.Completed(nch);
+        }
+        Vector2d sl(std::max(s_min-s_rms/2,0.),s_max+s_rms/2);
+        Vector2d tl(std::max(t_min-t_rms/2,0.),t_max+t_rms/2);
+        if(g_options.h_speed_limits == "auto") {
+            std::stringstream ss; ss << sl;
+            g_options.h_speed_limits = ss.str();
+        }
+        if(g_options.h_time_limits == "auto") {
+            std::stringstream ss; ss << tl;
+            g_options.h_time_limits = ss.str();
+        }
+    }
+    
     foreach (int nch, g_options.n_channels)
     {
         Histogram speed;
@@ -188,7 +240,7 @@ int main(int argc, char *argv[])
         time.SetName(curve_name.str().c_str());
         speeds.push_back(speed);
         times.push_back(time);
-        g_progress.Completed();
+        g_progress.Completed(nch);
     }
     
     {

@@ -17,6 +17,7 @@ segments = 64
 # Number of samples to collect per segment size
 samples = 50
 
-# Plot limits for throughput histogram axis [min,max] [MBps]
-speed_limits = 0,0.8
+# Plot limits for tcp/udt throughput histograms axis [min,max] [MBps]
+speed_limits_tcp = 0,0.8
+speed_limits_udt = 0,0.8
 

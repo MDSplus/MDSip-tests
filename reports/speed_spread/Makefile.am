@@ -36,11 +36,11 @@ IMAGES = \
 
 distr_tcp_command = $(builddir)/SpeedSpread tcp://${TARGET} "distr-tcp-" \
 		    --channels ${channels} --segments ${segments} --samples ${samples} \
-		    --speed_limits ${speed_limits} 
+		    --speed_limits ${speed_limits_tcp} 
 
 distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
 		    --channels ${channels} --segments ${segments} --samples ${samples} \
-		    --speed_limits ${speed_limits} 
+		    --speed_limits ${speed_limits_udt} 
 
 
 distr-tcp-speed.dat distr-tcp-time.dat: SpeedSpread
