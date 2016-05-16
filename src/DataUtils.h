@@ -114,10 +114,10 @@ public:
         if(m_expected_time_sec > 0) {
             float pos_time = 100.*difftime(now,m_starttime)/m_expected_time_sec;
             // if pos and pos_time differ by 20% then use pos_time
-            if( fabs(pos_time-pos) > 20 ) {
-                pos = pos_time;
-                eta = m_expected_time_sec - difftime(now,m_starttime);
-            }
+            //            if( fabs(pos_time-pos) > 20 ) {
+            pos = pos_time;
+            eta = m_expected_time_sec - difftime(now,m_starttime);
+            //            }
         }
         
         // fix possible wrong values //
