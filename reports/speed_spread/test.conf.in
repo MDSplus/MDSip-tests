@@ -18,6 +18,6 @@ segments = 64
 samples = 50
 
 # Plot limits for tcp/udt throughput histograms axis [min,max] [MBps]
-speed_limits_tcp = 0,0.8
-speed_limits_udt = 0,0.8
+speed_limits_tcp = auto
+speed_limits_udt = auto
 
