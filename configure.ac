@@ -113,8 +113,24 @@ AS_VAR_IF([enable_mdsplus_build],[yes],
            AS_VAR_SET([MDSPLUS_DIR],$(pwd)/mdsplus)
            AS_VAR_SET([MDS_SRCDIR],$(cd ${srcdir}/mdsplus; pwd))
            AS_VAR_SET([MDS_BUILDDIR],${MDSPLUS_DIR})
-           AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib64)
-           AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin64)
+
+           AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib)
+           AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin)
+           if ( uname -m | grep 64 > /dev/null ); then
+             if ( echo $host| grep 64 > /dev/null ); then
+               if [[ -d /usr/lib64 ]]; then
+                 D64="64"
+               else
+                 D64=""
+               fi
+               AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib${D64})
+               AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin${D64})
+             else
+               AS_VAR_SET([MDS_LIBDIR],${MDS_BUILDDIR}/lib32)
+               AS_VAR_SET([MDS_BINDIR],${MDS_BUILDDIR}/bin32)
+             fi
+           fi
+           
            AS_VAR_SET([MDS_CPPFLAGS],"-I${MDS_BUILDDIR}/include -I${MDS_SRCDIR}/include")
            AS_VAR_SET([MDS_LDFLAGS],"-L${MDS_LIBDIR}")
            _jars="\
