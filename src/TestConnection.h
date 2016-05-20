@@ -72,8 +72,10 @@ public:
 
     void PrintChannelTimes(std::ostream &o);
 
+    void SetSaveEachConnection(bool state);
 
 protected:
+    bool     m_increment_pulse;
     TestTree m_tree;
 
     std::vector<Channel *> m_channels;

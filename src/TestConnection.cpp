@@ -37,7 +37,8 @@ static void count_down(int sec, const char *msg=0) {
 
 
 TestConnection::TestConnection(const TestTree &tree) :
-    m_tree(tree)
+    m_tree(tree),
+    m_increment_pulse(false)
 { 
     while(1) {
         try{ m_tree.Create(); break; }
@@ -49,7 +50,8 @@ TestConnection::TestConnection(const TestTree &tree) :
 }
 
 TestConnection::TestConnection(const char *name, const char *path) :
-    m_tree(name,path)
+    m_tree(name,path),
+    m_increment_pulse(false)
 {
     while(1) {
         try{ m_tree.Create(); break; }
@@ -63,14 +65,15 @@ TestConnection::TestConnection(const char *name, const char *path) :
 
 double TestConnection::StartConnection()
 {
-    static int pulse = 0;
-    m_tree.CreatePulse(++pulse);
-    m_tree.SetCurrentPulse(pulse);
+    static int pulse = 1;
     
+    m_tree.CreatePulse(pulse);
+    m_tree.SetCurrentPulse(pulse);
     foreach(Channel *ch, m_channels) ch->Reset();
     
     // DO NOTHING //
 
+    if(m_increment_pulse) ++pulse;
     return 0;
 }
 
@@ -143,6 +146,10 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
         o << "\n";
     }
     o << "\n";
+}
+
+void TestConnection::SetSaveEachConnection(bool state) {
+    m_increment_pulse = state;
 }
 
 
