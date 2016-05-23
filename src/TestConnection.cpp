@@ -37,7 +37,8 @@ static void count_down(int sec, const char *msg=0) {
 
 
 TestConnection::TestConnection(const TestTree &tree) :
-    m_tree(tree)
+    m_tree(tree),
+    m_increment_pulse(false)
 { 
     while(1) {
         try{ m_tree.Create(); break; }
@@ -49,7 +50,8 @@ TestConnection::TestConnection(const TestTree &tree) :
 }
 
 TestConnection::TestConnection(const char *name, const char *path) :
-    m_tree(name,path)
+    m_tree(name,path),
+    m_increment_pulse(false)
 {
     while(1) {
         try{ m_tree.Create(); break; }
@@ -63,14 +65,15 @@ TestConnection::TestConnection(const char *name, const char *path) :
 
 double TestConnection::StartConnection()
 {
-    static int pulse = 0;
-    m_tree.CreatePulse(++pulse);
-    m_tree.SetCurrentPulse(pulse);
+    static int pulse = 1;
     
+    m_tree.CreatePulse(pulse);
+    m_tree.SetCurrentPulse(pulse);
     foreach(Channel *ch, m_channels) ch->Reset();
     
     // DO NOTHING //
 
+    if(m_increment_pulse) ++pulse;
     return 0;
 }
 
@@ -145,6 +148,10 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
     o << "\n";
 }
 
+void TestConnection::SetSaveEachConnection(bool state) {
+    m_increment_pulse = state;
+}
+
 
 
 
@@ -183,8 +190,9 @@ public:
                     m_channel->PutSegment(el);
                     double t = timer.StopWatch();
                     time << t;
-                    speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
-                    // FIX: the actual size of el may not be of this size //
+                    // reject all packets that have different size from expected ..
+                    if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() )
+                        speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
                 }
             m_channel->Close();
         } 
@@ -374,9 +382,10 @@ double TestConnectionMP::StartConnection()
                     timer.Start();
                     channel->PutSegment(el);
                     double t = timer.StopWatch();
-                    //                    std::cout << "." << std::flush;
+                    // std::cout << "." << std::flush;
                     time  << t;
-                    speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+                    // speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+                    speed << static_cast<double>(el.data->getSize()/1024)/1024/t; // speed in MB //                 
                     // FIX: the actual size of el may not be of this size //
                 }
                 //                std::cout << "\n";
