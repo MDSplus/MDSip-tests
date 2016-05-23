@@ -190,8 +190,9 @@ public:
                     m_channel->PutSegment(el);
                     double t = timer.StopWatch();
                     time << t;
-                    speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
-                    // FIX: the actual size of el may not be of this size //
+                    // reject all packets that have different size from expected ..
+                    if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() )
+                        speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
                 }
             m_channel->Close();
         } 
@@ -381,9 +382,10 @@ double TestConnectionMP::StartConnection()
                     timer.Start();
                     channel->PutSegment(el);
                     double t = timer.StopWatch();
-                    //                    std::cout << "." << std::flush;
+                    // std::cout << "." << std::flush;
                     time  << t;
-                    speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+                    // speed << static_cast<double>(channel->Size())/1024/t; // speed in MB //
+                    speed << static_cast<double>(el.data->getSize()/1024)/1024/t; // speed in MB //                 
                     // FIX: the actual size of el may not be of this size //
                 }
                 //                std::cout << "\n";
