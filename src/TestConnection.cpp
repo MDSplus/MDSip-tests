@@ -173,11 +173,13 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer timer;        
+        Timer t;
         TestConnection::TimeHistogram &time = m_connection->ChannelTime(m_channel);
         TestConnection::TimeHistogram &speed = m_connection->ChannelSpeed(m_channel);
         time.Clear();
         speed.Clear();
+        t = m_connection->GetTimer();
+        double t1 = 0,t2 = 0;
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
@@ -186,13 +188,15 @@ public:
                 {
                     Content::Element el;
                     m_content->GetNextElement(m_channel->Size(), el);
-                    timer.Start();
+
                     m_channel->PutSegment(el);
-                    double t = timer.StopWatch();
-                    time << t;
+                    t2 = t.StopWatch() - t1;
+                    t1 += t2;
                     // reject all packets that have different size from expected ..
-                    if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() )
-                        speed << static_cast<double>(m_channel->Size())/1024/t; // speed in MB //
+                    if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
+                        time << t2;
+                        speed << static_cast<double>(m_channel->Size())/1024/t2; // sped in MB //
+                    }
                 }
             m_channel->Close();
         } 
@@ -251,8 +255,8 @@ double TestConnectionMT::StartConnection()
 {
     BaseClass::StartConnection();
 
-    Timer conn_timer;
-    conn_timer.Start();
+    //    Timer conn_timer;
+    m_conn_timer.Start();
 
     for(size_t i=0; i<m_threads.size(); ++i) {
         Thread * thread = m_threads.at(i);
@@ -269,7 +273,7 @@ double TestConnectionMT::StartConnection()
         if(ct->HasErrors()) throw (ct->Error());
     }
     
-    return conn_timer.StopWatch();
+    return m_conn_timer.StopWatch();
 }
 
 

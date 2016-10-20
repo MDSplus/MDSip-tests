@@ -123,8 +123,11 @@ public:
 
     double StartConnection();
 
+    const Timer & GetTimer() { return m_conn_timer; }
+
 private:
     std::vector<Thread *> m_threads;
+    Timer m_conn_timer;
 };
 
 

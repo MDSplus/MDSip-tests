@@ -21,15 +21,15 @@ public:
    Thread() {}
    virtual ~Thread() {}
 
-   bool StartThread() {
+   virtual bool StartThread() {
       return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
    }
 
-   void StopThread() {
+   virtual void StopThread() {
        pthread_cancel(_thread);
    }
 
-   void WaitForThreadToExit() {
+   virtual void WaitForThreadToExit() {
       (void) pthread_join(_thread, NULL);
    }
 

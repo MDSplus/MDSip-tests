@@ -80,6 +80,8 @@ public:
         return timeSec;
     }
 
+    const struct timeval & GetStartTime() const { return m_start; }
+    const struct timeval & GetLastTime()  const { return m_end; }
 private:
     struct timeval m_start, m_end;
 };
