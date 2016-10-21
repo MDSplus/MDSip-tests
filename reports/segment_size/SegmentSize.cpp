@@ -121,8 +121,9 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
               << " channels [" << size_KB << " KB]: ////////"
               << "\n" << std::flush;            
     
-    conn.StartConnection(); 
+    double total_connection_time = conn.StartConnection();
     
+
     // here we assume that speed_h is empty //
     //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";    
 
@@ -137,6 +138,10 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     }
     std::cout << speed_h << "\n";
     
+    char * use_total_time = getenv("USE_TOTAL_TIME");
+    if(use_total_time && !strcmp(use_total_time,"yes") )
+        *max_chan_time = total_connection_time;
+
     return speed_h;    
 }
 
@@ -227,7 +232,7 @@ int main(int argc, char *argv[])
         int seg_id = 0;
         for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id ) {
             const Histogram<double> &sh = speed_probes[nch_id].at(seg_id);
-            double mspd = nch * seg / 1024 / max_time_probes.MeanAll();
+            double mspd = nch * g_options.samples * seg / 1024 / max_time_probes.MeanAll();
             // curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
             curve.AddPoint( Point2D(seg, mspd, nch * sh.RmsAll()) );
         }
