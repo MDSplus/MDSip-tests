@@ -83,8 +83,10 @@ static void count_down(int sec, const char *msg=0) {
 /// data into the channel.
 ///
 Histogram<double> segment_size_throughput_MT(size_t size_KB,
-                                   int nch = 1,
-                                   int nseg = g_options.samples)
+                                             int nch = 1,
+                                             double *max_chan_time = NULL,
+                                             int nseg = g_options.samples
+                                             )
 {
     
     
@@ -122,10 +124,16 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     conn.StartConnection(); 
     
     // here we assume that speed_h is empty //
-    //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";
+    //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";    
+
+    // NOTE: max_chan_time must be set to valid value before this
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
+        time_h  += conn.ChannelTime(ch);
         speed_h += conn.ChannelSpeed(ch);
+        // retrieve the maximum elapsed time from channels //
+        if(max_chan_time && conn.ChannelTime(ch).Sum() > *max_chan_time)
+            *max_chan_time = conn.ChannelTime(ch).Sum();
     }
     std::cout << speed_h << "\n";
     
@@ -165,6 +173,7 @@ int main(int argc, char *argv[])
     
     // collect probes //
     typedef std::vector<Histogram<double> > Probe_T;
+    Histogram<double>    max_time_probes;
     std::vector<Probe_T> speed_probes(g_options.n_channels.size());
     Vector3i &range = g_options.seg_range;
     
@@ -187,12 +196,16 @@ int main(int argc, char *argv[])
             {                            
                 int nch = g_options.n_channels[nch_id];
                 Histogram<double> sh;
+                double max_time;
                 // launch segment_size_througput
                 for(int i=0;; ++i) {
-                    try { sh = segment_size_throughput_MT(seg, nch); break; }
+                    try { max_time = 0;
+                          sh = segment_size_throughput_MT(seg, nch, &max_time);
+                          break; }
                     catch (std::exception &e) { count_down(5,e.what()); }
                 }
                 // add probe //
+                max_time_probes << max_time;
                 if(seg_id < speed_probes[nch_id].size())
                     speed_probes[nch_id].at(seg_id) += sh;
                 else
@@ -214,7 +227,9 @@ int main(int argc, char *argv[])
         int seg_id = 0;
         for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id ) {
             const Histogram<double> &sh = speed_probes[nch_id].at(seg_id);
-            curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
+            double mspd = nch * seg / 1024 / max_time_probes.MeanAll();
+            // curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
+            curve.AddPoint( Point2D(seg, mspd, nch * sh.RmsAll()) );
         }
         speeds.push_back(curve);
     }
@@ -248,7 +263,6 @@ int main(int argc, char *argv[])
 
     // Print Plot file //
     plot.PrintToGnuplotFile(filename_out);
-
 
     {
         std::ofstream o;

@@ -183,6 +183,7 @@ public:
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
+            // timer should start here when waiting for a thread broadcast //
             if( m_content )
                 while (  m_content->GetSize() > 0 )
                 {
@@ -268,12 +269,16 @@ double TestConnectionMT::StartConnection()
         thread->WaitForThreadToExit();
     }
 
+    // Get total connection time
+    // WARNING, this is accountinng the Open/Close ops too.
+    double time = m_conn_timer.StopWatch();
+
     foreach (const Thread *t, m_threads) {
         const ConnectionThread *ct = static_cast<const ConnectionThread *>(t);
         if(ct->HasErrors()) throw (ct->Error());
     }
     
-    return m_conn_timer.StopWatch();
+    return time;
 }
 
 
