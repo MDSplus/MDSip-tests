@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
     
     // collect probes //
     typedef std::vector<Histogram<double> > Probe_T;
-    Histogram<double>    max_time_probes;
+    std::vector<Probe_T> max_time_probes(g_options.n_channels.size());
     std::vector<Probe_T> speed_probes(g_options.n_channels.size());
     Vector3i &range = g_options.seg_range;
     
@@ -210,7 +210,12 @@ int main(int argc, char *argv[])
                     catch (std::exception &e) { count_down(5,e.what()); }
                 }
                 // add probe //
-                max_time_probes << max_time;
+
+                if(seg_id < speed_probes[nch_id].size())
+                    max_time_probes[nch_id].at(seg_id) += max_time;
+                else
+                    max_time_probes[nch_id].push_back(max_time);
+
                 if(seg_id < speed_probes[nch_id].size())
                     speed_probes[nch_id].at(seg_id) += sh;
                 else
@@ -232,7 +237,8 @@ int main(int argc, char *argv[])
         int seg_id = 0;
         for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id ) {
             const Histogram<double> &sh = speed_probes[nch_id].at(seg_id);
-            double mspd = nch * g_options.samples * seg / 1024 / max_time_probes.MeanAll();
+            const Histogram<double> &mth = max_time_probes[nch_id].at(seg_id);
+            double mspd = nch * g_options.samples * seg / 1024 / mth.MeanAll();
             // curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
             curve.AddPoint( Point2D(seg, mspd, nch * sh.RmsAll()) );
         }
