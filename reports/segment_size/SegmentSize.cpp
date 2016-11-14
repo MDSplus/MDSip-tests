@@ -139,8 +139,10 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << speed_h << "\n";
     
     char * use_total_time = getenv("USE_TOTAL_TIME");
-    if(use_total_time && !strcmp(use_total_time,"yes") )
+    if(use_total_time && !strcmp(use_total_time,"yes") ) {
+        std::cout << "USING TOTAL TIME CONNECTION " << total_connection_time << "\n";
         *max_chan_time = total_connection_time;
+    }
 
     return speed_h;    
 }
