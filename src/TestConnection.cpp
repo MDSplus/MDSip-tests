@@ -198,12 +198,14 @@ public:
                     m_channel->PutSegment(el);
                     t2 = t.StopWatch() - t1;
                     t1 += t2;
-                    time_curve.AddPoint( Point2D(t1, t2, 0) );
+                    time_curve.AddPoint( Point2D(t1, 1, 0) );
                     // reject all packets that have different size from expected ..
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
                         time << t2;
                         speed << static_cast<double>(m_channel->Size())/1024/t2; // sped in MB //
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/t2,0));
+                    } else {
+                        std::cout << ".";
                     }
                 }
             m_channel->Close();

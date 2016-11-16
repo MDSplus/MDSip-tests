@@ -131,6 +131,8 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
         speed_h += g_conn.ChannelSpeed(ch);
         //        std::cout << conn.ChannelSpeed(ch) <<"\n";
         //        std::cout << g_conn.ChannelTime(ch) << "\n";
+        g_conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
+        g_conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
         g_conn.ChannelTime_Curve(ch).PrintSelf_abs(std::cout,100);
         std::cout << "\n";
         // retrieve the maximum elapsed time from channels //
