@@ -581,18 +581,21 @@ public:
             o << this->get_pos(i) << _c << this->m_bins[i] << "\n";
     }
 
-    void PrintSelfInline(std::ostream &o, const char *lut = "_,.-'`")
+    void PrintSelfInline(std::ostream &o, const char *lut = "_.-'")
     const {
         double max = *std::max_element(m_bins.begin(), m_bins.end());
-        o << "Histogram(\"" << this->GetName() << "\"," << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << ")";
+        o << "Histogram(\"" << this->GetName()
+          << "\"," << this->BinSize()
+          << "," << m_limits[0] << "," << m_limits[1] << ")";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
-            unsigned int lid = max > 0 ? (int)floor(val/max * strlen(lut)) : 0;
+            unsigned int lid = max > 0 ? (int)floor(val/max * (strlen(lut)-1)) : 0;
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
-        o << " visible-> card: " << this->Size() << " mean:" << this->Mean() << " rms:" << this->Rms();
+        o << " visible-> card: " << this->Size()
+          << " mean:" << this->Mean() << " rms:" << this->Rms();
     }
 
     /// Convert to a Curve object
