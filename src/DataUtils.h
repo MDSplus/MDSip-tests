@@ -584,7 +584,7 @@ public:
     void PrintSelfInline(std::ostream &o, const char *lut = "_.-'")
     const {
         double max = *std::max_element(m_bins.begin(), m_bins.end());
-        o << "Histogram(\"" << this->GetName()
+        o << "(\"" << this->GetName()
           << "\"," << this->BinSize()
           << "," << m_limits[0] << "," << m_limits[1] << ")";
         o << "  " << m_underf << " [";

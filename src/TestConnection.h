@@ -43,6 +43,8 @@ public:
         m_contents.push_back(cnt);        
         m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,5);
         m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,2);
+        m_chtimes_curve[chn] =  Curve2D(cnt->GetName().c_str());
+        m_chspeed_curve[chn] =  Curve2D(cnt->GetName().c_str());
 
         m_tree.AddNode(cnt->GetName().c_str(),(char *)"SIGNAL");
     }

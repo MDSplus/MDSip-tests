@@ -92,7 +92,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::vector< unique_ptr<Channel> >         channels;  // forked channels //
 
     size_t tot_size = size_KB * nseg;
-    TestConnectionMT g_conn(g_target_tree);
+    TestConnectionMT conn(g_target_tree);
 
     ////////////////////////////////////////////////////////////////////////////
     // PARAMETERS //////////////////////////////////////////////////////////////
@@ -109,37 +109,50 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
-        g_conn.AddChannel(functions[i],channels[i]);
-        g_conn.ChannelTime(channels.back()) = time_h;
-        g_conn.ChannelSpeed(channels.back()) = speed_h;
+        conn.AddChannel(functions[i],channels[i]);
+        conn.ChannelTime(channels.back()) = time_h;
+        conn.ChannelSpeed(channels.back()) = speed_h;
     }
 
     std::cout << "\n /////// connecting " << nch 
               << " channels [" << size_KB << " KB]: ////////"
               << "\n" << std::flush;            
     
-    double total_connection_time = g_conn.StartConnection();
+    double total_connection_time = conn.StartConnection();
     
 
     // here we assume that speed_h is empty //
     //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";    
 
     // NOTE: max_chan_time must be set to valid value before this
+    std::cout << "---- TIME ENV -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        time_h  += g_conn.ChannelTime(ch);
-        speed_h += g_conn.ChannelSpeed(ch);
+        time_h  += conn.ChannelTime(ch);
+        speed_h += conn.ChannelSpeed(ch);
         //        std::cout << conn.ChannelSpeed(ch) <<"\n";
         //        std::cout << g_conn.ChannelTime(ch) << "\n";
-        g_conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
-        g_conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
-        g_conn.ChannelTime_Curve(ch).PrintSelf_abs(std::cout,100);
+        conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
+        conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
+
+        std::cout << "TimeEnv";
+        conn.ChannelTime_Curve(ch).PrintSelf_abs(std::cout,100);
         std::cout << "\n";
         // retrieve the maximum elapsed time from channels //
-        if(max_chan_time && g_conn.ChannelTime(ch).Sum() > *max_chan_time)
-            *max_chan_time = g_conn.ChannelTime(ch).Sum();
+        if(max_chan_time && conn.ChannelTime(ch).Sum() > *max_chan_time)
+            *max_chan_time = conn.ChannelTime(ch).Sum();
     }
 
+    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
+    for(int i=0; i<nch; ++i) {
+        Channel *ch = channels[i];
+        std::cout << "TimeHist" << conn.ChannelSpeed(ch) <<"\n";
+    }
+    std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
+    for(int i=0; i<nch; ++i) {
+        Channel *ch = channels[i];
+        std::cout << "SpeedHist" << conn.ChannelSpeed(ch) <<"\n";
+    }
     std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
     std::cout << speed_h << "\n";
     
