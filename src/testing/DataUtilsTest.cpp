@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
         curve2.Update();
         curve3.Update();
 
-        Plot2D plot("Test plot");
+        Plot2D plot("Test_plot");
         plot.AddCurve(curve1);
         plot.AddCurve(curve2);
         plot.AddCurve(curve3);

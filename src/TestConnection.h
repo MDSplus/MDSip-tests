@@ -59,8 +59,10 @@ public:
     const TestTree & Tree() const { return m_tree; }
 
     TimeHistogram & ChannelTime(Channel *ch) { return m_chtimes[ch]; }
-
     TimeHistogram & ChannelSpeed(Channel *ch) { return m_chspeed[ch]; }
+
+    Curve2D & ChannelTime_Curve(Channel *ch) { return m_chtimes_curve[ch]; }
+    Curve2D & ChannelSpeed_Curve(Channel *ch) { return m_chspeed_curve[ch]; }
 
     void ResetTimes();
 
@@ -71,6 +73,7 @@ public:
     double GetMeanChannelTime();
 
     void PrintChannelTimes(std::ostream &o);
+    void PrintChannelTimes_Curve(std::ostream &o);
 
     void SetSaveEachConnection(bool state);
 
@@ -82,6 +85,8 @@ protected:
     std::vector<Content *> m_contents;
     std::map< Channel *, TimeHistogram > m_chtimes;
     std::map< Channel *, TimeHistogram > m_chspeed;
+    std::map< Channel *, Curve2D > m_chtimes_curve;
+    std::map< Channel *, Curve2D > m_chspeed_curve;
 };
 
 

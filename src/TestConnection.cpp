@@ -148,6 +148,11 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
     o << "\n";
 }
 
+void TestConnection::PrintChannelTimes_Curve(std::ostream &o)
+{
+
+}
+
 void TestConnection::SetSaveEachConnection(bool state) {
     m_increment_pulse = state;
 }
@@ -173,12 +178,13 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer t;
+        Timer t = m_connection->GetTimer();
         TestConnection::TimeHistogram &time = m_connection->ChannelTime(m_channel);
         TestConnection::TimeHistogram &speed = m_connection->ChannelSpeed(m_channel);
+        Curve2D & time_curve  = m_connection->ChannelTime_Curve(m_channel);
+        Curve2D & speed_curve = m_connection->ChannelSpeed_Curve(m_channel);
         time.Clear();
         speed.Clear();
-        t = m_connection->GetTimer();
         double t1 = 0,t2 = 0;
         try {
             m_integrity = true;
@@ -189,14 +195,15 @@ public:
                 {
                     Content::Element el;
                     m_content->GetNextElement(m_channel->Size(), el);
-
                     m_channel->PutSegment(el);
                     t2 = t.StopWatch() - t1;
                     t1 += t2;
+                    time_curve.AddPoint( Point2D(t1, t2, 0) );
                     // reject all packets that have different size from expected ..
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
                         time << t2;
                         speed << static_cast<double>(m_channel->Size())/1024/t2; // sped in MB //
+                        speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/t2,0));
                     }
                 }
             m_channel->Close();

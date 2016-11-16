@@ -80,11 +80,19 @@ public:
         return timeSec;
     }
 
+    double StopWatch_ms() {
+        gettimeofday(&m_end, NULL);
+        double timeSec = (m_end.tv_sec - m_start.tv_sec)*1E3 +
+                (m_end.tv_usec - m_start.tv_usec)*1E-3;
+        return timeSec;
+    }
+
     const struct timeval & GetStartTime() const { return m_start; }
     const struct timeval & GetLastTime()  const { return m_end; }
 private:
     struct timeval m_start, m_end;
 };
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -101,8 +109,6 @@ public:
         m_expected_time_sec(0),
         m_count(0)
     { time(&m_starttime); }
-
-
     
     void SetExpectedCount(size_t count) { this->m_expected_count = count; }
     void SetExpectedTime(float time) { this->m_expected_time_sec = time; }
@@ -316,10 +322,6 @@ typedef Vector3d Point2D;
 
 
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //  Curve2D  ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -391,7 +393,7 @@ public:
     Point & operator[](size_t id) { return m_data[id]; }
     const Point & operator[](size_t id) const { return m_data[id]; }
 
-
+    void PrintSelf_abs(std::ostream &o, int nbins) const;
 
 private:
     std::vector<Point> m_data;
@@ -519,11 +521,28 @@ public:
         else if (bin >= (int)BinSize())
             ++m_overf;
         else {
-            ++m_bins.at( bin );
+            //            ++m_bins.at( bin );
+            m_bins.at( bin ) += 1.;
             m_stat << data;
         }
         BaseClass::Push(data);
     }
+
+    void Push(const T x, const T y) {
+        int bin = this->get_bin(x);
+        if(bin < 0)
+            ++m_underf;
+        else if (bin >= (int)BinSize())
+            ++m_overf;
+        else {
+            m_bins.at( bin ) += y;
+            // WARNING ... not weitgh here //
+            m_stat << x;
+        }
+        // WARNING ... not weitgh here //
+        BaseClass::Push(x);
+    }
+
 
     void Clear() {
         std::fill(m_bins.begin(), m_bins.end(), 0);
@@ -538,10 +557,11 @@ public:
 
     inline void operator<<(const T data) { Push(data); }
 
-    inline std::pair<T,size_t> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }
+    //    inline std::pair<T,size_t> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }`
+    inline std::pair<T,double> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }
 
-    inline size_t operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
-
+    //    inline size_t operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
+    inline double operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
 
     double Mean() const { return m_stat.mean(); }
 
@@ -561,18 +581,18 @@ public:
             o << this->get_pos(i) << _c << this->m_bins[i] << "\n";
     }
 
-    void PrintSelfInline(std::ostream &o) const {
-        static const char *lut = "_,.-''"; // 5 levels histogram //
-        double max = *std::max_element(m_bins.begin(), m_bins.end());        
+    void PrintSelfInline(std::ostream &o, const char *lut = "_,.-'`")
+    const {
+        double max = *std::max_element(m_bins.begin(), m_bins.end());
         o << "Histogram(\"" << this->GetName() << "\"," << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << ")";
         o << "  " << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
-            unsigned int lid = max > 0 ? (int)floor(val/max * 5) : 0;
+            unsigned int lid = max > 0 ? (int)floor(val/max * strlen(lut)) : 0;
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
-        o << " visible -> mean:" << this->Mean() << " rms:" << this->Rms();
+        o << " visible-> card: " << this->Size() << " mean:" << this->Mean() << " rms:" << this->Rms();
     }
 
     /// Convert to a Curve object
@@ -662,7 +682,8 @@ private:
     }
 
     std::string m_value_name;
-    std::vector<size_t> m_bins;
+    //    std::vector<size_t> m_bins;
+    std::vector<double> m_bins;
     T m_limits[2];
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
