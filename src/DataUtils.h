@@ -581,7 +581,7 @@ public:
             o << this->get_pos(i) << _c << this->m_bins[i] << "\n";
     }
 
-    void PrintSelfInline(std::ostream &o, const char *lut = "_.-'")
+    void PrintSelfInline(std::ostream &o, const char *lut = "_,.-~'`")
     const {
         double max = *std::max_element(m_bins.begin(), m_bins.end());
         o << "(\"" << this->GetName()

@@ -134,7 +134,6 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
         //        std::cout << g_conn.ChannelTime(ch) << "\n";
         conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
         conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
-
         std::cout << "TimeEnv";
         conn.ChannelTime_Curve(ch).PrintSelf_abs(std::cout,100);
         std::cout << "\n";
@@ -146,7 +145,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << "---- TIME HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        std::cout << "TimeHist" << conn.ChannelSpeed(ch) <<"\n";
+        std::cout << "TimeHist" << conn.ChannelTime(ch) <<"\n";
     }
     std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
