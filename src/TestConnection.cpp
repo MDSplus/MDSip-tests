@@ -209,9 +209,6 @@ public:
                         time << (t2+t3);
                         speed << static_cast<double>(m_channel->Size())/1024/(t2+t3); // sped in MB //
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2+t3),0));
-                        std::cout << ".";
-                    } else {
-                        std::cout << "+";
                     }
                     t1 = t.StopWatch();
                 }
