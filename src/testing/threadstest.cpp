@@ -1,0 +1,75 @@
+
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "ClassUtils.h"
+#include "Threads.h"
+#include "testing-prototype.h"
+
+namespace mds = MDSplus;
+using namespace mdsip_test;
+
+static Lockable l;
+static WaitSubscriptions w;
+
+class ThreadTest : public Thread {
+
+public:
+    ThreadTest(const ThreadTest &other) : m_id(other.m_id+1) {
+        std::cout << " -- COPY -- \n" << std::flush;
+    }
+
+    ThreadTest &operator = (const ThreadTest &other) {
+        this->m_id = other.m_id+1;
+        return *this;
+    }
+
+    ThreadTest() : m_id(0) {}
+    ThreadTest(int id) : m_id(id) {}
+
+    void InternalThreadEntry() {
+        int n = (rand()%200) * 1000;
+        usleep( n );        
+        {
+            MDS_LOCK_SCOPE(l);
+            std::cout << "Just run thread: " << m_id << " for " << n << "ms \n";
+        }
+        w.Subscribe();
+        {
+            MDS_LOCK_SCOPE(l);
+            std::cout << "Got ok in thread: " << m_id << " \n";
+        }
+    }
+
+private:
+
+    size_t m_id;
+};
+
+
+int main(int argc, char *argv[])
+{
+    BEGIN_TESTING(Threads Utils);
+
+    srand(time(NULL));
+
+    ThreadTest t1(1),t2(2),t3(3);
+    ThreadTest t4;
+    t4 = t3;
+
+    w = WaitSubscriptions(4);
+
+    t1.StartThread();
+    t2.StartThread();
+    t3.StartThread();
+    t4.StartThread();
+
+    t1.WaitForThreadToExit();
+    t2.WaitForThreadToExit();
+    t3.WaitForThreadToExit();
+    t4.WaitForThreadToExit();
+
+
+    END_TESTING;
+}

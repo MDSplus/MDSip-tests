@@ -93,6 +93,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
 
     size_t tot_size = size_KB * nseg;
     TestConnectionMT conn(g_target_tree);
+    conn.SetSubscriptions(nch,0);
 
     ////////////////////////////////////////////////////////////////////////////
     // PARAMETERS //////////////////////////////////////////////////////////////

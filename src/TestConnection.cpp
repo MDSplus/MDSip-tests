@@ -185,28 +185,35 @@ public:
         Curve2D & speed_curve = m_connection->ChannelSpeed_Curve(m_channel);
         time.Clear();
         speed.Clear();
-        double t1 = 0,t2 = 0;
+        double t1 = 0,t2 = 0,t3 = 0,t4 = 0;
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
-            // timer should start here when waiting for a thread broadcast //
+            // timer should start here when waiting for a thread broadcast //            
+            int status = m_connection->GetSubscriptions().Subscribe();            
+            t1 = t.StopWatch(); // start from here //
+
             if( m_content )
                 while (  m_content->GetSize() > 0 )
                 {
                     Content::Element el;
+                    t3  = t.StopWatch() - t1; // time to get thread active
                     m_content->GetNextElement(m_channel->Size(), el);
+                    t4  = t.StopWatch() - t3; // time to get Element
                     m_channel->PutSegment(el);
-                    t2 = t.StopWatch() - t1;
-                    t1 += t2;
+                    t2  = t.StopWatch() - t4; // time to transfer Element
+
                     time_curve.AddPoint( Point2D(t1, 1, 0) );
                     // reject all packets that have different size from expected ..
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
-                        time << t2;
-                        speed << static_cast<double>(m_channel->Size())/1024/t2; // sped in MB //
-                        speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/t2,0));
-                    } else {
+                        time << (t2+t3);
+                        speed << static_cast<double>(m_channel->Size())/1024/(t2+t3); // sped in MB //
+                        speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2+t3),0));
                         std::cout << ".";
+                    } else {
+                        std::cout << "+";
                     }
+                    t1 = t.StopWatch();
                 }
             m_channel->Close();
         } 
@@ -216,6 +223,8 @@ public:
         }
     }
     
+
+
     bool HasErrors() const { return m_integrity == false; }
     const std::exception &Error() const { return error; }
 private:

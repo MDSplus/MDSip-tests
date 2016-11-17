@@ -13,7 +13,8 @@ TESTS = \
  DataUtilsTest \
  StatisticsUtilsTest \
  TestContentTest \
- OptionsTest
+ OptionsTest \
+ threadstest
 
 else
  TESTS =

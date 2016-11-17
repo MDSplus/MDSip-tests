@@ -10,6 +10,7 @@
 
 #include "TreeUtils.h"
 #include "DataUtils.h"
+#include "Threads.h"
 
 #include "TestContent.h"
 #include "TestChannel.h"
@@ -103,7 +104,8 @@ protected:
 ////////////////////////////////////////////////////////////////////////////////
 
 
-class Thread; // fwd //
+//class Thread; // fwd //
+//class WaitSubscriptions;
 
 class TestConnectionMT : public TestConnection, Lockable {
 
@@ -132,7 +134,15 @@ public:
 
     const Timer & GetTimer() { return m_conn_timer; }
 
+    void SetSubscriptions(size_t n_th, int msec) {
+        m_wait_threads = WaitSubscriptions(n_th,msec);
+    }
+
+    WaitSubscriptions & GetSubscriptions() { return m_wait_threads; }
+
+
 private:
+    WaitSubscriptions     m_wait_threads;
     std::vector<Thread *> m_threads;
     Timer m_conn_timer;
 };
