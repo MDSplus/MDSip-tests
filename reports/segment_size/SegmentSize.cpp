@@ -28,14 +28,16 @@ struct Parameters : Options {
     Vector2d h_time_limits;
     size_t samples;
     size_t probes;
-
+    std::string   env_no_disk;
     Parameters() :
         seg_range(2048,2048,20480),
         samples(20),probes(1),
         h_speed_limits(0,4),
-        h_time_limits(0,1)
+        h_time_limits(0,1),
+        env_no_disk("no")
     {
         n_channels << 1,2,4;
+        if(const char *env = getenv("USE_NO_DISK")) env_no_disk = env;
         this->AddOptions()
                 ("channels",&n_channels,"parallel channels to build")
                 ("segments",&seg_range,"segment size [KB] (start,delta,stop)")
@@ -43,6 +45,7 @@ struct Parameters : Options {
                 ("probes",&probes,"number of subsequent overall test probes to ease network fluctuations")
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
+                ("no_disk",&env_no_disk,"no_disk_option (yes/no)")
                 ;
     }
 
@@ -109,7 +112,9 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
         std::stringstream name;
         name << "sine" << i;
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
-        channels.push_back( Channel::NewTC(size_KB) );
+        Channel *ch = Channel::NewTC(size_KB);
+        if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
+        channels.push_back( ch );
         conn.AddChannel(functions[i],channels[i]);
         conn.ChannelTime(channels.back()) = time_h;
         conn.ChannelSpeed(channels.back()) = speed_h;
