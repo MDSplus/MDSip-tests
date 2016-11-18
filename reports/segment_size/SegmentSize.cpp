@@ -148,11 +148,11 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
             *max_chan_time = conn.ChannelTime(ch).Sum();
     }
 
-    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
-    for(int i=0; i<nch; ++i) {
-        Channel *ch = channels[i];
-        std::cout << "TimeHist" << conn.ChannelTime(ch) <<"\n";
-    }
+    //    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
+    //    for(int i=0; i<nch; ++i) {
+    //        Channel *ch = channels[i];
+    //        std::cout << "TimeHist" << conn.ChannelTime(ch) <<"\n";
+    //    }
     std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
