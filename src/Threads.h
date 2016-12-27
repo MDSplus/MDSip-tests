@@ -1,10 +1,13 @@
 #ifndef TREADS_H
 #define TREADS_H
 
+#include <stdlib.h>
+#include <signal.h>
 #include <pthread.h>
 #include <mdsobjects.h>
 
 #include "ClassUtils.h"
+
 
 namespace mds = MDSplus;
 
@@ -17,34 +20,56 @@ namespace mdsip_test {
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
 class Thread
 {
+    typedef void (* SigActionHandlerT)(int sig, siginfo_t *si, void *args);
 public:
-   Thread() {}
-   virtual ~Thread() {}
+    Thread() {}
+    virtual ~Thread() {}
 
-   virtual bool StartThread() {
-      return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
-   }
+    virtual bool StartThread() {
+        return (pthread_create(&_thread, NULL, InternalThreadEntryFunc, this) == 0);
+    }
 
-   virtual void StopThread() {
-       pthread_cancel(_thread);
-   }
+    virtual void StopThread() {
+        pthread_cancel(_thread);
+    }
 
-   virtual void WaitForThreadToExit() {
-      (void) pthread_join(_thread, NULL);
-   }
+    virtual void WaitForThreadToExit() {
+        (void) pthread_join(_thread, NULL);
+    }
+
+    int SetSigAction(int sig, SigActionHandlerT handler) {
+        sa.sa_flags = SA_SIGINFO;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_sigaction = handler;
+        if (sigaction(sig, &sa, NULL) == -1) {
+            std::cerr << "Error setting sig handler in thread\n";
+            return 0;
+        }
+        return 1;
+    }
+
+    void SendSignal(int sig) const { pthread_kill(_thread, sig); }
+    static void SendSignal(Thread &th, int sig) { pthread_kill(th, sig); }
+
+    operator pthread_t() {
+        return _thread;
+    }
+
 
 protected:
-   virtual void InternalThreadEntry() = 0;
+    virtual void InternalThreadEntry() = 0;
 
 private:
-   static void * InternalThreadEntryFunc(void * This) {
-       ((Thread *)This)->InternalThreadEntry();
-       return NULL;
-   }
+    static void * InternalThreadEntryFunc(void * This) {
+        ((Thread *)This)->InternalThreadEntry();
+        return NULL;
+    }
 
-   pthread_t _thread;
+    struct sigaction sa;
+    pthread_t _thread;
 };
 
 

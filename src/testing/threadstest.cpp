@@ -29,11 +29,11 @@ public:
     ThreadTest(int id) : m_id(id) {}
 
     void InternalThreadEntry() {
-        int n = (rand()%200) * 1000;
+        int n = (rand()%200) * 10000;
         usleep( n );        
         {
             MDS_LOCK_SCOPE(l);
-            std::cout << "Just run thread: " << m_id << " for " << n << "ms \n";
+            std::cout << "Just run thread: " << m_id << " for " << n << "us \n";
         }
         w.Subscribe();
         {
@@ -48,6 +48,11 @@ private:
 };
 
 
+static void handler(int sig, siginfo_t *si, void *args) {
+    printf("Got SIG %d at address: 0x%lx\n", sig, (long) si->si_addr);
+}
+
+
 int main(int argc, char *argv[])
 {
     BEGIN_TESTING(Threads Utils);
@@ -60,15 +65,29 @@ int main(int argc, char *argv[])
 
     w = WaitSubscriptions(4);
 
+    t3.SetSigAction(SIGTERM,handler);
+    t4.SetSigAction(SIGTERM,handler);
+
     t1.StartThread();
     t2.StartThread();
     t3.StartThread();
     t4.StartThread();
 
+
+//    Thread::SendSignal(t1,SIGTERM);
+    usleep(1000);
+    t3.SendSignal(SIGTERM);
+    usleep(1000);
+    t3.SendSignal(SIGTERM);
+    usleep(1000);
+    t3.SendSignal(SIGTERM);
+    t4.SendSignal(SIGTERM);
+
     t1.WaitForThreadToExit();
     t2.WaitForThreadToExit();
     t3.WaitForThreadToExit();
     t4.WaitForThreadToExit();
+
 
 
     END_TESTING;
