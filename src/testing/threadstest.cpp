@@ -35,11 +35,15 @@ public:
             MDS_LOCK_SCOPE(l);
             std::cout << "Just run thread: " << m_id << " for " << n << "us \n";
         }
-        w.Subscribe();
+//        w.Subscribe();
         {
             MDS_LOCK_SCOPE(l);
             std::cout << "Got ok in thread: " << m_id << " \n";
         }
+    }
+
+    void InternalThreadExit() {
+        std::cout << "EXIT FUNCTION\n";
     }
 
 private:
@@ -50,6 +54,7 @@ private:
 
 static void handler(int sig, siginfo_t *si, void *args) {
     printf("Got SIG %d at address: 0x%lx\n", sig, (long) si->si_addr);
+    pthread_exit(0);
 }
 
 
@@ -73,12 +78,6 @@ int main(int argc, char *argv[])
     t3.StartThread();
     t4.StartThread();
 
-
-//    Thread::SendSignal(t1,SIGTERM);
-    usleep(1000);
-    t3.SendSignal(SIGTERM);
-    usleep(1000);
-    t3.SendSignal(SIGTERM);
     usleep(1000);
     t3.SendSignal(SIGTERM);
     t4.SendSignal(SIGTERM);

@@ -92,7 +92,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
 {
     
     std::vector< unique_ptr<ContentFunction> > functions; // function generators //
-    std::vector< unique_ptr<Channel> >         channels;  // forked channels //
+    std::vector< unique_ptr<Channel> >         channels;  // channels //
 
     size_t tot_size = size_KB * nseg;
     TestConnectionMT conn(g_target_tree);
@@ -131,13 +131,17 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";    
 
     // NOTE: max_chan_time must be set to valid value before this
-    std::cout << "---- TIME ENV -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
         time_h  += conn.ChannelTime(ch);
         speed_h += conn.ChannelSpeed(ch);
-        //        std::cout << conn.ChannelSpeed(ch) <<"\n";
-        //        std::cout << g_conn.ChannelTime(ch) << "\n";
+    }
+
+
+    // print time envelope .. //
+    std::cout << "---- TIME ENV -----" << "\n";
+    for(int i=0; i<nch; ++i) {
+        Channel *ch = channels[i];
         conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
         conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
         std::cout << "TimeEnv";
@@ -148,18 +152,14 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
             *max_chan_time = conn.ChannelTime(ch).Sum();
     }
 
-    //    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
-    //    for(int i=0; i<nch; ++i) {
-    //        Channel *ch = channels[i];
-    //        std::cout << "TimeHist" << conn.ChannelTime(ch) <<"\n";
-    //    }
+
     std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
         std::cout << "SpeedHist" << conn.ChannelSpeed(ch) <<"\n";
     }
     std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
-    std::cout << speed_h << "\n";
+    std::cout << "SpeedHist" << speed_h << "\n";
     
     char * use_total_time = getenv("USE_TOTAL_TIME");
     if(use_total_time && !strcmp(use_total_time,"yes") ) {
@@ -219,11 +219,11 @@ int main(int argc, char *argv[])
     
     for(int prb = 0; prb < g_options.probes; ++prb ) {
         int seg_id = 0;
-        for(int seg = range(0); seg < range(2); 
+        for(int seg = range(0); seg < range(2);
             seg += std::min(range(1), range(2)-seg), ++seg_id )
         {
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
-            {                            
+            {
                 int nch = g_options.n_channels[nch_id];
                 Histogram<double> sh;
                 double max_time;

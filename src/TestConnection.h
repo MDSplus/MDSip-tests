@@ -80,6 +80,8 @@ public:
 
     void SetSaveEachConnection(bool state);
 
+    const std::vector<Channel *> & GetChannels() const { return m_channels; }
+
 protected:
     bool     m_increment_pulse;
     TestTree m_tree;
@@ -110,21 +112,23 @@ protected:
 class TestConnectionMT : public TestConnection, Lockable {
 
     typedef TestConnection BaseClass;
-    friend class ChannelThread;
-
+    friend class ConnectionThread;
 public:
 
-    TestConnectionMT( const TestTree &tree) : BaseClass(tree) {}
+    TestConnectionMT( const TestTree &tree) :
+        BaseClass(tree),
+        m_active_threads(0)
+    {}
 
     explicit TestConnectionMT(const char *name, const char *path = 0) :
-        TestConnection(name,path)
+        TestConnection(name,path),
+        m_active_threads(0)
     {}
 
     ~TestConnectionMT()
     {        
         this->ClearChannels();
     }
-
 
     void AddChannel(Content *cnt, Channel *ch);
 
@@ -140,9 +144,11 @@ public:
 
     WaitSubscriptions & GetSubscriptions() { return m_wait_threads; }
 
+    void NotifyCompletedThread();
 
 private:
     WaitSubscriptions     m_wait_threads;
+    int                   m_active_threads;
     std::vector<Thread *> m_threads;
     Timer m_conn_timer;
 };

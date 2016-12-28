@@ -22,8 +22,13 @@ namespace mdsip_test {
 class Content {
 public:
 
+    enum ContentMode {
+        ConsumingSource,
+        UnconsumingSource
+    };
+
     Content(const char *name) :
-        m_name(name)
+        m_name(name), m_mode(ConsumingSource)
     {}
 
     virtual ~Content() {}
@@ -43,8 +48,12 @@ public:
     template <typename T>
     static size_t GetKByteSizeIn(size_t KB) { return KB*1024/sizeof(T); }
 
+    void SetMode(ContentMode mode) { m_mode = mode; }
+    const ContentMode GetMode() const { return m_mode; }
+
 protected:
     std::string m_name;    
+    ContentMode m_mode;
 };
 
 

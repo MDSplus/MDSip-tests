@@ -139,6 +139,8 @@ public:
         }
     }
 
+    //    incremental_statistic & operator /= (double val) {
+    //    }
 
     template < typename T >
     friend incremental_statistic &

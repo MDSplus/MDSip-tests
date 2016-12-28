@@ -1,6 +1,7 @@
 #ifndef TESTCHANNEL_H
 #define TESTCHANNEL_H
 
+#include "DataUtils.h"
 #include "TestContent.h"
 
 
@@ -42,8 +43,7 @@ public:
     void Reset();
 
     void SetNoDisk(bool value);
-    
-    
+        
 protected:
     size_t   m_cnxerr_count;
     size_t   m_cnxerr_threshold;
@@ -53,6 +53,12 @@ protected:
 private:
     friend class ChannelImpl;
     class ChannelImpl *d;
+
+    friend class TestConnection;
+//    Histogram<double> m_chtimes;
+//    Histogram<double> m_chspeed;
+//    Curve2D m_chtimes_curve;
+//    Curve2D m_chspeed_curve;
     
 };
 

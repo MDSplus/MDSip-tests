@@ -21,7 +21,7 @@ using namespace MDSplus;
 namespace mdsip_test {
   
 static void count_down(int sec, const char *msg=0) {
-    if(msg) 
+    if(msg)
         std::cerr << msg;
     else
         std::cerr << "Exception caught: ";
@@ -40,10 +40,10 @@ static void count_down(int sec, const char *msg=0) {
 TestConnection::TestConnection(const TestTree &tree) :
     m_tree(tree),
     m_increment_pulse(false)
-{ 
+{
     while(1) {
         try{ m_tree.Create(); break; }
-        catch (MDSplus::MdsException &e) { 
+        catch (MDSplus::MdsException &e) {
             std::cerr << "Error creating Tree: " << e.what() << "\n";
             count_down(5);
         }
@@ -58,7 +58,7 @@ TestConnection::TestConnection(const char *name, const char *path) :
         try{ m_tree.Create(); break; }
         catch (MDSplus::MdsException &e) {
             std::cerr << "Error creating Tree: " << e.what() << "\n";
-            count_down(5);            
+            count_down(5);
         }
     }
 }
@@ -187,6 +187,7 @@ public:
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
+        size_t seg_sent = 0;
         timespec ts1,ts2;
         try {
             m_integrity = true;
@@ -194,16 +195,19 @@ public:
             // timer should start here when waiting for a thread broadcast //
             m_integrity = m_connection->GetSubscriptions().Subscribe();
             w.Start(); t.Start();
-            if( m_content )
-                while (  m_content->GetSize() > 0 )
-                {                    
+
+            if( m_content ) {
+                m_content->SetMode(Content::UnconsumingSource);
+                //   while (  m_content->GetSize() > 0 )
+                while( m_connection->m_active_threads > 0 )
+                {
                     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
                     Content::Element el;
                     m_content->GetNextElement(m_channel->Size(), el);
                     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
                     m_channel->PutSegment(el);
                     double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
-                                         - (1E3*ts1.tv_sec + 1E-6*ts1.tv_nsec);
+                            - (1E3*ts1.tv_sec + 1E-6*ts1.tv_nsec);
                     t2 = t.StopWatch_ms() - posix_diff;
                     t1 = w.StopWatch();
                     time_curve.AddPoint( Point2D(t1, 1, 0) );
@@ -213,16 +217,34 @@ public:
                         speed << static_cast<double>(m_channel->Size())/1024/(t2*1E-3); // sped in MB //
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2*1E-3),0));
                     }
+
+                    seg_sent += m_channel->Size();
+                    if(seg_sent >= m_content->GetSize())
+                        m_connection->NotifyCompletedThread();
+
                     t.Start();
-                }
-            m_channel->Close();
-        } 
+                } // end while //
+                std::cout << "fin\n";
+                // m_channel->Close();
+            }
+        }
         catch (std::exception &e) {
             m_integrity = false;
             error = e;
         }
     }
     
+
+    void InternalThreadExit() {
+        try {
+            std::cout << "Closing channel Connection\n";
+            m_channel->Close();
+        }
+        catch (std::exception &e) {
+            m_integrity = false;
+            error = e;
+        }
+    }
 
 
     bool HasErrors() const { return m_integrity == false; }
@@ -251,7 +273,9 @@ private:
 void TestConnectionMT::AddChannel(Content *cnt, Channel *ch)
 {
     BaseClass::AddChannel(cnt,ch);
-    this->m_threads.push_back(new ConnectionThread(this,ch,cnt));
+    ConnectionThread *th = new ConnectionThread(this,ch,cnt);
+    this->m_active_threads++;
+    this->m_threads.push_back(th);
 }
 
 
@@ -297,6 +321,19 @@ double TestConnectionMT::StartConnection()
     }
     
     return time;
+}
+
+
+///
+/// \brief TestConnectionMT::NotifyCompletedThread In a non consuming source
+/// configuration, when a Thread completes this is used to notify all the
+/// others ...
+///
+void TestConnectionMT::NotifyCompletedThread()
+{
+    MDS_LOCK_SCOPE(*this);
+    if(m_active_threads>0) --m_active_threads;
+    std::cout << "->" << m_active_threads << "\n";
 }
 
 

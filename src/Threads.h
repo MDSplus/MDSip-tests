@@ -58,14 +58,21 @@ public:
         return _thread;
     }
 
-
 protected:
     virtual void InternalThreadEntry() = 0;
+    virtual void InternalThreadExit() {}
 
-private:
+private:       
+
     static void * InternalThreadEntryFunc(void * This) {
+        pthread_cleanup_push(InternalThreadExitFunc, This);
         ((Thread *)This)->InternalThreadEntry();
+        pthread_cleanup_pop(1);
         return NULL;
+    }
+
+    static void InternalThreadExitFunc(void * This) {
+        ((Thread *)This)->InternalThreadExit();
     }
 
     struct sigaction sa;

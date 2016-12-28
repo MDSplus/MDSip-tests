@@ -638,6 +638,14 @@ public:
         return (*this) = result;
     }
     
+    Histogram & operator /= ( double scale ) {
+        foreach(double &data, m_bins)
+            data /= scale;
+        // should modify also underf overf //
+        return (*this);
+    }
+
+
     static Histogram merge(const Histogram &h1, const Histogram &h2) {
         // TODO: very bad ... works only if h have the same bins //
         assert(h1.BinSize() == h2.BinSize());

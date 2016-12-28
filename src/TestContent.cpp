@@ -77,7 +77,6 @@ void ContentFunction::SetGenFunction(ContentFunction::GenFunction func)
 }
 
 
-
 bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
 {    
     size_t current_sample;
@@ -85,6 +84,7 @@ bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
     float start_time;
     float end_time;    
 
+    if(this->GetMode() == ConsumingSource)
     {
         MDS_LOCK_SCOPE(*this);
         if(m_size > 0) {
@@ -94,9 +94,13 @@ bool ContentFunction::GetNextElement(size_t size_KB, Content::Element &el)
         }
         else
             return false;
-        current_sample = m_current_sample;
-        m_current_sample += size;
+    }    
+    else { // Unconsuming source //
+        size = GetKByteSizeIn<float>(size_KB);
     }
+
+    current_sample = m_current_sample;
+    m_current_sample += size;
 
     start_time = current_sample * m_sample_time;
     end_time = (current_sample + size - 1) * m_sample_time;
