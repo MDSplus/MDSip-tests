@@ -187,7 +187,7 @@ public:
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
-        size_t seg_sent = 0;
+        int seg_sent = 0;
         timespec ts1,ts2;
         try {
             m_integrity = true;
@@ -218,9 +218,11 @@ public:
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2*1E-3),0));
                     }
 
-                    seg_sent += m_channel->Size();
-                    if(seg_sent >= m_content->GetSize())
+                    if(seg_sent > 0) seg_sent += m_channel->Size();
+                    if(seg_sent >= m_content->GetSize()) {
                         m_connection->NotifyCompletedThread();
+                        seg_sent = -1;
+                    }
 
                     t.Start();
                 } // end while //
