@@ -219,14 +219,13 @@ public:
                     }
 
                     if(seg_sent >= 0) seg_sent += m_channel->Size();
-                    if(seg_sent >= m_content->GetSize()) {
+                    if(seg_sent >= (int)m_content->GetSize()) {
                         m_connection->NotifyCompletedThread();
                         seg_sent = -1;
                     }
 
                     t.Start();
                 } // end while //
-                std::cout << "fin\n";
                 // m_channel->Close();
             }
         }
@@ -239,7 +238,6 @@ public:
 
     void InternalThreadExit() {
         try {
-            std::cout << "Closing channel Connection\n";
             m_channel->Close();
         }
         catch (std::exception &e) {
@@ -334,8 +332,7 @@ double TestConnectionMT::StartConnection()
 void TestConnectionMT::NotifyCompletedThread()
 {
     MDS_LOCK_SCOPE(*this);
-    if(m_active_threads>0) --m_active_threads;
-    std::cout << "->" << m_active_threads << "\n";
+    --m_active_threads;
 }
 
 
