@@ -218,7 +218,7 @@ public:
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2*1E-3),0));
                     }
 
-                    if(seg_sent > 0) seg_sent += m_channel->Size();
+                    if(seg_sent >= 0) seg_sent += m_channel->Size();
                     if(seg_sent >= m_content->GetSize()) {
                         m_connection->NotifyCompletedThread();
                         seg_sent = -1;
