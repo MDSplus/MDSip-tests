@@ -84,7 +84,36 @@ public:
     void Open(TestTree &tree) {
         if(m_cnx) Close();
         std::string cnx_path = TestTree::TreePath::toString(tree.Path());
-        m_cnx = new mds::Connection((char *)cnx_path.c_str());
+
+        ////////////////////////////////////////////////////////////////////////
+        // added to support ssh connection /////////////////////////////////////
+        if(std::string("ssh") == tree.Path().protocol) {
+            // force tcp to get env variable via TDI //
+            TestTree::TreePath tcp = tree.Path();
+            tcp.protocol = "tcp";
+            m_cnx = new mds::Connection((char *)TestTree::TreePath::toString(tcp).c_str());
+            Data * args[2];
+            unique_ptr<Data> tree_name = new mds::String(tree.Name().c_str());
+            args[0] = tree_name;
+            std::cout << " TREENAME: " << args[0]->getString() << "\n";
+            unique_ptr<Data> ans = m_cnx->get("getenv($1//'_path')",args,1);
+            args[1] = ans;
+            std::cout << " GETENV1: " << ans->getString() << "\n";
+            delete m_cnx;
+
+            TestTree::TreePath p = tree.Path();
+            p.port.clear();
+            std::cout << "changed_path: " << TestTree::TreePath::toString(p) << "\n";
+            cnx_path = TestTree::TreePath::toString(p);
+            m_cnx = new mds::Connection((char *)cnx_path.c_str());
+            m_cnx->get("setenv($1//'_path='//$2)",args,2);
+            ans = m_cnx->get("getenv($1//'_path')",args,1);
+            std::cout << " GETENV2: " << ans->getString() << "\n";
+        }
+        ////////////////////////////////////////////////////////////////////////
+        else {
+            m_cnx = new mds::Connection((char *)cnx_path.c_str());
+        }
         m_cnx->openTree((char*)tree.Name().c_str(), 0);
     }
 
