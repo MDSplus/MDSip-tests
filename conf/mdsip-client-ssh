@@ -1,0 +1,2 @@
+#!/bin/sh
+exec ssh $1 "/bin/sh -c '. /etc/profile; ${TARGET_SPOOL}/mdsipd 0 ssh ${TARGET_SPOOL}/mdsip.hosts ${TARGET_SPOOL}/log'"

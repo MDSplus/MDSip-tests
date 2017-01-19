@@ -37,6 +37,8 @@ Usage: $SCRIPTNAME [options] [command]
        xinetd             start server session using xinetd server
        stop               stop server session
        clean              empty the server spool directory
+       gui                start dialog gui
+
 EOF
 }
 
@@ -199,7 +201,11 @@ export speed_spread_path=${TARGET_SPOOL}
 export speed_trend_path=${TARGET_SPOOL}
 export stream_path=${TARGET_SPOOL}
 export huge_path=${TARGET_SPOOL}
-exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
+if test \$2 = \"ssh\"; then
+ exec ${MDSIP} -P ssh >> \$4/\$2.access 2>> \$4/\$2.errors
+else
+ exec ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/\$2.access 2>> \$4/\$2.errors
+fi
 "
 
 
@@ -313,7 +319,7 @@ VALUES=$(${DIALOG} --cancel-label "Exit" \
 	  --menu "\n\
 Navigate options using [UP] [DOWN],[Enter] to Select items.\n\
 \n\
-${TARGET_HOST}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
+${HOSTNAME}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
 \n\
 ${IS_SERVER_RUNNING} \n\
 	  \n " \

@@ -92,23 +92,22 @@ public:
             TestTree::TreePath tcp = tree.Path();
             tcp.protocol = "tcp";
             m_cnx = new mds::Connection((char *)TestTree::TreePath::toString(tcp).c_str());
-            Data * args[2];
+            Data * args[3];
             unique_ptr<Data> tree_name = new mds::String(tree.Name().c_str());
             args[0] = tree_name;
-            std::cout << " TREENAME: " << args[0]->getString() << "\n";
             unique_ptr<Data> ans = m_cnx->get("getenv($1//'_path')",args,1);
             args[1] = ans;
-            std::cout << " GETENV1: " << ans->getString() << "\n";
+            unique_ptr<Data> path_env = m_cnx->get("getenv('PATH')",args,1);
+            args[2] = path_env;
             delete m_cnx;
 
             TestTree::TreePath p = tree.Path();
             p.port.clear();
-            std::cout << "changed_path: " << TestTree::TreePath::toString(p) << "\n";
             cnx_path = TestTree::TreePath::toString(p);
             m_cnx = new mds::Connection((char *)cnx_path.c_str());
             m_cnx->get("setenv($1//'_path='//$2)",args,2);
+            m_cnx->get("setenv('PATH='//$3)",args,3);
             ans = m_cnx->get("getenv($1//'_path')",args,1);
-            std::cout << " GETENV2: " << ans->getString() << "\n";
         }
         ////////////////////////////////////////////////////////////////////////
         else {
