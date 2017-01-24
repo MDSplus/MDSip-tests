@@ -4,10 +4,12 @@ include $(top_srcdir)/Common.am
 TARGET_HOST    ?= localhost
 TARGET_PORT    ?= 8000
 TARGET_SPOOL   ?= /tmp/mdsip_test
+TARGET_USER    ?= ${USER}
 
 export TARGET_HOST
 export TARGET_PORT
 export TARGET_SPOOL
+export TARGET_USER
 
 
 TARGET  = "$(TARGET_HOST):$(TARGET_PORT)"

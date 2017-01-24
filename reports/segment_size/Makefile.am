@@ -18,7 +18,7 @@ size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
 		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
 
-size_ssh_command = $(builddir)/SegmentSize ssh://${TARGET} size-ssh \
+size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
 		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
 
 
