@@ -236,7 +236,8 @@ void ContentReader::SetTree(const TestTree &tree, const int pulse)
     enum TestTree::ClientType ct = tree.GetClientType();
     switch (ct) {
     case TestTree::DC:
-        m_dc_tree = m_tree.Read(m_pulse);
+        m_tree.OpenRead(m_pulse);
+        m_dc_tree = m_tree.GetMdsTree();
         m_dc_node_array = m_dc_tree->getNodeWild("***", 1 << TreeUSAGE_SIGNAL);
         break;
     case TestTree::TC:

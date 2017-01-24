@@ -32,10 +32,6 @@ static void count_down(int sec, const char *msg=0) {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// SIGLE CHANNEL DC CONNECTION /////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
 
 TestConnection::TestConnection(const TestTree &tree) :
     m_tree(tree),
@@ -68,12 +64,12 @@ double TestConnection::StartConnection()
 {
     static int pulse = 1;
     
+    m_tree.OpenEdit();
     m_tree.CreatePulse(pulse);
     m_tree.SetCurrentPulse(pulse);
-    foreach(Channel *ch, m_channels) ch->Reset();
-    
+    m_tree.Close();
+    foreach(Channel *ch, m_channels) ch->Reset();   
     // DO NOTHING //
-
     if(m_increment_pulse) ++pulse;
     return 0;
 }

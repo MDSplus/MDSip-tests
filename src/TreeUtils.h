@@ -16,25 +16,35 @@ namespace mdsip_test {
 ///
 /// \brief The TreeUtils class
 /// Utility for testing MDSip generating a proper tree for tests
+///
 class TestTree
 {       
-
-
 public:
 
+    ///
+    /// \brief The ClientType enum
+    ///
+    /// used to change Tree behavior in connection
+    ///
+    enum ClientType { DC,TC };
 
+    ///
+    /// \brief The TreePath
+    ///
+    /// struct TreePath is used within the TestTree class to parse the syntax
+    /// of tree back and forth
+    ///
     struct TreePath {
         std::string path;
         std::string server;
         std::string port;
         std::string protocol;
+        std::string userid;
 
         TreePath() {}
-        TreePath(const char *tree_path) {
-            if(tree_path) *this = getTreePath(tree_path);
-        }
-        operator std::string () { return toString(*this); }
+        TreePath(const char *tree_path);
 
+        operator std::string () { return toString(*this); }
         operator bool () { return !path.empty(); }
 
         static TreePath getTreePath(std::string str);
@@ -44,48 +54,36 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    enum ClientType { DC,TC };
-
-
-    TestTree() {}
+    TestTree() : m_tree(0), m_cnx(0), m_client(TC) {}
 
     TestTree(const char *name, const char *path = NULL, const ClientType cl=DC);
 
+    TestTree(const TestTree &other);
+
+    ~TestTree();
+
+    TestTree & operator = (const TestTree &other);
+
     void Create();
 
-    mds::Tree * Open(int shot = 0) {
-        return new mds::Tree(m_name.c_str(),shot);
-    }
+    void Open(int shot = 0);
 
-    mds::Tree * Edit(int shot = -1) {
-        return  new mds::Tree(m_name.c_str(),shot,"EDIT");
-    }
+    void OpenEdit(int shot = -1);
 
-    mds::Tree * Read(int shot = -1) {
-        return  new mds::Tree(m_name.c_str(),shot,"READONLY");
-    }
+    void OpenRead(int shot = -1);
 
-    void SetClientType(const ClientType cl) {
-        if(cl == DC) {
-            if(m_path.path.empty()) m_path.path = " "; // trick //
-            std::cout << "setting env: " << m_name << " -> " << TreePath::toString(m_path) <<"\n";
-            SetEnvPath(m_name.c_str(),TreePath::toString(m_path).c_str());
-        }
-        m_client = cl;
-    }
-
-    const ClientType GetClientType() const { return m_client; }
+    void Close();
 
     void CreatePulse(int pulse);
 
     void SetCurrentPulse(int pulse);
 
-    int GetCurrentPulse() {
-        unique_ptr<mds::Tree> tree = this->Open();
-        return tree->getCurrent(m_name.c_str());
-    }
+    int GetCurrentPulse();
 
     void AddNode(const char *name, const char *usage);
+
+    void SetClientType(const ClientType cl);
+    const ClientType GetClientType() const;
 
     TreePath & Path() { return m_path; }
     const TreePath & Path() const { return m_path; }
@@ -93,9 +91,12 @@ public:
     std::string & Name() { return m_name; }
     const std::string & Name() const { return m_name; }
 
-    ////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
+    mds::Tree * GetMdsTree() { return m_tree; }
 
+    mds::Connection * GetMdsConnection() { return m_cnx; }
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     friend std::ostream &
     operator << (std::ostream &o, const TreePath &tn) {
@@ -128,7 +129,8 @@ private:
     ClientType  m_client;
     std::string m_name;
     TreePath    m_path;
-
+    unique_ptr<mds::Tree> m_tree;
+    unique_ptr<mds::Connection> m_cnx;
 };
 
 

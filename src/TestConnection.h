@@ -47,6 +47,7 @@ public:
         m_chtimes_curve[chn] =  Curve2D(cnt->GetName().c_str());
         m_chspeed_curve[chn] =  Curve2D(cnt->GetName().c_str());
 
+        m_tree.OpenEdit();
         m_tree.AddNode(cnt->GetName().c_str(),(char *)"SIGNAL");
     }
 
