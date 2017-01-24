@@ -6,6 +6,8 @@ DIALOG=dialog
 export TARGET_HOST=${TARGET_HOST:=localhost}
 export TARGET_PORT=${TARGET_PORT:=8000}
 export TARGET_SPOOL=${TARGET_SPOOL:=/tmp/mdsip_test}
+export TARGET_USER=${TARGET_USER:=${USER}}
+
 
 # default protocol
 PROTOCOL=${PROTOCOL:=tcp}
@@ -102,6 +104,7 @@ VALUES=$(${DIALOG} --ok-label "Submit" \
 	  "Host:"     1 1	"$TARGET_HOST" 	1 10 20 0 \
 	  "Port:"     2 1	"$TARGET_PORT" 	2 10 20 0 \
 	  "Spool:"    3 1	"$TARGET_SPOOL"	3 10 20 0 \
+	  "User:"     4 1	"$TARGET_USER"	4 10 20 0 \
 3>&1 1>&2 2>&3)
 opt=$?
 
@@ -110,6 +113,7 @@ if [ $opt = 0 ]; then
  export TARGET_HOST=$(echo ${VALUES} | awk '{print $1}')
  export TARGET_PORT=$(echo ${VALUES} | awk '{print $2}')
  export TARGET_SPOOL=$(echo ${VALUES} | awk '{print $3}')
+ export TARGET_USER=$(echo ${VALUES} | awk '{print $4}')
 fi
 eval main SelectTests
 }
