@@ -165,11 +165,8 @@ void TestTree::Create()
         args[0] = new mds::String(m_name.c_str());
         m_cnx->get(
                     "write(*,' ------ CREATE TREE  ---------');"
-
-                    "  _status = TreeOpenNew($1,-1);"
-                    "  _status = TreeShr->TreeWriteTree($1,val(-1));"
-//                    "  _status = TreeClose($1,-1);"
-
+                    " _status = TreeOpenNew($1,-1);"
+                    " _status = TreeShr->TreeWriteTree($1,val(-1))"
                     ,args,1);
         mds::deleteData(args[0]);
     }
@@ -183,7 +180,7 @@ void TestTree::Open(int shot) {
         m_tree = new mds::Tree(m_name.c_str(),shot);
         break;
     case mdsip_test::TestTree::TC:
-        // m_cnx->closeAllTrees();
+        try { m_cnx->closeAllTrees(); } catch(MdsException &e) { (void)e; }
         m_cnx->openTree((char *)m_name.c_str(),shot);
         break;
     }
@@ -197,19 +194,20 @@ void TestTree::OpenEdit(int shot) {
     case mdsip_test::TestTree::TC:
         mds::Data * args[1];
         args[0] = new mds::String(m_name.c_str());
-        m_cnx->get(
+        unique_ptr<Data> _status = m_cnx->get(
                     " _status = TreeClose();"
-                    " _status = TreeOpenEdit($1,-1);"
+                    " _status = TreeOpenEdit($1,-1)"
                     ,args,1);
+        if(int st = _status->getInt() & 1 == 0) {
+            std::cout << "ERROR: _status -> " << MdsGetMsg(st) << "\n";
+            mds::deleteData(args[0]);
+            throw mds::MdsException( MdsGetMsg(st) );
+        }
         mds::deleteData(args[0]);
         break;
     }
 }
 
-//public fun TreeOpenEdit(in _tree, in _shot)
-//{
-//  return(TreeShr->TreeOpenEdit(ref(_tree//"\0"),val(_shot)));
-//}
 void TestTree::OpenRead(int shot) {
     switch (m_client) {
     case mdsip_test::TestTree::DC:
@@ -219,10 +217,16 @@ void TestTree::OpenRead(int shot) {
         mds::Data * args[2];
         args[0] = new mds::String(m_name.c_str());
         args[1] = new mds::Int32(shot);
-        m_cnx->get(
+        unique_ptr<Data> _status = m_cnx->get(
                     " _status = TreeClose(); "
-                    " _status = TreeShr->TreeOpen($1,val($2));"
+                    " _status = TreeShr->TreeOpen($1,val($2))"
                     ,args,2);
+        if(int st = _status->getInt() & 1 == 0) {
+            std::cout << "ERROR: _status -> " << MdsGetMsg(st) << "\n";
+            mds::deleteData(args[0]);
+            mds::deleteData(args[1]);
+            throw mds::MdsException( MdsGetMsg(st) );
+        }
         mds::deleteData(args[0]);
         mds::deleteData(args[1]);
         break;
@@ -234,7 +238,10 @@ void TestTree::Close() {
     case mdsip_test::TestTree::DC:
         break;
     case mdsip_test::TestTree::TC:
-        //        m_cnx->get( " _status = TreeClose(); " ,0,0);
+        //        unique_ptr<Data> _status = new mds::Int32(1);
+        if(!m_cnx) break;
+        try { m_cnx->get( " _status = TreeClose() " ,0,0); }
+        catch (MdsException &e) { (void)e; }
         break;
     }
 }
@@ -255,17 +262,10 @@ void TestTree::CreatePulse(int pulse)
         this->Open(-1);
         mds::Data * args[1];
         args[0] = new mds::Int32(pulse);
-        unique_ptr<Data> ans = m_cnx->get(
+        unique_ptr<Data> _status = m_cnx->get(
                     "_nids = 0;"
-                    "_status = TreeCreatePulseFile($1,_nids,0);"
-                    "_status"
+                    "_status = TreeCreatePulseFile($1,_nids,0)"
                     ,args,1);
-
-        if(int st = ans->getInt() & 1 == 0) {
-            std::cout << "ERROR: CreatePulse res-> " << MdsGetMsg(ans->getInt()) << "\n";
-            mds::deleteData(args[0]);
-            throw mds::MdsException( MdsGetMsg(ans->getInt()) );
-        }
         mds::deleteData(args[0]);
     }
         break;
@@ -277,7 +277,6 @@ void TestTree::SetCurrentPulse(int pulse)
     switch (m_client) {
     case TestTree::DC:
     {
-        this->Open(pulse);
         m_tree->setCurrent(m_name.c_str(),pulse);
     }
         break;
@@ -361,12 +360,12 @@ void TestTree::AddNode(const char *name, const char *usage)
         args[2] = new mds::Int8(convertUsage(std::string(usage)));
         m_cnx->get(
                     "write(*, 'Add node to tree: ',$1);"
-                    "_status = TreeOpenEdit($1,-1);"
-
                     "_nid = 0;"
-                    "_status = TreeShr->TreeAddNode($2,ref(_nid),val($3));"
-                    "_status = TreeShr->TreeWriteTree($1,val(-1));"
-//                    "TreeClose($1,-1);"
+
+                    "_status = TreeOpenEdit($1,-1);"
+                    "_status  = TreeShr->TreeAddNode($2,ref(_nid),val($3));"
+                    "_status &= TreeShr->TreeWriteTree($1,val(-1));"
+                    "_status & $TRUE"
                     ,args,3);
         mds::deleteData(args[0]);
         mds::deleteData(args[1]);
