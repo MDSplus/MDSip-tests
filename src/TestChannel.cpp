@@ -63,7 +63,7 @@ public:
     }
     
 private:
-    Tree  *m_tree;    
+    Tree  *m_tree;
 };
 
 
@@ -78,58 +78,22 @@ class ChannelTC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
     ChannelTC(const Channel *parent) :
-        BaseClass(parent)/*,
-        m_cnx(NULL)*/
+        BaseClass(parent)
     {}
 
     void Open(TestTree &tree) {
-        //        if(m_cnx) Close();
-        //        std::string cnx_path = TestTree::TreePath::toString(tree.Path());
-
-        //        ////////////////////////////////////////////////////////////////////////
-        //        // added to support ssh connection /////////////////////////////////////
-        //        if(tree.Path().protocol == "ssh") {
-        //            // force tcp to get env variable via TDI //
-        //            TestTree::TreePath tcp = tree.Path();
-        //            tcp.protocol = "tcp";
-        //            m_cnx = new mds::Connection((char *)TestTree::TreePath::toString(tcp).c_str());
-        //            Data * args[3];
-        //            unique_ptr<Data> tree_name = new mds::String(tree.Name().c_str());
-        //            args[0] = tree_name;
-        //            unique_ptr<Data> ans = m_cnx->get("getenv($1//'_path')",args,1);
-        //            args[1] = ans;
-        //            unique_ptr<Data> path_env = m_cnx->get("getenv('PATH')",args,1);
-        //            args[2] = path_env;
-        //            delete m_cnx;
-
-        //            TestTree::TreePath p = tree.Path();
-        //            p.port.clear();
-        //            cnx_path = TestTree::TreePath::toString(p);
-        //            m_cnx = new mds::Connection((char *)cnx_path.c_str());
-        //            m_cnx->get("setenv($1//'_path='//$2)",args,2);
-        //            m_cnx->get("setenv('PATH='//$3)",args,3);
-        //            ans = m_cnx->get("getenv($1//'_path')",args,1);
-        //        }
-        //        ////////////////////////////////////////////////////////////////////////
-        //        else {
-        //            m_cnx = new mds::Connection((char *)cnx_path.c_str());
-        //        }
-        //        m_cnx->openTree((char*)tree.Name().c_str(), 0);
-
         m_tree = tree;
         m_tree.Open();
     }
 
     void Close() {
         m_tree.Close();
-        //        if(m_cnx) m_cnx->closeAllTrees();
-        //        delete m_cnx;
-        //        m_cnx = NULL;
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
+
         Data * args[1];
-        args[0] = el.data;            
+        args[0] = el.data;
 
         mds::Connection * cnx = m_tree.GetMdsConnection();
         if(!cnx) {
@@ -166,6 +130,7 @@ public:
 private:
     //    mds::Connection *m_cnx;
     TestTree m_tree;
+    Channel *m_parent;
 };
 
 

@@ -76,20 +76,17 @@ double TestConnection::StartConnection()
 
 void TestConnection::ResetTimes()
 {
-    for(unsigned int i=0; i< m_channels.size(); ++i)
-    {
-        Channel *ch = m_channels[i];
-        m_chtimes[ch].Clear();
+    foreach (Channel * ch,m_channels) {
+        ch->Times().Clear();
+        ch->Speeds().Clear();
     }
 }
 
 double TestConnection::GetTotalTime()/* const*/
 {
     double time = 0;
-    for(unsigned int i=0; i< m_channels.size(); ++i)
-    {
-        Channel *ch = m_channels[i];
-        time += m_chtimes[ch].Sum();
+    foreach (Channel * ch,m_channels) {
+        time += ch->Times().Sum();
     }
     return time;
 }
@@ -97,17 +94,17 @@ double TestConnection::GetTotalTime()/* const*/
 double TestConnection::GetWorstChannelTime()
 {
     double time = 0;
-    for(unsigned int i=0; i< m_channels.size(); ++i)
-    {
-        Channel *ch = m_channels[i];
-        time = std::max(time, m_chtimes[ch].Sum());
+    foreach (Channel * ch,m_channels) {
+        time = std::max(time, ch->Times().Sum());
     }
     return time;
 }
 
 double TestConnection::GetMeanChannelTime()
 {
-    return GetTotalTime() / m_chtimes.size();
+
+    exit(1);
+    return GetTotalTime() / m_channels.size();
 }
 
 
@@ -119,14 +116,14 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
 
     if(!this->m_channels.size()) return;
     Channel *first_ch = m_channels[0];
-    TimeHistogram &h0 = m_chtimes[first_ch];
+    TimeHistogram &h0 = first_ch->Times();
     size_t nbins = h0.BinSize();
 
     o << "time [s]";
     for (unsigned int i=0; i< m_channels.size(); ++i)
     {
         Channel *ch = m_channels[i];
-        TimeHistogram &h = m_chtimes[ch];
+        TimeHistogram &h = ch->Times();
         o << c << h.GetName();
     }
     o << "\n";
@@ -137,7 +134,7 @@ void TestConnection::PrintChannelTimes(std::ostream &o)
         for (unsigned int j=0; j< m_channels.size(); ++j)
         {
             Channel *ch = m_channels[j];
-            TimeHistogram &h = m_chtimes[ch];
+            TimeHistogram &h = ch->Times();
             o << c << h[i].second;
         }
         o << "\n";
@@ -176,10 +173,10 @@ public:
 
     void InternalThreadEntry() {
         Timer t, w = m_connection->GetTimer();
-        TestConnection::TimeHistogram &time = m_connection->ChannelTime(m_channel);
-        TestConnection::TimeHistogram &speed = m_connection->ChannelSpeed(m_channel);
-        Curve2D & time_curve  = m_connection->ChannelTime_Curve(m_channel);
-        Curve2D & speed_curve = m_connection->ChannelSpeed_Curve(m_channel);
+        TestConnection::TimeHistogram &time = m_channel->Times();
+        TestConnection::TimeHistogram &speed = m_channel->Speeds();
+        Curve2D & time_curve  = m_channel->Time_Curve();
+        Curve2D & speed_curve = m_channel->Speed_Curve();
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
@@ -188,7 +185,7 @@ public:
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
             // timer should start here when waiting for a thread broadcast //
-            m_integrity = m_connection->GetSubscriptions().Subscribe();
+            m_integrity = m_connection->GetWaitSubscriptions().Subscribe();
             w.Start(); t.Start();
             if( m_content )
                 while (  m_content->GetSize() > 0 )
@@ -370,8 +367,8 @@ double TestConnectionMP::StartConnection()
         // SHARED MEMORY TIMINGS SERIALIZATION //
         for(unsigned int i = 0; i < m_pids.size(); ++i) {
             Channel *channel = this->m_channels[i];
-            TimeHistogram &time = this->ChannelTime(channel);
-            TimeHistogram &speed = this->ChannelSpeed(channel);
+            TimeHistogram &time = channel->Times();
+            TimeHistogram &speed = channel->Speeds();
             SerializeToShm &shm = g_shm_timings[i];
             shm.Write() & time & speed;
             shm.Store();
@@ -388,8 +385,8 @@ double TestConnectionMP::StartConnection()
                 Content *content = this->m_contents[i];
                 Timer timer;
 
-                TimeHistogram &time = this->ChannelTime(channel);
-                TimeHistogram &speed = this->ChannelSpeed(channel);
+                TimeHistogram &time = channel->Times();
+                TimeHistogram &speed = channel->Speeds();
                 SerializeToShm &shm = g_shm_timings[i];
                 time.Clear();
                 speed.Clear();
@@ -411,7 +408,7 @@ double TestConnectionMP::StartConnection()
                     speed << static_cast<double>(el.data->getSize()/1024)/1024/t; // speed in MB //                 
                     // FIX: the actual size of el may not be of this size //
                 }
-                //                std::cout << "\n";
+                //    std::cout << "\n";
 
                 shm.Clear();
                 shm.Write() & time & speed;
@@ -426,8 +423,8 @@ double TestConnectionMP::StartConnection()
 
         for(unsigned int i = 0; i < m_pids.size(); ++i) {
             Channel *channel = this->m_channels[i];
-            TimeHistogram &time = this->ChannelTime(channel);
-            TimeHistogram &speed = this->ChannelSpeed(channel);
+            TimeHistogram &time = channel->Times();
+            TimeHistogram &speed = channel->Speeds();
             SerializeToShm &shm = g_shm_timings[i];
             shm.Resume();
             shm.Read() & time & speed;

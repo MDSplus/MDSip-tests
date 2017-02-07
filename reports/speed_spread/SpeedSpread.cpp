@@ -84,7 +84,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     typedef TestConnection::TimeHistogram Histogram;
     
     TestConnectionMT conn(g_target_tree);
-    
+    conn.SetSubscriptions(nch,0);
+
     std::vector<ContentFunction *> functions; // function generators //
     std::vector<Channel *>         channels;  // forked channels //
     
@@ -102,9 +103,9 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
         conn.AddChannel(functions.back(),channels.back());
-        
-        Histogram &time_h = conn.ChannelTime(channels.back());
-        Histogram &speed_h = conn.ChannelSpeed(channels.back());
+        Channel *ch = channels.back();
+        Histogram &time_h = ch->Times();
+        Histogram &speed_h = ch->Speeds();
         time_h = time_h_sum;
         speed_h = speed_h_sum;
     }
@@ -118,8 +119,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        Histogram &time_h = conn.ChannelTime(ch);
-        Histogram &speed_h = conn.ChannelSpeed(ch);
+        Histogram &time_h = ch->Times();
+        Histogram &speed_h = ch->Speeds();
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
         
@@ -203,7 +204,8 @@ int main(int argc, char *argv[])
             Histogram speed;
             Histogram time;
             while(true) { 
-                try { segment_speed_distr_MT(g_options.seg_size,speed,time,nch,training_samples); break; } 
+//                segment_speed_distr_MT(g_options.seg_size,speed,time,nch,training_samples); break;
+                try { segment_speed_distr_MT(g_options.seg_size,speed,time,nch,training_samples); break; }
                 catch (std::exception &e) { count_down(5,e.what()); }
             }
             s_min = std::min(s_min, speed.Min());

@@ -38,14 +38,8 @@ public:
     virtual double StartConnection();
 
     virtual void AddChannel(Content *cnt, Channel *chn) {
-        //chn->SetContent(cnt); // NEW CONTENT IN CHANNEL //
-        
         m_channels.push_back(chn);
         m_contents.push_back(cnt);        
-        m_chtimes[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,5);
-        m_chspeed[chn] =  TimeHistogram(cnt->GetName().c_str(),100,0,2);
-        m_chtimes_curve[chn] =  Curve2D(cnt->GetName().c_str());
-        m_chspeed_curve[chn] =  Curve2D(cnt->GetName().c_str());
 
         m_tree.OpenEdit();
         m_tree.AddNode(cnt->GetName().c_str(),(char *)"SIGNAL");
@@ -53,20 +47,12 @@ public:
 
     virtual void ClearChannels() {
         m_channels.clear();
-        m_chtimes.clear();
-        m_chspeed.clear();
     }
 
     std::string GetTreeName() const { return m_tree.Name(); }
 
     TestTree & Tree() { return m_tree; }
     const TestTree & Tree() const { return m_tree; }
-
-    TimeHistogram & ChannelTime(Channel *ch) { return m_chtimes[ch]; }
-    TimeHistogram & ChannelSpeed(Channel *ch) { return m_chspeed[ch]; }
-
-    Curve2D & ChannelTime_Curve(Channel *ch) { return m_chtimes_curve[ch]; }
-    Curve2D & ChannelSpeed_Curve(Channel *ch) { return m_chspeed_curve[ch]; }
 
     void ResetTimes();
 
@@ -87,10 +73,6 @@ protected:
 
     std::vector<Channel *> m_channels;
     std::vector<Content *> m_contents;
-    std::map< Channel *, TimeHistogram > m_chtimes;
-    std::map< Channel *, TimeHistogram > m_chspeed;
-    std::map< Channel *, Curve2D > m_chtimes_curve;
-    std::map< Channel *, Curve2D > m_chspeed_curve;
 };
 
 
@@ -104,9 +86,6 @@ protected:
 //  Connection Multi Threaded  /////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-
-//class Thread; // fwd //
-//class WaitSubscriptions;
 
 class TestConnectionMT : public TestConnection, Lockable {
 
@@ -139,7 +118,7 @@ public:
         m_wait_threads = WaitSubscriptions(n_th,msec);
     }
 
-    WaitSubscriptions & GetSubscriptions() { return m_wait_threads; }
+    WaitSubscriptions & GetWaitSubscriptions() { return m_wait_threads; }
 
 
 private:

@@ -99,6 +99,12 @@ private:
     struct timeval m_start, m_end;
 };
 
+class ProcessTimer : public Timer
+{
+public:
+
+};
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

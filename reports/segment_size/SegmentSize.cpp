@@ -114,10 +114,10 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
+        ch->Times() = time_h;
+        ch->Speeds() = speed_h;
         channels.push_back( ch );
         conn.AddChannel(functions[i],channels[i]);
-        conn.ChannelTime(channels.back()) = time_h;
-        conn.ChannelSpeed(channels.back()) = speed_h;
     }
 
     std::cout << "\n /////// connecting " << nch 
@@ -134,18 +134,18 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << "---- TIME ENV -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        time_h  += conn.ChannelTime(ch);
-        speed_h += conn.ChannelSpeed(ch);
+        time_h  += ch->Times();
+        speed_h += ch->Speeds();
         //        std::cout << conn.ChannelSpeed(ch) <<"\n";
         //        std::cout << g_conn.ChannelTime(ch) << "\n";
-        conn.ChannelTime_Curve(ch).XAxis().limits[0] = 0.;
-        conn.ChannelTime_Curve(ch).XAxis().limits[1] = total_connection_time;
+        ch->Time_Curve().XAxis().limits[0] = 0.;
+        ch->Time_Curve().XAxis().limits[1] = total_connection_time;
         std::cout << "TimeEnv";
-        conn.ChannelTime_Curve(ch).PrintSelf_abs(std::cout,100);
+        ch->Time_Curve().PrintSelf_abs(std::cout,100);
         std::cout << "\n";
         // retrieve the maximum elapsed time from channels //
-        if(max_chan_time && conn.ChannelTime(ch).Sum() > *max_chan_time)
-            *max_chan_time = conn.ChannelTime(ch).Sum();
+        if(max_chan_time && ch->Times().Sum() > *max_chan_time)
+            *max_chan_time = ch->Times().Sum();
     }
 
     //    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
@@ -156,7 +156,7 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        std::cout << "SpeedHist" << conn.ChannelSpeed(ch) <<"\n";
+        std::cout << "SpeedHist" << ch->Speeds() <<"\n";
     }
     std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
     std::cout << speed_h << "\n";

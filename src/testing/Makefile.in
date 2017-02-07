@@ -97,7 +97,7 @@ target_triplet = @target@
 @HAVE_CHECK_TRUE@	DataUtilsTest$(EXEEXT) \
 @HAVE_CHECK_TRUE@	StatisticsUtilsTest$(EXEEXT) \
 @HAVE_CHECK_TRUE@	TestContentTest$(EXEEXT) OptionsTest$(EXEEXT) \
-@HAVE_CHECK_TRUE@	threadstest$(EXEEXT)
+@HAVE_CHECK_TRUE@	threadstest$(EXEEXT) BandUtilsTest$(EXEEXT)
 check_PROGRAMS = $(am__EXEEXT_1)
 subdir = src/testing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -124,62 +124,73 @@ CONFIG_CLEAN_VPATH_FILES =
 @HAVE_CHECK_TRUE@	DataUtilsTest$(EXEEXT) \
 @HAVE_CHECK_TRUE@	StatisticsUtilsTest$(EXEEXT) \
 @HAVE_CHECK_TRUE@	TestContentTest$(EXEEXT) OptionsTest$(EXEEXT) \
-@HAVE_CHECK_TRUE@	threadstest$(EXEEXT)
-BuildTest_SOURCES = BuildTest.cpp
-BuildTest_OBJECTS = BuildTest.$(OBJEXT)
-BuildTest_LDADD = $(LDADD)
+@HAVE_CHECK_TRUE@	threadstest$(EXEEXT) BandUtilsTest$(EXEEXT)
+BandUtilsTest_SOURCES = BandUtilsTest.cpp
+BandUtilsTest_OBJECTS = BandUtilsTest.$(OBJEXT)
+BandUtilsTest_LDADD = $(LDADD)
 am__DEPENDENCIES_1 =
 am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-BuildTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+BandUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+BuildTest_SOURCES = BuildTest.cpp
+BuildTest_OBJECTS = BuildTest.$(OBJEXT)
+BuildTest_LDADD = $(LDADD)
+BuildTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 ClassUtilsTest_SOURCES = ClassUtilsTest.cpp
 ClassUtilsTest_OBJECTS = ClassUtilsTest.$(OBJEXT)
 ClassUtilsTest_LDADD = $(LDADD)
-ClassUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+ClassUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 ContentProducerTest_SOURCES = ContentProducerTest.cpp
 ContentProducerTest_OBJECTS = ContentProducerTest.$(OBJEXT)
 ContentProducerTest_LDADD = $(LDADD)
 ContentProducerTest_DEPENDENCIES = $(am__DEPENDENCIES_2) \
-	../libMDSipTest.la
+	../libMDSipTest.la ../ext_tools/libnllink.la
 DataUtilsTest_SOURCES = DataUtilsTest.cpp
 DataUtilsTest_OBJECTS = DataUtilsTest.$(OBJEXT)
 DataUtilsTest_LDADD = $(LDADD)
-DataUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+DataUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 OptionsTest_SOURCES = OptionsTest.cpp
 OptionsTest_OBJECTS = OptionsTest.$(OBJEXT)
 OptionsTest_LDADD = $(LDADD)
-OptionsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+OptionsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 SerializeToBinTest_SOURCES = SerializeToBinTest.cpp
 SerializeToBinTest_OBJECTS = SerializeToBinTest.$(OBJEXT)
 SerializeToBinTest_LDADD = $(LDADD)
 SerializeToBinTest_DEPENDENCIES = $(am__DEPENDENCIES_2) \
-	../libMDSipTest.la
+	../libMDSipTest.la ../ext_tools/libnllink.la
 SerializeToShmTest_SOURCES = SerializeToShmTest.cpp
 SerializeToShmTest_OBJECTS = SerializeToShmTest.$(OBJEXT)
 SerializeToShmTest_LDADD = $(LDADD)
 SerializeToShmTest_DEPENDENCIES = $(am__DEPENDENCIES_2) \
-	../libMDSipTest.la
+	../libMDSipTest.la ../ext_tools/libnllink.la
 StatisticsUtilsTest_SOURCES = StatisticsUtilsTest.cpp
 StatisticsUtilsTest_OBJECTS = StatisticsUtilsTest.$(OBJEXT)
 StatisticsUtilsTest_LDADD = $(LDADD)
 StatisticsUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) \
-	../libMDSipTest.la
+	../libMDSipTest.la ../ext_tools/libnllink.la
 TestContentTest_SOURCES = TestContentTest.cpp
 TestContentTest_OBJECTS = TestContentTest.$(OBJEXT)
 TestContentTest_LDADD = $(LDADD)
 TestContentTest_DEPENDENCIES = $(am__DEPENDENCIES_2) \
-	../libMDSipTest.la
+	../libMDSipTest.la ../ext_tools/libnllink.la
 TreeUtilsTest_SOURCES = TreeUtilsTest.cpp
 TreeUtilsTest_OBJECTS = TreeUtilsTest.$(OBJEXT)
 TreeUtilsTest_LDADD = $(LDADD)
-TreeUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+TreeUtilsTest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 threadstest_SOURCES = threadstest.cpp
 threadstest_OBJECTS = threadstest.$(OBJEXT)
 threadstest_LDADD = $(LDADD)
-threadstest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la
+threadstest_DEPENDENCIES = $(am__DEPENDENCIES_2) ../libMDSipTest.la \
+	../ext_tools/libnllink.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -214,11 +225,12 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = BuildTest.cpp ClassUtilsTest.cpp ContentProducerTest.cpp \
-	DataUtilsTest.cpp OptionsTest.cpp SerializeToBinTest.cpp \
-	SerializeToShmTest.cpp StatisticsUtilsTest.cpp \
-	TestContentTest.cpp TreeUtilsTest.cpp threadstest.cpp
-DIST_SOURCES = BuildTest.cpp ClassUtilsTest.cpp \
+SOURCES = BandUtilsTest.cpp BuildTest.cpp ClassUtilsTest.cpp \
+	ContentProducerTest.cpp DataUtilsTest.cpp OptionsTest.cpp \
+	SerializeToBinTest.cpp SerializeToShmTest.cpp \
+	StatisticsUtilsTest.cpp TestContentTest.cpp TreeUtilsTest.cpp \
+	threadstest.cpp
+DIST_SOURCES = BandUtilsTest.cpp BuildTest.cpp ClassUtilsTest.cpp \
 	ContentProducerTest.cpp DataUtilsTest.cpp OptionsTest.cpp \
 	SerializeToBinTest.cpp SerializeToShmTest.cpp \
 	StatisticsUtilsTest.cpp TestContentTest.cpp TreeUtilsTest.cpp \
@@ -629,7 +641,7 @@ SUFFIXES = .csv .dat .plt .eps .pdf .dvi
 # //////////////////////////////////////////////////////////////////////////// #
 TEXMFHOME = $(abs_top_builddir)/tex/packages/texmf
 TEXMFCONFIG = ${TEXMFHOME}
-LDADD = $(AM_LIBS) ../libMDSipTest.la
+LDADD = $(AM_LIBS) ../libMDSipTest.la ../ext_tools/libnllink.la
 @USE_VALGRIND_TRUE@LOG_COMPILER = valgrind
 @USE_VALGRIND_TRUE@AM_LOG_FLAGS = --quiet --trace-children=yes --error-exitcode=1 \
 @USE_VALGRIND_TRUE@               --dsymutil=yes --leak-check=yes
@@ -677,6 +689,10 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+
+BandUtilsTest$(EXEEXT): $(BandUtilsTest_OBJECTS) $(BandUtilsTest_DEPENDENCIES) $(EXTRA_BandUtilsTest_DEPENDENCIES) 
+	@rm -f BandUtilsTest$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(BandUtilsTest_OBJECTS) $(BandUtilsTest_LDADD) $(LIBS)
 
 BuildTest$(EXEEXT): $(BuildTest_OBJECTS) $(BuildTest_DEPENDENCIES) $(EXTRA_BuildTest_DEPENDENCIES) 
 	@rm -f BuildTest$(EXEEXT)
@@ -728,6 +744,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BandUtilsTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BuildTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClassUtilsTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ContentProducerTest.Po@am__quote@
@@ -1036,6 +1053,13 @@ OptionsTest.log: OptionsTest$(EXEEXT)
 threadstest.log: threadstest$(EXEEXT)
 	@p='threadstest$(EXEEXT)'; \
 	b='threadstest'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+BandUtilsTest.log: BandUtilsTest$(EXEEXT)
+	@p='BandUtilsTest$(EXEEXT)'; \
+	b='BandUtilsTest'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

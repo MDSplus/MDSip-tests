@@ -58,22 +58,20 @@ stop-server:
 
 
 
-CLEANFILES += *.log *.idx *.out *.toc *.aux
-SUFFIXES   += .pdf .dvi
-.PRECIOUS: %.pdf %.dvi
-
-
-if HAVE_PDFLATEX
-.tex.pdf:
-	@ \
-	set -e; \
-	-$(PDFLATEX) -interaction nonstopmode $<; \
-	-$(PDFLATEX) -interaction nonstopmode $<; \
-	-$(PDFLATEX) -interaction nonstopmode $<;
-else
-.tex.pdf: 
-	@echo "pdflatex not found in path"
-endif
+#CLEANFILES += *.log *.idx *.out *.toc *.aux
+#SUFFIXES   += .pdf .dvi
+#.PRECIOUS: %.pdf %.dvi
+#if HAVE_PDFLATEX
+#.tex.pdf:
+#	@ \
+#	set -e; \
+#	-$(PDFLATEX) -interaction nonstopmode $<; \
+#	-$(PDFLATEX) -interaction nonstopmode $<; \
+#	-$(PDFLATEX) -interaction nonstopmode $<;
+#else
+#.tex.pdf:
+#	@echo "pdflatex not found in path"
+#endif
 
 
 
@@ -177,7 +175,7 @@ TESTS = segment_size \
 
 
 
-all: ${TESTS}
+# all: ${TESTS}
 reports: setup
 
 

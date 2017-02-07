@@ -195,6 +195,7 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     typedef TestConnection::TimeHistogram Histogram;
     
     TestConnectionMT conn(g_target_tree);
+    conn.SetSubscriptions(nch,0);
     
     std::vector<ContentFunction *> functions; // function generators //
     std::vector<Channel *>         channels;  // forked channels //
@@ -202,8 +203,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     size_t tot_size = size_KB * nseg;
     
     const Vector2d &l1 = g_options.h_speed_limits;
-    const Vector2d &l2 = g_options.h_time_limits;
-    Histogram speed_h_sum("speed_sum",100,l1(0),l1(1));    
+    // const Vector2d &l2 = g_options.h_time_limits;
+    Histogram speed_h_sum("speed_sum",100,l1(0),l1(1));
     
     // prepare channels //
     for(int i=0; i<nch; ++i) {
@@ -212,8 +213,8 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
         conn.AddChannel(functions.back(),channels.back());
-                
-        Histogram &speed_h = conn.ChannelSpeed(channels.back());        
+        Channel *ch = channels.back();
+        Histogram &speed_h = ch->Speeds();
         speed_h = speed_h_sum;
     }
     
@@ -227,7 +228,7 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];        
-        Histogram &speed_h = conn.ChannelSpeed(ch);        
+        Histogram &speed_h = ch->Speeds();
         std::cout << "speed dist: " << speed_h << "\n";                
         speed_h_sum = Histogram::merge(speed_h_sum,speed_h);        
         speed(0) += speed_h.MeanAll();
