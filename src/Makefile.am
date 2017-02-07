@@ -35,4 +35,5 @@ TreeUtils.cpp
 
 noinst_LTLIBRARIES = libMDSipTest.la
 libMDSipTest_la_SOURCES = ${_CORE_SOURCES}
+libMDSipTest_la_LIBADD = ext_tools/libnllink.la
 

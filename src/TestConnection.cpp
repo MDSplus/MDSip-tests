@@ -172,7 +172,8 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer t, w = m_connection->GetTimer();
+        Timer &conn_timer = m_channel->m_timer;
+        Timer  ch_timer = m_connection->GetTimer();
         TestConnection::TimeHistogram &time = m_channel->Times();
         TestConnection::TimeHistogram &speed = m_channel->Speeds();
         Curve2D & time_curve  = m_channel->Time_Curve();
@@ -186,19 +187,22 @@ public:
             m_channel->Open(m_connection->Tree());
             // timer should start here when waiting for a thread broadcast //
             m_integrity = m_connection->GetWaitSubscriptions().Subscribe();
-            w.Start(); t.Start();
+            conn_timer.Start();
+            ch_timer.Start();
             if( m_content )
                 while (  m_content->GetSize() > 0 )
                 {                    
-                    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
+                    // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
+                    ch_timer.Pause();
                     Content::Element el;
-                    m_content->GetNextElement(m_channel->Size(), el);                    
-                    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
+                    m_content->GetNextElement(m_channel->Size(), el);
+                    ch_timer.Start();
+                    // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
                     m_channel->PutSegment(el);
-                    double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
-                                         - (1E3*ts1.tv_sec + 1E-6*ts1.tv_nsec);
-                    t2 = t.StopWatch_ms() - posix_diff;
-                    t1 = w.StopWatch();
+                    //                    double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
+                    //                                         - (1E3*ts1.tv_sec + 1E-6*ts1.tv_nsec);
+                    t2 = conn_timer.StopWatch_ms() /*- posix_diff*/;
+                    t1 = ch_timer.StopWatch();
                     time_curve.AddPoint( Point2D(t1, 1, 0) );
                     // reject all packets that have different size from expected ..
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
@@ -206,7 +210,7 @@ public:
                         speed << static_cast<double>(m_channel->Size())/1024/(t2*1E-3); // sped in MB //
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2*1E-3),0));
                     }
-                    t.Start();
+                    conn_timer.Start();
                 }
             m_channel->Close();
         } 

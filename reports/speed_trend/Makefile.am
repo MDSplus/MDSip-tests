@@ -23,7 +23,10 @@ bin_PROGRAMS = \
 SpeedTrend_SOURCES = SpeedTrend.cpp
 
 
-LDADD = $(top_builddir)/libMDSipTest.la -lrt
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
+	$(top_builddir)/src/ext_tools/libnllink.la \
+	-lrt
+
 
 
 # //////////////////////////////////////////////////////////////////////////// #

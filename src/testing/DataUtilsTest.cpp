@@ -1,4 +1,6 @@
 
+#include <unistd.h>
+
 #include "DataUtils.h"
 #include "testing-prototype.h"
 
@@ -109,7 +111,20 @@ int main(int argc, char *argv[])
         plot.PrintToGnuplotFile("test_histogram");
     }
 
+    { // TIMER //
+        Timer t;
+        t.Start();
+        usleep(110000);
+        std::cout << " timer: " << t.StopWatch() << "\n";
+        t.Pause();
+        usleep(110000);
+        t.Start();
+        std::cout << " timer: " << t.StopWatch() << "\n";
+        usleep(110000);
+        std::cout << " timer: " << t.StopWatch() << "\n";
 
+
+    }
 
     END_TESTING;
 }

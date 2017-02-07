@@ -160,6 +160,15 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     }
     std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
     std::cout << speed_h << "\n";
+
+    {
+        Channel *ch = channels[0];
+        std::cout << "---- CHANNEL 1 STATS -----" << "\n";
+        ch->m_rate_rx.SetName("m_rate_rx");
+        std::cout << ch->m_rate_rx << "\n";
+        ch->m_rate_tx.SetName("m_rate_tx");
+        std::cout << ch->m_rate_tx << "\n";
+    }
     
     char * use_total_time = getenv("USE_TOTAL_TIME");
     if(use_total_time && !strcmp(use_total_time,"yes") ) {

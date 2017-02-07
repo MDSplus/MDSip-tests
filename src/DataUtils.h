@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 
+#include <time.h>
+
 #include <sys/time.h>
 #include <utility>
 #include <vector>
@@ -68,40 +70,74 @@ private:
 //  Timer  /////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class Timer
-{
-public:
-    void Start() { gettimeofday(&m_start, NULL); }
 
-    double StopWatch() {
-        gettimeofday(&m_end, NULL);
-        return GetElapsed();
+class Timer
+{        
+public:
+    typedef struct timeval TI;
+
+    Timer() : m_elapsed({0,0}) {}
+
+    void Start() __attribute__((always_inline)) {
+        gettimeofday(&m_start, NULL);
     }
 
-    double StopWatch_ms() {
+    double StopWatch() __attribute__((always_inline)) {
+        gettimeofday(&m_end, NULL);
+        return GetElapsed_s();
+    }
+
+    double StopWatch_ms() __attribute__((always_inline)) {
         gettimeofday(&m_end, NULL);
         return GetElapsed_ms();
     }
 
-    double GetElapsed() {
-        return m_end.tv_sec - m_start.tv_sec +
-                (m_end.tv_usec - m_start.tv_usec)*1E-6;
+    void Pause() __attribute__((always_inline)) {
+        gettimeofday(&m_end, NULL);
+        m_elapsed = GetElapsed();
     }
 
-    double GetElapsed_ms() {
-        return (m_end.tv_sec - m_start.tv_sec)*1E3 +
-                (m_end.tv_usec - m_start.tv_usec)*1E-3;
+    TI GetElapsed() __attribute__((always_inline)) {
+        TI dt = {m_end.tv_sec-m_start.tv_sec,m_end.tv_usec-m_start.tv_usec};
+           dt = {dt.tv_sec+m_elapsed.tv_sec,dt.tv_usec+m_elapsed.tv_usec};
+        return dt;
     }
 
-    const struct timeval & GetStartTime() const { return m_start; }
-    const struct timeval & GetLastTime()  const { return m_end; }
+    double GetElapsed_s() __attribute__((always_inline)) {
+        return to_s(GetElapsed());
+    }
+
+    double GetElapsed_ms() __attribute__((always_inline)) {
+        return to_ms(GetElapsed());
+    }
+
+    const TI & GetStartTime() const { return m_start; }
+    const TI & GetLastTime()  const { return m_end; }
+
 private:
-    struct timeval m_start, m_end;
+
+    static inline double to_s(const TI &t) {
+        return t.tv_sec + t.tv_usec*1E-6;
+    }
+    static inline double to_ms(const TI &t) {
+        return t.tv_sec*1E3 + t.tv_usec*1E-3;
+    }
+
+    TI m_start, m_end, m_elapsed;
 };
 
-class ProcessTimer : public Timer
+
+///
+/// \brief The TimerLoop class. This is a particular specification that has
+/// been though to provide timing within a looped call.
+///
+class TimerLoop : public Timer
 {
 public:
+
+
+
+private:
 
 };
 
