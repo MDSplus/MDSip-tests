@@ -14,14 +14,15 @@ TESTS = \
  StatisticsUtilsTest \
  TestContentTest \
  OptionsTest \
- threadstest
+ threadstest \
+ BandUtilsTest
 
 else
  TESTS =
 endif
 
 
-LDADD = $(AM_LIBS) ../libMDSipTest.la
+LDADD = $(AM_LIBS) ../libMDSipTest.la ../ext_tools/libnllink.la
 
 if USE_VALGRIND
 LOG_COMPILER = valgrind

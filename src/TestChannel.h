@@ -43,7 +43,6 @@ public:
 
     void SetNoDisk(bool value);
     
-    
 protected:
     size_t   m_cnxerr_count;
     size_t   m_cnxerr_threshold;

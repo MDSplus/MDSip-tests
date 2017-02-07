@@ -75,16 +75,22 @@ public:
 
     double StopWatch() {
         gettimeofday(&m_end, NULL);
-        double timeSec = m_end.tv_sec - m_start.tv_sec +
-                (m_end.tv_usec - m_start.tv_usec)*1E-6;
-        return timeSec;
+        return GetElapsed();
     }
 
     double StopWatch_ms() {
         gettimeofday(&m_end, NULL);
-        double timeSec = (m_end.tv_sec - m_start.tv_sec)*1E3 +
+        return GetElapsed_ms();
+    }
+
+    double GetElapsed() {
+        return m_end.tv_sec - m_start.tv_sec +
+                (m_end.tv_usec - m_start.tv_usec)*1E-6;
+    }
+
+    double GetElapsed_ms() {
+        return (m_end.tv_sec - m_start.tv_sec)*1E3 +
                 (m_end.tv_usec - m_start.tv_usec)*1E-3;
-        return timeSec;
     }
 
     const struct timeval & GetStartTime() const { return m_start; }

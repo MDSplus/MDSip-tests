@@ -1,4 +1,4 @@
-SUBDIRS = . testing
+SUBDIRS = ext_tools
 
 include $(top_srcdir)/Common.am
 

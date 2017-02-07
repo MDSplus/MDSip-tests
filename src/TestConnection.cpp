@@ -14,7 +14,7 @@
 #include "Threads.h"
 
 #include "TestConnection.h"
-
+#include "BandUtils.h"
 
 using namespace MDSplus;
 
@@ -195,7 +195,7 @@ public:
                 {                    
                     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
                     Content::Element el;
-                    m_content->GetNextElement(m_channel->Size(), el);
+                    m_content->GetNextElement(m_channel->Size(), el);                    
                     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
                     m_channel->PutSegment(el);
                     double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
