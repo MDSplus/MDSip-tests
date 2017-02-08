@@ -68,10 +68,14 @@ protected:
     NLStats m_netlink_stats;          // netlink statitxtics
 
 public:
-    Histogram<double> m_rate_rx;      // netlink rx total bandwith [MB/s]
-    Histogram<double> m_rate_tx;      // netlink tx total bandwith [MB/s]
-    Histogram<double> m_rate_rx_drop; // netlink rx total dropped packets
-    Histogram<double> m_rate_tx_drop; // netlink tx total dropped packets
+    Histogram<double> m_rate_rx;       // netlink rx total bandwith [MB/s]
+    Histogram<double> m_rate_tx;       // netlink tx total bandwith [MB/s]
+    Histogram<double> m_rate_rx_drop;  //	__u32	rx_dropped;		/* no space in linux buffers	*/
+    Histogram<double> m_rate_tx_drop;  //	__u32	tx_dropped;		/* no space available in linux	*/
+    Histogram<double> m_rate_rx_error; //	__u32	rx_errors;		/* bad packets received		*/
+    Histogram<double> m_rate_tx_error; //	__u32	tx_errors;		/* packet transmit problems	*/
+    Histogram<double> m_rate_collisions;
+
 
 private:
     friend class ChannelImpl;

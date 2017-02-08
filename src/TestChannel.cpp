@@ -146,10 +146,14 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
     m_size(size_KB),
     m_netlink_stats("eno1"), // TODO: FIXXXXX //
 
-    m_rate_rx("rate rx",100,0,100),
-    m_rate_tx("rate tx",100,0,100),
+    m_rate_rx("rate rx",100,0,10),
+    m_rate_tx("rate tx",100,0,10),
     m_rate_rx_drop("rx drop",100,0,400),
-    m_rate_tx_drop("tx drop",100,0,400)
+    m_rate_tx_drop("tx drop",100,0,400),
+    m_rate_rx_error("rx error",100,0,400),
+    m_rate_tx_error("tx error",100,0,400),
+    m_rate_collisions("collisions",100,0,400)
+
 {
     switch (kind) {
     case DC:
@@ -214,21 +218,22 @@ void Channel::PutSegment(Content::Element &el) {
     for(int count = 0;; ++count, ++m_cnxerr_count) {
         try{
             {
-                m_timer.Pause();
+                TIMER_PAUSE(m_timer);
                 m_netlink_stats.Start();
-                m_timer.Start();
             }
             d->PutSegment(el);
             {
-                m_timer.Pause();
+                TIMER_PAUSE(m_timer);
                 m_netlink_stats.Stop();
                 struct rtnl_link_stats stats = m_netlink_stats.GetDiff();
                 double dt = m_netlink_stats.GetTimer().GetElapsed_s();
-                m_rate_rx << stats.rx_bytes/dt/1024;
-                m_rate_tx << stats.tx_bytes/dt/1024;
+                m_rate_rx << stats.rx_bytes/dt/1024/1024;
+                m_rate_tx << stats.tx_bytes/dt/1024/1024;
                 m_rate_rx_drop << stats.rx_dropped;
                 m_rate_tx_drop << stats.tx_dropped;
-                m_timer.Start();
+                m_rate_rx_error << stats.rx_errors;
+                m_rate_tx_error << stats.tx_errors;
+                m_rate_collisions << stats.collisions;
             }
             break;
         }

@@ -79,6 +79,7 @@ public:
     Timer() : m_elapsed({0,0}) {}
 
     void Start() __attribute__((always_inline)) {
+        m_elapsed = {0,0};
         gettimeofday(&m_start, NULL);
     }
 
@@ -95,6 +96,10 @@ public:
     void Pause() __attribute__((always_inline)) {
         gettimeofday(&m_end, NULL);
         m_elapsed = GetElapsed();
+    }
+
+    void Resume()  __attribute__((always_inline)) {
+        gettimeofday(&m_start, NULL);
     }
 
     TI GetElapsed() __attribute__((always_inline)) {
@@ -127,20 +132,18 @@ private:
 };
 
 
-///
-/// \brief The TimerLoop class. This is a particular specification that has
-/// been though to provide timing within a looped call.
-///
-class TimerLoop : public Timer
-{
+class TimerPause {
+    Timer &timer;
 public:
-
-
-
+    TimerPause(const Timer &t) : timer(const_cast<Timer&>(t)) { timer.Pause(); }
+    ~TimerPause() { timer.Resume(); }
 private:
-
+    TimerPause(const TimerPause &other) : timer(other.timer) {}
 };
 
+#ifndef TIMER_PAUSE
+# define TIMER_PAUSE(timer) TimerPause _auto_timer_pause_##timer(timer); (void)_auto_timer_pause_##timer;
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -635,15 +638,15 @@ public:
         o << "(\"" << this->GetName()
           << "\"," << this->BinSize()
           << "," << m_limits[0] << "," << m_limits[1] << ")";
-        o << "  " << m_underf << " [";
+        o << "\t" << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
             unsigned int lid = max > 0 ? (int)floor(val/max * (strlen(lut)-1)) : 0;
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
-        o << " visible-> card: " << this->Size()
-          << " mean:" << this->Mean() << " rms:" << this->Rms();
+        o << " card: " << this->Size()
+          << " mean:" << this->MeanAll() << " rms:" << this->RmsAll();
     }
 
     /// Convert to a Curve object

@@ -111,7 +111,9 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     for(int i=0; i<nch; ++i) {
         std::stringstream name;
         name << "sine" << i;
-        functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
+        ContentFunction *cnt = new ContentFunction(name.str().c_str(),tot_size);
+        //        cnt->SetGenFunction(ContentFunction::NoiseW);
+        functions.push_back( cnt );
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
         ch->Times() = time_h;
@@ -126,10 +128,6 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     
     double total_connection_time = conn.StartConnection();
     
-
-    // here we assume that speed_h is empty //
-    //    std::cout << "speed_h --> mean: " << speed_h.MeanAll() << " rms: " << speed_h.RmsAll() << "\n";    
-
     // NOTE: max_chan_time must be set to valid value before this
     std::cout << "---- TIME ENV -----" << "\n";
     for(int i=0; i<nch; ++i) {
@@ -156,18 +154,44 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        std::cout << "SpeedHist" << ch->Speeds() <<"\n";
+        std::cout << "SpeedH" << ch->Speeds() <<"\n";
     }
     std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
-    std::cout << speed_h << "\n";
+    std::cout << "         " << speed_h << "\n";
 
     {
-        Channel *ch = channels[0];
-        std::cout << "---- CHANNEL 1 STATS -----" << "\n";
-        ch->m_rate_rx.SetName("m_rate_rx");
-        std::cout << ch->m_rate_rx << "\n";
-        ch->m_rate_tx.SetName("m_rate_tx");
-        std::cout << ch->m_rate_tx << "\n";
+        Histogram<double> h_rx = channels[0]->m_rate_rx;
+        Histogram<double> h_tx = channels[0]->m_rate_tx;
+        Histogram<double> h_rx_d = channels[0]->m_rate_rx_drop;
+        Histogram<double> h_tx_d = channels[0]->m_rate_tx_drop;
+        Histogram<double> h_rx_e = channels[0]->m_rate_rx_error;
+        Histogram<double> h_tx_e = channels[0]->m_rate_tx_error;
+        Histogram<double> h_c = channels[0]->m_rate_collisions;
+        h_rx.Clear(); h_tx.Clear();
+        foreach (Channel *ch, channels) {
+           h_rx += ch->m_rate_rx;
+           h_tx += ch->m_rate_tx;
+           h_rx_d += ch->m_rate_rx_drop;
+           h_tx_d += ch->m_rate_tx_drop;
+           h_rx_e += ch->m_rate_rx_error;
+           h_tx_e += ch->m_rate_tx_error;
+           h_c += ch->m_rate_collisions;
+        }
+        std::cout << "---- CHANNEL STATS -----" << "\n";
+        h_rx.SetName("rate rx");
+        std::cout << "  " << h_rx << "\n";
+        h_tx.SetName("rate tx");
+        std::cout << "  " << h_tx << "\n";
+        h_rx_d.SetName("rx drop");
+        std::cout << "  " << h_rx_d << "\n";
+        h_tx_d.SetName("tx drop");
+        std::cout << "  " << h_tx_d << "\n";
+        h_rx_e.SetName("rx err ");
+        std::cout << "  " << h_rx_e << "\n";
+        h_tx_e.SetName("tx err ");
+        std::cout << "  " << h_tx_e << "\n";
+        h_c.SetName("coll   ");
+        std::cout << "  " << h_c << "\n";
     }
     
     char * use_total_time = getenv("USE_TOTAL_TIME");
@@ -206,8 +230,6 @@ int main(int argc, char *argv[])
 
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
-
-
     
     
     // collect probes //

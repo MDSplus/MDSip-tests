@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     { // TIMER //
         Timer t;
         t.Start();
-        usleep(110000);
+        sleep(1);
         std::cout << " timer: " << t.StopWatch() << "\n";
         t.Pause();
         usleep(110000);
@@ -122,8 +122,6 @@ int main(int argc, char *argv[])
         std::cout << " timer: " << t.StopWatch() << "\n";
         usleep(110000);
         std::cout << " timer: " << t.StopWatch() << "\n";
-
-
     }
 
     END_TESTING;

@@ -196,7 +196,7 @@ public:
                     ch_timer.Pause();
                     Content::Element el;
                     m_content->GetNextElement(m_channel->Size(), el);
-                    ch_timer.Start();
+                    ch_timer.Resume();
                     // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
                     m_channel->PutSegment(el);
                     //                    double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
