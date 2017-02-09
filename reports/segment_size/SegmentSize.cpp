@@ -213,14 +213,13 @@ double segment_size_throughput_MT(size_t size_KB,
         name << "sine" << i;
         ContentFunction *cnt = new ContentFunction(name.str().c_str(),tot_size);
         // cnt->SetGenFunction(ContentFunction::NoiseW);
-        functions.push_back( cnt );
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);        
         ch->SetInterfaceName(g_options.link.iface);
         probe->ChannelSetup(ch);
-
-        channels.push_back( ch );
         conn.AddChannel(functions[i],channels[i]);
+        functions.push_back( cnt );
+        channels.push_back( ch );
     }
 
     std::cout << "\n /////// connecting " << nch 

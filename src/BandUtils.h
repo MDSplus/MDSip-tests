@@ -56,6 +56,8 @@ public:
         struct rtnl_link_stats d;
         for (int i=0; i<sizeof(d)/sizeof(__u32); ++i)
             ((__u32*)&d)[i] = ((__u32*)&B)[i] - ((__u32*)&A)[i];
+        d.rx_bytes = B.rx_bytes-A.rx_bytes;
+        d.tx_bytes = B.tx_bytes-A.tx_bytes;
         return d;
     }
 
