@@ -181,11 +181,10 @@ public:
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
-        timespec ts1,ts2;
+        // timespec ts1,ts2;
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
-            // timer should start here when waiting for a thread broadcast //
             m_integrity = m_connection->GetWaitSubscriptions().Subscribe();
             conn_timer.Start();
             ch_timer.Start();
@@ -199,10 +198,8 @@ public:
                     ch_timer.Resume();
                     // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
                     m_channel->PutSegment(el);
-                    //                    double posix_diff = (1E3*ts2.tv_sec + 1E-6*ts2.tv_nsec)
-                    //                                         - (1E3*ts1.tv_sec + 1E-6*ts1.tv_nsec);
-                    t2 = conn_timer.StopWatch_ms() /*- posix_diff*/;
-                    t1 = ch_timer.StopWatch();
+                    t2 = ch_timer.StopWatch_ms();
+                    t1 = conn_timer.StopWatch();
                     time_curve.AddPoint( Point2D(t1, 1, 0) );
                     // reject all packets that have different size from expected ..
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
@@ -210,7 +207,7 @@ public:
                         speed << static_cast<double>(m_channel->Size())/1024/(t2*1E-3); // sped in MB //
                         speed_curve.AddPoint( Point2D(t1,static_cast<double>(m_channel->Size())/1024/(t2*1E-3),0));
                     }
-                    conn_timer.Start();
+                    ch_timer.Start();
                 }
             m_channel->Close();
         } 
