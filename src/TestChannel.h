@@ -20,9 +20,7 @@ namespace mdsip_test {
 
 class Channel {
 
-public:
-    typedef Histogram<double> TimeHistogram;
-
+public:    
     typedef enum {
         DC,
         TC
@@ -48,8 +46,8 @@ public:
 
     void SetNoDisk(bool value);
 
-    TimeHistogram & Times() { return m_chtimes; }
-    TimeHistogram & Speeds() { return m_chspeed; }
+    Histogram<double> & Times() { return m_chtimes; }
+    Histogram<double> & Speeds() { return m_chspeed; }
     Curve2D & Time_Curve() { return m_chtimes_curve; }
     Curve2D & Speed_Curve() { return m_chspeed_curve; }
 
@@ -60,8 +58,8 @@ protected:
     size_t   m_cnxerr_usleep;
     size_t   m_size;
 
-    TimeHistogram m_chtimes;
-    TimeHistogram m_chspeed;
+    Histogram<double> m_chtimes;
+    Histogram<double> m_chspeed;
     Curve2D m_chtimes_curve;
     Curve2D m_chspeed_curve;
 

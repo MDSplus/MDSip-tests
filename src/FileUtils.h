@@ -161,6 +161,14 @@ public:
             m_init->addValue( new detail::value_type<T>(name,value,0,description) );
             return *this;
         }
+
+        template <typename T>
+        OptionInit &
+        operator()(const char* name, T * value, const T &deft, const char* description = "") {
+            *value = deft;
+            m_init->addValue( new detail::value_type<T>(name,value,0,description) );
+            return *this;
+        }
     };
 
     Options(const char *usage = "") : m_usage(usage) {

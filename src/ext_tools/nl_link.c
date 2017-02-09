@@ -94,19 +94,27 @@ int nl_link_read(struct nlsock_link_stats *nlsk) {
     int status;
 
     // SEND DUMP ROOT REQUEST //
+    printf("NL send A\n");
     status = send(nlsk->fd, &nlsk->req, nlsk->req.n.nlmsg_len, 0);
+    printf("NL sent B status=%d\n",status);
     if (status < 0) { return 0; }
 
     // RECV DUMP ROOT //
     int len = status = 0;
     do {
         len += status;
+        printf("NL recv A\n");
         status = recv(nlsk->fd, &nlsk->buf[len], sizeof(nlsk->buf)-len, 0);
-        if( len+status > NL_LINK_BUF_SIZE ) {
+        printf("NL recvd B status=%d\n",status);
+        if( status > 0 && len+status > NL_LINK_BUF_SIZE ) {
             perror("nl buffer overflow.. \n");
             return 0;
         }
     } while(status >0);
+
+    if(status < 0)
+        printf("an error: %s\n", strerror(errno));
+
     nlsk->len = len;
     return 1;
 }
@@ -116,10 +124,12 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
     struct nlmsghdr  *nlmp;
     struct ifinfomsg *rtmp;
     struct rtattr    *rtatp;
-
+    printf("NL SETUP \n\n\n");
     struct nlsock_link_stats *nlsk = (struct nlsock_link_stats *)malloc(sizeof(struct nlsock_link_stats));
     if(!nlsk) return NULL;
+
     nlsk->dev_id = -1;
+    nlsk->len = 0;
 
     // OPEN SOCKET //
     nlsk->fd = socket(PF_NETLINK, SOCK_DGRAM | SOCK_NONBLOCK, NETLINK_ROUTE);
@@ -128,28 +138,34 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
     int pos = nlsk->len;
     // Loop MESSAGES //
     for(nlmp = (struct nlmsghdr *)nlsk->buf; pos > sizeof(*nlmp);){
-        int len = nlmp->nlmsg_len;
-        int req_len = len - sizeof(*nlmp);
-        if (req_len<0 || len>pos) { break; }
+        printf("pos = %d\n",pos);
+        int msg_len = nlmp->nlmsg_len;
+        int req_len = msg_len - sizeof(*nlmp);
+
+        if (req_len<0 || msg_len>pos) { break; }
         if (!NLMSG_OK(nlmp, pos)) { break; }
 
         rtmp = (struct ifinfomsg *)NLMSG_DATA(nlmp);
         rtatp = (struct rtattr *)IFLA_RTA(rtmp);
         int rtattrlen = IFLA_PAYLOAD(nlmp);
 
-        // printf("Index Of Iface= %d, %d\n",rtmp->ifi_index,rtattrlen);
+        if(rtmp->ifi_index == 0) { break; }
+        printf("Index Of Iface= %d, %d\n",rtmp->ifi_index,rtattrlen);
         int dev_id = rtmp->ifi_index;
 
         // LOOP ATTRIBUTES //
         for (; RTA_OK(rtatp, rtattrlen); rtatp = RTA_NEXT(rtatp, rtattrlen)) {
+            printf("-> loop attribute type=%d\n",rtatp->rta_type);
             if(rtatp->rta_type == IFLA_IFNAME){
+                printf("parsing %s\n",(char*)RTA_DATA(rtatp));
                 if(strcmp((char*)RTA_DATA(rtatp),devname) == 0)
                     nlsk->dev_id = dev_id;
             }
         }
-        pos -= NLMSG_ALIGN(len);
-        nlmp = (struct nlmsghdr*)((char*)nlmp + NLMSG_ALIGN(len));
+        pos -= NLMSG_ALIGN(msg_len);
+        nlmp = (struct nlmsghdr*)((char*)nlmp + NLMSG_ALIGN(msg_len));
     }
+
 
     if(nlsk->dev_id == -1) {
         close(nlsk->fd);
@@ -163,8 +179,9 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
 void nl_link_release(struct nlsock_link_stats *sock)
 {
     if(sock) {
+        printf("DELETE NL\n");
         close(sock->dev_id);
-        free(sock);
+        free(sock);        
     }
 }
 
@@ -189,7 +206,7 @@ int nl_link_getstats(struct nlsock_link_stats *nlsk, struct rtnl_link_stats *sta
         int rtattrlen = IFLA_PAYLOAD(nlmp);
 
         // printf("Index stats= %d, %d\n",rtmp->ifi_index,rtattrlen);
-
+        if(rtmp->ifi_index == 0) { break; }
         // LOOP ATTRIBUTES //
         if(rtmp->ifi_index == nlsk->dev_id) {
             for (; RTA_OK(rtatp, rtattrlen); rtatp = RTA_NEXT(rtatp, rtattrlen)) {
@@ -227,7 +244,7 @@ int nl_link_getstats64(struct nlsock_link_stats *nlsk, struct rtnl_link_stats64 
         int rtattrlen = IFLA_PAYLOAD(nlmp);
 
         // printf("Index stats= %d, %d\n",rtmp->ifi_index,rtattrlen);
-
+        if(rtmp->ifi_index == 0) { break; }
         // LOOP ATTRIBUTES //
         if(rtmp->ifi_index == nlsk->dev_id) {
             for (; RTA_OK(rtatp, rtattrlen); rtatp = RTA_NEXT(rtatp, rtattrlen)) {

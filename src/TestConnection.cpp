@@ -215,6 +215,7 @@ public:
             m_channel->Close();
         } 
         catch (std::exception &e) {
+            std::cerr << "Error internal thread: " << e.what() << "\n";
             m_integrity = false;
             error = e;
         }

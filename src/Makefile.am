@@ -30,7 +30,8 @@ StatisticsUtils.cpp \
 TestConnection.cpp \
 TestChannel.cpp \
 TestContent.cpp \
-TreeUtils.cpp
+TreeUtils.cpp \
+BandUtils.cpp
 
 
 noinst_LTLIBRARIES = libMDSipTest.la

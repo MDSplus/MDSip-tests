@@ -1,6 +1,8 @@
 
 
 #include <iostream>
+#include <stdio.h> // itoa
+
 #include <fstream>
 #include <time.h>
 #include <unistd.h> // sleep
@@ -26,14 +28,23 @@ struct Parameters : Options {
     Vector3i seg_range;
     Vector2d h_speed_limits;
     Vector2d h_time_limits;
+    Vector2d h_numeric_limits;
     size_t samples;
     size_t probes;
     std::string   env_no_disk;
+
+    struct {
+        bool times;
+        bool speeds;
+        bool statistics;
+    } dump;
+
     Parameters() :
         seg_range(2048,2048,20480),
         samples(20),probes(1),
         h_speed_limits(0,4),
         h_time_limits(0,1),
+        h_numeric_limits(0,100),
         env_no_disk("no")
     {
         n_channels << 1,2,4;
@@ -46,6 +57,7 @@ struct Parameters : Options {
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ("no_disk",&env_no_disk,"no_disk_option (yes/no)")
+                ("dump_times",&dump.times,true,"dump times histogram (bool)")
                 ;
     }
 
@@ -67,26 +79,111 @@ static void count_down(int sec, const char *msg=0) {
 }
 
 
+///
+/// PROBE: TestConnection should provide this one time
+///
+class TestProbe {
+public:
+
+    typedef Histogram<double> T;
+
+    class Probe_T : public std::vector<T> {
+    public:
+        typedef std::vector<T> BaseClass;
+        Probe_T() : BaseClass() {}
+        Probe_T(size_t size, const T &defh) :
+            BaseClass(0)
+        {
+            for(int i=0; i<size; ++i)
+                this->push_back(defh);
+        }
+    };
+
+    size_t m_size;
+    Vector2d lim_s, lim_t;
+    Vector2d lim_n;
+
+    Probe_T h_speed;
+    Probe_T h_time;
+    std::vector<Plot2D>  time_curve;
+
+    Probe_T h_rx;
+    Probe_T h_tx;
+    Probe_T h_rx_d;
+    Probe_T h_tx_d;
+    Probe_T h_rx_e;
+    Probe_T h_tx_e;
+    Probe_T h_c;
+
+    TestProbe() : m_size(0) {}
+
+    TestProbe(int size) :
+        // limits //
+        m_size(size),
+        lim_s(g_options.h_speed_limits),
+        lim_t(g_options.h_time_limits),
+        lim_n(g_options.h_numeric_limits),
+
+        // standard //
+        h_speed (size, T("ch speed",100,lim_s(0),lim_s(1))),
+        h_time  (size, T("ch times",100,lim_t(0),lim_t(1))),
+
+        // statistics //
+        h_rx    (size, T("lnk rx",100,lim_s(0),lim_s(1))),
+        h_tx    (size, T("lnk tx",100,lim_s(0),lim_s(1))),
+        h_rx_d  (size, T("rx drp",100,lim_n(0),lim_n(1))),
+        h_tx_d  (size, T("tx drp",100,lim_n(0),lim_n(1))),
+        h_rx_e  (size, T("rx err",100,lim_n(0),lim_n(1))),
+        h_tx_e  (size, T("tx err",100,lim_n(0),lim_n(1))),
+        h_c     (size, T("collis",100,lim_n(0),lim_n(1)))
+    {
+        ;
+    }
+
+    void ChannelSetup(Channel *ch) {
+        if(m_size) {
+            ch->Times() = h_time[0];
+            ch->Speeds() = h_speed[0];
+            ch->m_rate_rx = h_rx[0];
+            ch->m_rate_tx = h_tx[0];
+            ch->m_rate_rx_drop = h_rx_d[0];
+            ch->m_rate_tx_drop = h_tx_d[0];
+            ch->m_rate_rx_error = h_rx_e[0];
+            ch->m_rate_tx_error = h_tx_e[0];
+            ch->m_rate_collisions = h_c[0];
+        }
+    }
+
+    void ReadFromChannel(Channel *ch, int id) {
+        h_speed[id] += ch->Speeds();
+        h_time[id] += ch->Times();
+
+        h_rx[id] += ch->m_rate_rx;
+        h_tx[id]   += ch->m_rate_tx;
+        h_rx_d[id] += ch->m_rate_rx_drop;
+        h_tx_d[id] += ch->m_rate_tx_drop;
+        h_rx_e[id] += ch->m_rate_rx_error;
+        h_tx_e[id] += ch->m_rate_tx_error;
+        h_c[id]    += ch->m_rate_collisions;
+    }
+
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //  TEST: SEGMENT SIZE  ////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
 ///
-/// \param size_KB size of segment to be sent
-/// \param nch number of forked channels (sine) to be used
-/// \param nseg total number of segment per channel
-/// \return mean and rms of average speed for all channels togheter
 ///
 /// Test for segment size in Multi Thread using Thin Client connection.
 /// In histogram a value of equivalent data troughput is added in MB/s
 /// This is not the actual line speed becouse reflects the time to sent actual
 /// data into the channel.
 ///
-Histogram<double> segment_size_throughput_MT(size_t size_KB,
+double segment_size_throughput_MT(size_t size_KB,
                                              int nch = 1,
-                                             double *max_chan_time = NULL,
+                                             TestProbe *probe = NULL,
+                                             int seg_id = 0,
                                              int nseg = g_options.samples
                                              )
 {
@@ -98,26 +195,18 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
     TestConnectionMT conn(g_target_tree);
     conn.SetSubscriptions(nch,0);
 
-    ////////////////////////////////////////////////////////////////////////////
-    // PARAMETERS //////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-    const Vector2d &l1 = g_options.h_speed_limits;
-    const Vector2d &l2 = g_options.h_time_limits;
-    TestConnection::TimeHistogram speed_h("ch speed",100,l1(0),l1(1));
-    TestConnection::TimeHistogram time_h ("ch time ",100,l2(0),l2(1));
-    ////////////////////////////////////////////////////////////////////////////
-
-    // prepare channels //
+    // PREPARE CHANNELS //
     for(int i=0; i<nch; ++i) {
         std::stringstream name;
         name << "sine" << i;
         ContentFunction *cnt = new ContentFunction(name.str().c_str(),tot_size);
-        //        cnt->SetGenFunction(ContentFunction::NoiseW);
+        // cnt->SetGenFunction(ContentFunction::NoiseW);
         functions.push_back( cnt );
         Channel *ch = Channel::NewTC(size_KB);
-        if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
-        ch->Times() = time_h;
-        ch->Speeds() = speed_h;
+        if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);        
+
+        probe->ChannelSetup(ch);
+
         channels.push_back( ch );
         conn.AddChannel(functions[i],channels[i]);
     }
@@ -126,81 +215,56 @@ Histogram<double> segment_size_throughput_MT(size_t size_KB,
               << " channels [" << size_KB << " KB]: ////////"
               << "\n" << std::flush;            
     
-    double total_connection_time = conn.StartConnection();
-    
-    // NOTE: max_chan_time must be set to valid value before this
-    std::cout << "---- TIME ENV -----" << "\n";
-    for(int i=0; i<nch; ++i) {
-        Channel *ch = channels[i];
-        time_h  += ch->Times();
-        speed_h += ch->Speeds();
-        //        std::cout << conn.ChannelSpeed(ch) <<"\n";
-        //        std::cout << g_conn.ChannelTime(ch) << "\n";
+    // START CONNECTION /////////////////////////////////////
+    double total_connection_time = conn.StartConnection(); //
+    /////////////////////////////////////////////////////////
+
+    // COLLECT STATISTICS //
+    foreach (Channel *ch, channels) {
         ch->Time_Curve().XAxis().limits[0] = 0.;
         ch->Time_Curve().XAxis().limits[1] = total_connection_time;
-        std::cout << "TimeEnv";
-        ch->Time_Curve().PrintSelf_abs(std::cout,100);
-        std::cout << "\n";
-        // retrieve the maximum elapsed time from channels //
-        if(max_chan_time && ch->Times().Sum() > *max_chan_time)
-            *max_chan_time = ch->Times().Sum();
+        probe->ReadFromChannel(ch,seg_id);
     }
 
-    //    std::cout << "---- TIME HISTOGRAMS -----" << "\n";
-    //    for(int i=0; i<nch; ++i) {
-    //        Channel *ch = channels[i];
-    //        std::cout << "TimeHist" << conn.ChannelTime(ch) <<"\n";
-    //    }
-    std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
-    for(int i=0; i<nch; ++i) {
-        Channel *ch = channels[i];
-        std::cout << "SpeedH" << ch->Speeds() <<"\n";
-    }
-    std::cout << "---- COMPOSITE SPEED HISTOGRAM -----" << "\n";
-    std::cout << "         " << speed_h << "\n";
-
-    {
-        Histogram<double> h_rx = channels[0]->m_rate_rx;
-        Histogram<double> h_tx = channels[0]->m_rate_tx;
-        Histogram<double> h_rx_d = channels[0]->m_rate_rx_drop;
-        Histogram<double> h_tx_d = channels[0]->m_rate_tx_drop;
-        Histogram<double> h_rx_e = channels[0]->m_rate_rx_error;
-        Histogram<double> h_tx_e = channels[0]->m_rate_tx_error;
-        Histogram<double> h_c = channels[0]->m_rate_collisions;
-        h_rx.Clear(); h_tx.Clear();
-        foreach (Channel *ch, channels) {
-           h_rx += ch->m_rate_rx;
-           h_tx += ch->m_rate_tx;
-           h_rx_d += ch->m_rate_rx_drop;
-           h_tx_d += ch->m_rate_tx_drop;
-           h_rx_e += ch->m_rate_rx_error;
-           h_tx_e += ch->m_rate_tx_error;
-           h_c += ch->m_rate_collisions;
+    { // PRINT TIME ENVELOPES //
+        std::cout << "---- TIME ENVELOPES -----" << "\n";
+        for(int i=0; i<nch; ++i) {
+            Channel *ch = channels[i];
+            std::cout << "TimeEnv";
+            ch->Time_Curve().PrintSelf_abs(std::cout,100);
+            std::cout << "\n";
         }
+    }
+
+    { // PRINT TIME HISTOGRAMS //
+        std::cout << "---- TIME HISTOGRAMS -----" << "\n";
+        for(int i=0; i<nch; ++i) {
+            Channel *ch = channels[i];
+            std::cout << "TimeHist" << ch->Times() <<"\n";
+        }
+    }
+
+    { // PRINT SPEED HISTOGRAMS //
+        std::cout << "---- SPEED HISTOGRAMS -----" << "\n";
+        for(int i=0; i<nch; ++i) {
+            Channel *ch = channels[i];
+            std::cout << "SpeedH" << ch->Speeds() <<"\n";
+        }
+    }
+
+    { // PRINT STATISTICS //
+        std::cout << "---- COMPOSITE HISTOGRAMS -----" << "\n";
         std::cout << "---- CHANNEL STATS -----" << "\n";
-        h_rx.SetName("rate rx");
-        std::cout << "  " << h_rx << "\n";
-        h_tx.SetName("rate tx");
-        std::cout << "  " << h_tx << "\n";
-        h_rx_d.SetName("rx drop");
-        std::cout << "  " << h_rx_d << "\n";
-        h_tx_d.SetName("tx drop");
-        std::cout << "  " << h_tx_d << "\n";
-        h_rx_e.SetName("rx err ");
-        std::cout << "  " << h_rx_e << "\n";
-        h_tx_e.SetName("tx err ");
-        std::cout << "  " << h_tx_e << "\n";
-        h_c.SetName("coll   ");
-        std::cout << "  " << h_c << "\n";
+        std::cout << "  " << probe->h_rx[seg_id]   << "\n";
+        std::cout << "  " << probe->h_tx[seg_id]   << "\n";
+        std::cout << "  " << probe->h_rx_d[seg_id] << "\n";
+        std::cout << "  " << probe->h_tx_d[seg_id] << "\n";
+        std::cout << "  " << probe->h_rx_e[seg_id] << "\n";
+        std::cout << "  " << probe->h_tx_e[seg_id] << "\n";
+        std::cout << "  " << probe->h_c[seg_id]    << "\n";
     }
     
-    char * use_total_time = getenv("USE_TOTAL_TIME");
-    if(use_total_time && !strcmp(use_total_time,"yes") ) {
-        std::cout << "USING TOTAL TIME CONNECTION " << total_connection_time << "\n";
-        *max_chan_time = total_connection_time;
-    }
-
-    return speed_h;    
+    return total_connection_time;
 }
 
 
@@ -232,14 +296,20 @@ int main(int argc, char *argv[])
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
     
     
-    // collect probes //
-    typedef std::vector<Histogram<double> > Probe_T;
-    Histogram<double> max_time_probes;
-    std::vector<Probe_T> speed_probes(g_options.n_channels.size());
+
+
+    // ranges //
     Vector3i &range = g_options.seg_range;
+    int seg_vector_size = (range(2)-range(0))/range(1)+1;
+
+
+    // collect probes //
+    std::vector<unique_ptr<TestProbe> > probes;
+    for(int i=0; i<g_options.n_channels.size();++i)
+        probes.push_back(new TestProbe(seg_vector_size));
     
     // Progress output (for dialog status bar)    
-    ProgressOutput progress;    
+    ProgressOutput progress;
     {
         size_t tot_steps = g_options.probes  * (int)(range(2)-range(0))/range(1);
         foreach (int nch, g_options.n_channels) {
@@ -250,29 +320,25 @@ int main(int argc, char *argv[])
     
     for(int prb = 0; prb < g_options.probes; ++prb ) {
         int seg_id = 0;
-        for(int seg = range(0); seg < range(2); 
-            seg += std::min(range(1), range(2)-seg), ++seg_id )
+        for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id )
         {
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
             {                            
                 int nch = g_options.n_channels[nch_id];
-                Histogram<double> sh;
-                double max_time;
-                // launch segment_size_througput
                 for(int i=0;; ++i) {
-                    try { max_time = 0;
-                          sh = segment_size_throughput_MT(seg, nch, &max_time);
-                          break; }
+                    try {
+                        // launch segment_size_througput
+                        segment_size_throughput_MT(seg, nch, probes[nch_id], seg_id);
+                        break;
+                    }
                     catch (std::exception &e) { count_down(5,e.what()); }
                 }
                 // add probe //
-
-                max_time_probes << max_time;
-                if(seg_id < speed_probes[nch_id].size())
-                    speed_probes[nch_id].at(seg_id) += sh;
-                else
-                    speed_probes[nch_id].push_back(sh);
-                progress.Completed(nch);
+                //                if(seg_id < speed_probes[nch_id].size())
+                //                    speed_probes[nch_id].at(seg_id) += sh;
+                //                else
+                //                    speed_probes[nch_id].push_back(sh);
+                //                progress.Completed(nch);
             }
         }
     }
@@ -283,9 +349,8 @@ int main(int argc, char *argv[])
     ///  PLOT  /////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     {
-        // speed plots //
+        // CREATE CURVES FROM HISTOGRAMS //
         std::vector<Curve2D> speeds;
-        //    foreach(int nch, g_options.n_channels)
         for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
         {
             int nch = g_options.n_channels[nch_id];
@@ -293,15 +358,15 @@ int main(int argc, char *argv[])
             curve_name << nch << " ch";
             Curve2D curve(curve_name.str().c_str());
             int seg_id = 0;
-            for(int seg = range(0); seg < range(2); seg += std::min(range(1), range(2)-seg), ++seg_id ) {
-                const Histogram<double> &sh = speed_probes[nch_id].at(seg_id);
-                // double mspd = nch * g_options.samples * seg / 1024 / mth.MeanAll();
+            for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                const TestProbe &probe = *probes[nch_id];
+                const Histogram<double> &sh = probe.h_speed[seg_id];
                 curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
-                //curve.AddPoint( Point2D(seg, mspd, nch * sh.RmsAll()) );
             }
             speeds.push_back(curve);
         }
 
+        // COLLECT CURVES ON A PLOT //
         Plot2D plot("Throughput vs Segment Size");
         std::cout << " ---- COLLECTED SPEEDS  ------ \n";
         foreach (Curve2D &speed, speeds) {
@@ -309,12 +374,12 @@ int main(int argc, char *argv[])
             plot.AddCurve(speed);
         }
 
-
-        // make short X axis name before to write into csv //
+        // PRINT TO CSV FILE //
         plot.XAxis().name = "size";
         plot.PrintToCsv(filename_out);
+
+        // SET PLOT TITLES AND LABELS //
         {
-            // SET PLOT TITLES AND LABELS //
             std::string prtcl = "tcp";
             if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
             plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
@@ -327,7 +392,7 @@ int main(int argc, char *argv[])
             plot.YAxis().name = "Total speed [MB/s]";
         }
 
-        // Print Plot file //
+        // PRINT PLOT TO GNUPLOT FILE //
         plot.PrintToGnuplotFile(filename_out);
         {
             std::ofstream o;
@@ -342,7 +407,6 @@ int main(int argc, char *argv[])
               << "samples=" << g_options.samples << "\n";
 
             // doing analisys //
-
             Curve2D::Point max(0,0,0);
             foreach (const Curve2D &curve, plot.Curves()) {
                 if(!curve.Points().empty()) {
