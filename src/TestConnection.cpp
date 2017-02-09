@@ -172,8 +172,8 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer conn_timer = m_connection->GetTimer();
-        Timer ch_timer   = m_channel->m_timer;
+        Timer  conn_timer = m_connection->GetTimer();
+        Timer &ch_timer   = m_channel->m_timer;
         TestConnection::TimeHistogram &time = m_channel->Times();
         TestConnection::TimeHistogram &speed = m_channel->Speeds();
         Curve2D & time_curve  = m_channel->Time_Curve();
