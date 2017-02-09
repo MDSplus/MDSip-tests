@@ -16,18 +16,21 @@ namespace mdsip_test {
 ///
 /// \brief The NLStats class
 ///
-class NLStats {
-    std::string m_name;
+class NLStats : public Named {
     struct rtnl_link_stats    A,B;
     Timer                     m_timer;
 public:
 
+    struct ifa_error : public std::exception {
+        virtual const char *what() { return "Interface not found"; }
+    };
+
     NLStats() {}
 
     NLStats(const char *devname) :
-        m_name(devname) {
+        Named(devname) {
         //    nl_link_getstats(m_ptr,&A);
-        if(!get_link_stats(m_name.c_str(),&A)) throw std::exception();
+        if(!get_link_stats(name(),&A)) throw ifa_error();
         m_timer.Start();
     }
     ~NLStats() {
@@ -37,15 +40,15 @@ public:
     void Start() {
         //    nl_link_read(m_ptr);
         //    nl_link_getstats(m_ptr,&A);
-        if(!get_link_stats(m_name.c_str(),&A)) throw std::exception();
+        if(!get_link_stats(name(),&A)) throw ifa_error();
         m_timer.Start();
     }
 
     void Stop() {
         //    nl_link_read(m_ptr);
         //    nl_link_getstats(m_ptr,&B);
-        if(!get_link_stats(m_name.c_str(),&B)) throw std::exception();
         m_timer.StopWatch();
+        if(!get_link_stats(name(),&B)) throw ifa_error();
     }
 
     struct rtnl_link_stats GetDiff() {
@@ -59,9 +62,10 @@ public:
 private:
 
     static int get_link_stats(const char *iface, rtnl_link_stats *stats);
+    const char *name() const { return this->GetName().c_str(); }
 
-    NLStats(const NLStats &other) {}
-    NLStats & operator =(const NLStats &o) {}
+    //    NLStats(const NLStats &other) {}
+    //    NLStats & operator =(const NLStats &o) {}
 };
 
 

@@ -94,26 +94,22 @@ int nl_link_read(struct nlsock_link_stats *nlsk) {
     int status;
 
     // SEND DUMP ROOT REQUEST //
-    printf("NL send A\n");
     status = send(nlsk->fd, &nlsk->req, nlsk->req.n.nlmsg_len, 0);
-    printf("NL sent B status=%d\n",status);
     if (status < 0) { return 0; }
 
     // RECV DUMP ROOT //
     int len = status = 0;
     do {
         len += status;
-        printf("NL recv A\n");
         status = recv(nlsk->fd, &nlsk->buf[len], sizeof(nlsk->buf)-len, 0);
-        printf("NL recvd B status=%d\n",status);
         if( status > 0 && len+status > NL_LINK_BUF_SIZE ) {
             perror("nl buffer overflow.. \n");
             return 0;
         }
     } while(status >0);
 
-    if(status < 0)
-        printf("an error: %s\n", strerror(errno));
+    //    if(status < 0)
+    //        printf("an error: %s\n", strerror(errno));
 
     nlsk->len = len;
     return 1;
@@ -124,7 +120,6 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
     struct nlmsghdr  *nlmp;
     struct ifinfomsg *rtmp;
     struct rtattr    *rtatp;
-    printf("NL SETUP \n\n\n");
     struct nlsock_link_stats *nlsk = (struct nlsock_link_stats *)malloc(sizeof(struct nlsock_link_stats));
     if(!nlsk) return NULL;
 
@@ -138,7 +133,6 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
     int pos = nlsk->len;
     // Loop MESSAGES //
     for(nlmp = (struct nlmsghdr *)nlsk->buf; pos > sizeof(*nlmp);){
-        printf("pos = %d\n",pos);
         int msg_len = nlmp->nlmsg_len;
         int req_len = msg_len - sizeof(*nlmp);
 
@@ -150,14 +144,12 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
         int rtattrlen = IFLA_PAYLOAD(nlmp);
 
         if(rtmp->ifi_index == 0) { break; }
-        printf("Index Of Iface= %d, %d\n",rtmp->ifi_index,rtattrlen);
+        // printf("Index Of Iface= %d, %d\n",rtmp->ifi_index,rtattrlen);
         int dev_id = rtmp->ifi_index;
 
         // LOOP ATTRIBUTES //
         for (; RTA_OK(rtatp, rtattrlen); rtatp = RTA_NEXT(rtatp, rtattrlen)) {
-            printf("-> loop attribute type=%d\n",rtatp->rta_type);
             if(rtatp->rta_type == IFLA_IFNAME){
-                printf("parsing %s\n",(char*)RTA_DATA(rtatp));
                 if(strcmp((char*)RTA_DATA(rtatp),devname) == 0)
                     nlsk->dev_id = dev_id;
             }
@@ -179,7 +171,6 @@ struct nlsock_link_stats * nl_link_setup(const char *devname) {
 void nl_link_release(struct nlsock_link_stats *sock)
 {
     if(sock) {
-        printf("DELETE NL\n");
         close(sock->dev_id);
         free(sock);        
     }
