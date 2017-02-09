@@ -52,7 +52,7 @@ public:
 
     void SetName(std::string name) { m_name = name; }
 
-    std::string GetName() const { return m_name; }
+    const std::string & GetName() const { return m_name; }
 
     template < class Archive >
     friend void serialize(Archive &ar, Named &n) {
@@ -851,8 +851,12 @@ public:
 
     void PrintToCsv( std::string file_name, const char sep = ';' );
 
-    void PrintToGnuplotFile(std::string file_name = "") const;
 
+    enum GnuplotStyle {
+        GnuplotStyle1,
+        GnuplotStyle2,
+    };
+    void PrintToGnuplotFile(std::string file_name = "", enum GnuplotStyle = GnuplotStyle2) const;
 //    friend CsvDataFile &
 //    operator << (CsvDataFile &csv, Plot2D &plot) {
 //        plot.PrintToCsv(csv, csv.Separator());
@@ -880,6 +884,9 @@ private:
 
     static Singleton<ColorRGBList> s_chart_colors;
 
+
+    void print_plot_style1(const std::string &name, std::ofstream &o) const;
+    void print_plot_style2(const std::string &name, std::ofstream &o) const;
 };
 
 DEFINE_OPERATORS_FOR_FLAGS(Plot2D::OptionFlags)
