@@ -21,3 +21,5 @@ samples = 5
 # Number of probes to collect per channel
 probes = 5
 
+# link interface
+link_iface ?= eth0

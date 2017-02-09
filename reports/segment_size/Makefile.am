@@ -13,13 +13,16 @@ recipes = ${top_builddir}/recipes
 PROTOCOLS = ssh tcp udt
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
+		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --link_iface ${link_iface}
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
+		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --link_iface ${link_iface}
 
 size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
+		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --link_iface ${link_iface}
 
 
 define size_command =
