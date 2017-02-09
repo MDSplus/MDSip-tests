@@ -323,10 +323,10 @@ int main(int argc, char *argv[])
     // Progress output (for dialog status bar)    
     ProgressOutput progress;
     {
-        size_t tot_steps = g_options.probes  * (int)(range(2)-range(0))/range(1);
-        foreach (int nch, g_options.n_channels) {
-            tot_steps *= nch;
-        }
+        size_t tot_steps = ((int)(range(2)-range(0))/range(1)+1);
+        foreach (int nch, g_options.n_channels)
+            tot_steps *= nch;        
+        tot_steps *= g_options.probes;
         progress.SetExpectedCount(tot_steps);
     }
     
@@ -339,22 +339,18 @@ int main(int argc, char *argv[])
                 int nch = g_options.n_channels[nch_id];
                 for(int i=0;; ++i) {
                     try {
-                        // launch segment_size_througput
+                        // launch segment_size_througput ///////////////////////
                         segment_size_throughput_MT(seg, nch, probes[nch_id], seg_id);
-                        break;
+                        break; /////////////////////////////////////////////////
                     }
                     catch (std::exception &e) { count_down(5,e.what()); }
                 }
-                // add probe //
-                //                if(seg_id < speed_probes[nch_id].size())
-                //                    speed_probes[nch_id].at(seg_id) += sh;
-                //                else
-                //                    speed_probes[nch_id].push_back(sh);
-                //                progress.Completed(nch);
+                // PROGRESS STEP //////////
+                progress.Completed(nch); //
+                ///////////////////////////
             }
         }
     }
-
 
 
     ////////////////////////////////////////////////////////////////////////////
