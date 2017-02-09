@@ -45,12 +45,14 @@
 //	__u32	rx_nohandler;		/* dropped, no handler found	*/
 
 
-int mdsip_test::NLStats::get_link_stats(const char *iface, struct rtnl_link_stats *stats)
+int mdsip_test::NLStats::get_link_stats(const char *_iface, struct rtnl_link_stats *stats)
 {
     struct ifaddrs *ifaddr, *ifa;
     int family, n;
+    char *iface = strdup(_iface);
 
-    if (getifaddrs(&ifaddr) == -1) return 0;
+    if (getifaddrs(&ifaddr) == -1) throw ifa_error();
+
     for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) {
         if (ifa->ifa_addr == NULL ||  strcmp(ifa->ifa_name,iface) )
             continue;
@@ -60,5 +62,6 @@ int mdsip_test::NLStats::get_link_stats(const char *iface, struct rtnl_link_stat
             return 1;
         }
     }
+    memset(stats,0,sizeof(struct rtnl_link_stats));
     return 0;
 }

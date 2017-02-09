@@ -19,8 +19,8 @@ namespace mdsip_test {
 class NLStats : public Named {
     struct rtnl_link_stats    A,B;
     Timer                     m_timer;
-public:
 
+public:
     struct ifa_error : public std::exception {
         virtual const char *what() { return "Interface not found"; }
     };
@@ -30,7 +30,7 @@ public:
     NLStats(const char *devname) :
         Named(devname) {
         //    nl_link_getstats(m_ptr,&A);
-        if(!get_link_stats(name(),&A)) throw ifa_error();
+        get_link_stats(name(),&A);
         m_timer.Start();
     }
     ~NLStats() {
@@ -40,7 +40,7 @@ public:
     void Start() {
         //    nl_link_read(m_ptr);
         //    nl_link_getstats(m_ptr,&A);
-        if(!get_link_stats(name(),&A)) throw ifa_error();
+        get_link_stats(name(),&A);
         m_timer.Start();
     }
 
@@ -48,7 +48,7 @@ public:
         //    nl_link_read(m_ptr);
         //    nl_link_getstats(m_ptr,&B);
         m_timer.StopWatch();
-        if(!get_link_stats(name(),&B)) throw ifa_error();
+        get_link_stats(name(),&B);
     }
 
     struct rtnl_link_stats GetDiff() {
@@ -60,10 +60,8 @@ public:
 
     Timer & GetTimer() { return m_timer; }
 private:
-
     static int get_link_stats(const char *iface, rtnl_link_stats *stats);
     const char *name() const { return this->GetName().c_str(); }
-
     //    NLStats(const NLStats &other) {}
     //    NLStats & operator =(const NLStats &o) {}
 };

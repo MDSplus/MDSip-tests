@@ -34,9 +34,13 @@ struct Parameters : Options {
     std::string   env_no_disk;
 
     struct {
+        std::string iface;
+    } link;
+
+    struct {
         bool times;
         bool speeds;
-        bool statistics;
+        bool stats;
     } dump;
 
     Parameters() :
@@ -58,6 +62,9 @@ struct Parameters : Options {
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ("no_disk",&env_no_disk,"no_disk_option (yes/no)")
                 ("dump_times",&dump.times,true,"dump times histogram (bool)")
+                ("dump_speeds",&dump.speeds,true,"dump speeds histogram (bool)")
+                ("dump_stats",&dump.stats,true,"dump stats histogram (bool)")
+                ("link_iface",&link.iface,"link device interface name (see comand \"ip a\")")
                 ;
     }
 
@@ -204,7 +211,7 @@ double segment_size_throughput_MT(size_t size_KB,
         functions.push_back( cnt );
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);        
-
+        ch->SetInterfaceName(g_options.link.iface);
         probe->ChannelSetup(ch);
 
         channels.push_back( ch );

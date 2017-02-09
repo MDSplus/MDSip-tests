@@ -144,7 +144,6 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
     m_cnxerr_threshold(MAX_CONNECTION_ATTEMPTS), 
     m_cnxerr_usleep(WAIT_CONNECTION_USECONDS),
     m_size(size_KB),
-    m_netlink_stats("eno1"), // TODO: FIXXXXX //
 
     m_rate_rx("rate rx",100,0,10),
     m_rate_tx("rate tx",100,0,10),
@@ -254,6 +253,10 @@ void Channel::Reset()
 }
 
 void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
+
+void Channel::SetInterfaceName(const std::__cxx11::string &name) {
+    m_netlink_stats.SetName(name);
+}
 
 
 

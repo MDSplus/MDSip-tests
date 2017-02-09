@@ -46,6 +46,8 @@ public:
 
     void SetNoDisk(bool value);
 
+    void SetInterfaceName(const std::string &name);
+
     Histogram<double> & Times() { return m_chtimes; }
     Histogram<double> & Speeds() { return m_chspeed; }
     Curve2D & Time_Curve() { return m_chtimes_curve; }
