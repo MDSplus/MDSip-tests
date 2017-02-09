@@ -217,7 +217,7 @@ double segment_size_throughput_MT(size_t size_KB,
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);        
         ch->SetInterfaceName(g_options.link.iface);
         probe->ChannelSetup(ch);
-        conn.AddChannel(functions[i],channels[i]);
+        conn.AddChannel(cnt,ch);
         functions.push_back( cnt );
         channels.push_back( ch );
     }
