@@ -172,8 +172,8 @@ public:
     {}
 
     void InternalThreadEntry() {
-        Timer &conn_timer = m_channel->m_timer;
-        Timer  ch_timer = m_connection->GetTimer();
+        Timer conn_timer = m_connection->GetTimer();
+        Timer ch_timer   = m_channel->m_timer;
         TestConnection::TimeHistogram &time = m_channel->Times();
         TestConnection::TimeHistogram &speed = m_channel->Speeds();
         Curve2D & time_curve  = m_channel->Time_Curve();
@@ -186,7 +186,7 @@ public:
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
             m_integrity = m_connection->GetWaitSubscriptions().Subscribe();
-            conn_timer.Start();
+            // conn_timer.Start();
             ch_timer.Start();
             if( m_content )
                 while (  m_content->GetSize() > 0 )
