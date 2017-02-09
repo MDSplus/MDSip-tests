@@ -3,23 +3,56 @@
 # // Segment Size Configuration file ///////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 
+  TARGET_HOST  ?= default_selected_target
+  TARGET_PORT  ?= default_port
+  TARGET_SPOOL ?= deafault_spool_dir
 
-TARGET_HOST  ?= default_selected_target
-TARGET_PORT  ?= default_port
-TARGET_SPOOL ?= deafault_spool_dir
-TARGET_USER  ?= ssh_deafault_user
-
+#
 # List of the parallel channels to be used in connection
-channels = "1 2 4"
+#
+  channels = "1 2 4"
 
-# Range of tested segment sizes [start,delta,end]
-segments = 128,256,1024
+#
+# Range of tested mdsplus segment sizes [start,delta,end]
+#
+  segments = 128,256,1024
 
+#
 # Number of samples to collect per segment size
-samples = 5
+#
+  samples = 50
 
+#
 # Number of probes to collect per channel
-probes = 5
+#
+  probes = 5
 
-# link interface
-link_iface ?=
+
+# link interface to scan for actual device troughput. Tipically it should be
+# eth0 or similar, leave it empty to override the mdsip vs link plots. To
+# obtain the right device interface name type the ip command:
+#   ip route get <ip-address>
+#
+  link_iface ?=
+
+
+# option passed to ssh connection client
+# example: -C -v
+#
+# -C   Requests compression of all data (including stdin, stdout, stderr, and
+#   data for forwarded X11, TCP and UNIX-domain connections). The compression
+#   algorithm is the same used by gzip(1), and the “level” can be controlled by
+#   # the CompressionLevel option for protocol version 1. Compression is
+#   desirable # on modem lines and other slow connections, but will only slow
+#   down things on # fast networks. The default value can be set on a
+#   host-by-host basis in the # configuration files; see the Compression
+#   option.
+#
+# -c  cipher_spec Selects the cipher specification for encrypting the session.
+#   Protocol version 1 allows specification of a single cipher. The supported
+#   values are “3des”, “blowfish”, and “des”. For protocol version 2,
+#   cipher_spec is a comma-separated list of ciphers listed in order of
+#   preference. See the Ciphers keyword in ssh_config(5) for more information.
+#
+ MDSIP_SSH_OPTIONS ?=
+ TARGET_USER       ?= $USER

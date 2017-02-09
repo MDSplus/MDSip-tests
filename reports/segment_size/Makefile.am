@@ -39,6 +39,7 @@ endef
 
 define _setenv =
  export PATH=${abs_top_srcdir}/conf:${PATH}
+ export MDSIP_SSH_OPTIONS=${MDSIP_SSH_OPTIONS}
 endef
 
 
