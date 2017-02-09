@@ -73,6 +73,11 @@ struct Parameters : Options {
 TestTree g_target_tree;
 
 
+template < typename T >
+static std::string to_string(const T& val) {
+    return static_cast<std::ostringstream*>( &(std::ostringstream() << val) )->str();
+}
+
 static void count_down(int sec, const char *msg=0) {
     if(msg) 
         std::cerr << msg;
@@ -401,6 +406,8 @@ int main(int argc, char *argv[])
 
         // PRINT PLOT TO GNUPLOT FILE //
         plot.PrintToGnuplotFile(filename_out);
+
+        // EXPORT A SHELL SCRIPT CONFIGURATION //
         {
             std::ofstream o;
             o.open( (filename_out + ".sh").c_str() );
@@ -433,7 +440,102 @@ int main(int argc, char *argv[])
     }
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //  PLOT STATS  ////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    if( !g_options.link.iface.empty() )
+    {
+        // CREATE CURVES FROM HISTOGRAMS //
+        std::vector<Curve2D> speeds;
+        std::vector<Curve2D> link_rx;
+        std::vector<Curve2D> link_tx;
+        //        std::vector<Curve2D> link_rx_d;
+        //        std::vector<Curve2D> link_tx_d;
+        //        std::vector<Curve2D> link_rx_e;
+        //        std::vector<Curve2D> link_tx_e;
 
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+        {
+            int nch = g_options.n_channels[nch_id];
+            std::stringstream curve_name;
+            curve_name << nch << " mdsip";
+            Curve2D curve(curve_name.str().c_str());
+            int seg_id = 0;
+            for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                const TestProbe &probe = *probes[nch_id];
+                const Histogram<double> &sh = probe.h_speed[seg_id];
+                curve.AddPoint( Point2D(seg, nch * sh.MeanAll(), nch * sh.RmsAll()) );
+            }
+            speeds.push_back(curve);
+        }
+
+        // link rx //
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+        {
+            Curve2D curve("Link rx");
+            int seg_id = 0;
+            for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                const TestProbe &probe = *probes[nch_id];
+                const Histogram<double> &h = probe.h_rx[seg_id];
+                curve.AddPoint( Point2D(seg, h.MeanAll(), h.RmsAll()) );
+            }
+            link_rx.push_back(curve);
+        }
+
+        // link tx //
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+        {
+            Curve2D curve("Link tx");
+            int seg_id = 0;
+            for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                const TestProbe &probe = *probes[nch_id];
+                const Histogram<double> &h = probe.h_tx[seg_id];
+                curve.AddPoint( Point2D(seg, h.MeanAll(), h.RmsAll()) );
+            }
+            link_tx.push_back(curve);
+        }
+
+        // CREATE PLOTS ONE PER CHANNELS CONFIGURATION //
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+        {
+            int nch = g_options.n_channels[nch_id];
+            std::string filename = filename_out+"_stats_"+to_string(nch);
+
+            // COLLECT CURVES ON A PLOT //
+            Plot2D plot("Link interface throughput vs Segment Size");
+            plot.AddCurve(speeds[nch_id]);
+            plot.AddCurve(link_rx[nch_id]);
+            plot.AddCurve(link_tx[nch_id]);
+
+            //
+            //
+            // TODO: add drops and errors
+            //
+            //
+
+            // PRINT TO CSV FILE //
+            plot.XAxis().name = "size";
+            plot.PrintToCsv(filename);
+
+            // SET PLOT TITLES AND LABELS //
+            {
+                std::string prtcl = "tcp";
+                if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
+                plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+                std::string subtitle;
+                subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+                const char * hostname = FileUtils::GetEnv("HOSTNAME");
+                if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
+                plot.SetSubtitle(subtitle);
+                plot.XAxis().name = "Segment size [KB] of signal data";
+                plot.YAxis().name = "Total Link Troughput [MB/s]";
+            }
+
+            // PRINT PLOT TO GNUPLOT FILE //
+            plot.PrintToGnuplotFile(filename);
+
+        }
+    }
 
 
     return 0;
