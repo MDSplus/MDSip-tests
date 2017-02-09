@@ -1,6 +1,4 @@
 #include <BandUtils.h>
-#include <linux/if_link.h>
-#include "ext_tools/nl_link.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -11,6 +9,8 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 
+#include <linux/if_link.h>
+#include "ext_tools/nl_link.h"
 // struct rtnl_link_stats //
 //	__u32	rx_packets;		/* total packets received	*/
 //	__u32	tx_packets;		/* total packets transmitted	*/

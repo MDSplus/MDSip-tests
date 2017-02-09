@@ -1,6 +1,7 @@
 #ifndef BANDUTILS_H
 #define BANDUTILS_H
 
+#include <sys/socket.h>
 #include <linux/if_link.h>
 #include "ext_tools/nl_link.h"
 

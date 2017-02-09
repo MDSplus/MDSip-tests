@@ -254,7 +254,7 @@ void Channel::Reset()
 
 void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
 
-void Channel::SetInterfaceName(const std::__cxx11::string &name) {
+void Channel::SetInterfaceName(const std::string &name) {
     m_netlink_stats.SetName(name);
 }
 

@@ -22,4 +22,4 @@ samples = 5
 probes = 5
 
 # link interface
-link_iface ?= eth0
+link_iface ?=

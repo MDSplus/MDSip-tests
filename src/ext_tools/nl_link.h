@@ -1,6 +1,7 @@
 #ifndef NL_LINK_H
 #define NL_LINK_H
 
+#include <sys/socket.h>
 #include <linux/if_link.h>
 
 #ifdef __cplusplus

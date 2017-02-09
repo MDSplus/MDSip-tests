@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <cstdlib>
 #include <unistd.h>
 
 #include "nl_link.h"

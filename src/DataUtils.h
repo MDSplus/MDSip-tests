@@ -97,10 +97,12 @@ class Timer
 public:
     typedef struct timeval TI;
 
-    Timer() : m_elapsed({0,0}) {}
+    Timer() { Start(); }
 
     void Start() __attribute__((always_inline)) {
-        m_elapsed = {0,0};
+        //  m_elapsed = {0,0};
+        m_elapsed.tv_sec = 0;
+        m_elapsed.tv_usec = 0;
         gettimeofday(&m_start, NULL);
     }
 
@@ -124,8 +126,11 @@ public:
     }
 
     TI GetElapsed() __attribute__((always_inline)) {
-        TI dt = {m_end.tv_sec-m_start.tv_sec,m_end.tv_usec-m_start.tv_usec};
-           dt = {dt.tv_sec+m_elapsed.tv_sec,dt.tv_usec+m_elapsed.tv_usec};
+        TI dt;
+        // dt = {m_end.tv_sec-m_start.tv_sec,m_end.tv_usec-m_start.tv_usec};
+        // dt = {dt.tv_sec+m_elapsed.tv_sec,dt.tv_usec+m_elapsed.tv_usec};
+        dt.tv_sec = m_end.tv_sec-m_start.tv_sec+m_elapsed.tv_sec;
+        dt.tv_usec = m_end.tv_usec-m_start.tv_usec+m_elapsed.tv_usec;
         return dt;
     }
 
