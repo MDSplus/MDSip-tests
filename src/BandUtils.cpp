@@ -59,9 +59,11 @@ int mdsip_test::NLStats::get_link_stats(const char *_iface, struct rtnl_link_sta
         family = ifa->ifa_addr->sa_family;
         if (family == AF_PACKET && ifa->ifa_data != NULL) {
             memcpy(stats,ifa->ifa_data,sizeof(struct rtnl_link_stats));
+            freeifaddrs(ifaddr);
             return 1;
         }
     }
     memset(stats,0,sizeof(struct rtnl_link_stats));
+    freeifaddrs(ifaddr);
     return 0;
 }
