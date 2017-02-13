@@ -54,5 +54,10 @@
 #   cipher_spec is a comma-separated list of ciphers listed in order of
 #   preference. See the Ciphers keyword in ssh_config(5) for more information.
 #
- MDSIP_SSH_OPTIONS ?=
- TARGET_USER       ?= $USER
+  MDSIP_SSH_OPTIONS ?=
+  TARGET_USER       ?= $USER
+
+# Override the write of segments to disk and perform the network transmission
+# only. This should improve performance on slow storage servers.
+#
+  USE_NO_DISK ?= yes
