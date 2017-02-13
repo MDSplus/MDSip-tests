@@ -163,6 +163,15 @@ public:
             ch->m_rate_rx_error = h_rx_e[0];
             ch->m_rate_tx_error = h_tx_e[0];
             ch->m_rate_collisions = h_c[0];
+            ch->Times().Clear();
+            ch->Speeds().Clear();
+            ch->m_rate_rx.Clear();
+            ch->m_rate_tx.Clear();
+            ch->m_rate_rx_drop.Clear();
+            ch->m_rate_tx_drop.Clear();
+            ch->m_rate_rx_error.Clear();
+            ch->m_rate_tx_error.Clear();
+            ch->m_rate_collisions.Clear();
         }
     }
 
@@ -214,7 +223,7 @@ double segment_size_throughput_MT(size_t size_KB,
         ContentFunction *cnt = new ContentFunction(name.str().c_str(),tot_size);
         // cnt->SetGenFunction(ContentFunction::NoiseW);
         Channel *ch = Channel::NewTC(size_KB);
-        if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);        
+        if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
         ch->SetInterfaceName(g_options.link.iface);
         probe->ChannelSetup(ch);
         conn.AddChannel(cnt,ch);
