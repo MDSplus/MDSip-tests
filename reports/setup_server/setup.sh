@@ -202,10 +202,10 @@ export speed_spread_path=\${TARGET_SPOOL}
 export speed_trend_path=\${TARGET_SPOOL}
 export stream_path=\${TARGET_SPOOL}
 export huge_path=\${TARGET_SPOOL}
-if test \$2 = \"ssh\"; then
- exec ${MDSIP} -P ssh 2>> \$4/\$2.errors
+if test \\\$2 = \"ssh\"; then
+ exec ${MDSIP} -P ssh 2>> \\\$4/\\\$2.errors
 else
- exec ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/\$2.access 2>> \$4/\$2.errors
+ exec ${MDSIP} -p \\\$1 -P \\\$2 -h \\\$3 -c 0 >> \\\$4/\\\$2.access 2>> \\\$4/\\\$2.errors
 fi
 "
 
