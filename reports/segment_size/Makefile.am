@@ -41,6 +41,7 @@ define _setenv =
  export PATH=${abs_top_srcdir}/conf:${PATH}
  export MDSIP_SSH_OPTIONS=${MDSIP_SSH_OPTIONS}
  export USE_NO_DISK=${USE_NO_DISK}
+ export TARGET_SPOOL=${TARGET_SPOOL}
 endef
 
 
