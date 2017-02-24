@@ -318,6 +318,16 @@ double segment_size_throughput_MT(size_t size_KB,
         std::cout << "  " << probe->h_tx_e[seg_id] << "\n";
         std::cout << "  " << probe->h_c[seg_id]    << "\n";
     }
+
+    { // PRINT SOCKET BUFFERS //
+        std::cout << "---- SOCKET BUFFERS  -----" << "\n";
+        for(int i=0; i<nch; ++i) {
+            Channel *ch = channels[i];
+            std::cout << "ch" << i << " ";
+            ch->SndBuf_Curve().PrintSelf_abs(std::cout,100);
+            std::cout << "\n";
+        }
+    }
     
     return total_connection_time;
 }
