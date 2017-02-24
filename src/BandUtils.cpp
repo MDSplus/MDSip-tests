@@ -152,20 +152,20 @@ int mdsip_test::SocketOptMonitor::Update()
     return status;
 }
 
-template< typename C, typename Event, typename = void >
-struct has_receive
-        : std::false_type
-{};
+//template< typename C, typename Event, typename = void >
+//struct has_receive
+//        : std::false_type
+//{};
 
-template< typename C, typename Event >
-struct has_receive< C, Event, typename std::enable_if<
-        std::is_same<
-        decltype( std::declval<C>().receive( std::declval<const Event&>() ) ),
-void
->::value
->::type >
-    : std::true_type
-{};
+//template< typename C, typename Event >
+//struct has_receive< C, Event, typename std::enable_if<
+//        std::is_same<
+//        decltype( std::declval<C>().receive( std::declval<const Event&>() ) ),
+//void
+//>::value
+//>::type >
+//    : std::true_type
+//{};
 
 
 
