@@ -5,8 +5,7 @@
 #include <queue>
 #include <deque>
 
-#include <mdsobjects.h>
-
+#include <MDSTest.h>
 #include <Threads.h>
 
 namespace mds = MDSplus;

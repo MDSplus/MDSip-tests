@@ -7,7 +7,7 @@
 #include <sys/mman.h>
 #include <sys/shm.h>
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "SerializeUtils.h"
 #include "DataUtils.h"
@@ -178,30 +178,36 @@ public:
         TestConnection::TimeHistogram &speed = m_channel->Speeds();
         Curve2D & time_curve  = m_channel->Time_Curve();
         Curve2D & speed_curve = m_channel->Speed_Curve();
+        Curve2D & rcvbuf_curve  = m_channel->RcvBuf_Curve();
+        Curve2D & sndbuf_curve  = m_channel->SndBuf_Curve();
+
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
         // timespec ts1,ts2;
+        // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
+        // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());
             m_integrity = m_connection->GetWaitSubscriptions().Subscribe();
-            // conn_timer.Start();
             ch_timer.Start();
             if( m_content )
                 while (  m_content->GetSize() > 0 )
                 {                    
-                    // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
                     ch_timer.Pause();
                     Content::Element el;
                     m_content->GetNextElement(m_channel->Size(), el);
                     ch_timer.Resume();
-                    // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
-                    m_channel->PutSegment(el);
+                    ////////////////////////////////////////////////////////////
+                    m_channel->PutSegment(el); /////////////////////////////////
+                    ////////////////////////////////////////////////////////////
                     t2 = ch_timer.StopWatch_ms();
                     t1 = conn_timer.StopWatch();
                     time_curve.AddPoint( Point2D(t1, 1, 0) );
-                    // reject all packets that have different size from expected ..
+                    rcvbuf_curve.AddPoint( Point2D(t1,((double)m_channel->GetSocketRcvBuf())/1024,0) );
+                    sndbuf_curve.AddPoint( Point2D(t1,((double)m_channel->GetSocketSndBuf())/1024,0) );
+                    // reject all packets that have different size from expected
                     if( el.data->getSize()*sizeof(float)/1024 == m_channel->Size() ) {
                         time << (t2*1E-3);
                         speed << static_cast<double>(m_channel->Size())/1024/(t2*1E-3); // sped in MB //

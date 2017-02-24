@@ -4,7 +4,7 @@
 #include <string.h>
 #include <dirent.h> // POSIX only //
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "ClassUtils.h"
 #include "FileUtils.h"

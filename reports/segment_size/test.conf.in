@@ -61,3 +61,6 @@
 # only. This should improve performance on slow storage servers.
 #
   USE_NO_DISK ?= yes
+
+# Size of the TCP buffer, leave this empty for TCP auto tuning
+  TCP_WINDOW_SIZE   ?=

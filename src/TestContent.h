@@ -1,7 +1,7 @@
 #ifndef TESTCONTENT_H
 #define TESTCONTENT_H
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "ClassUtils.h"
 #include "TreeUtils.h"

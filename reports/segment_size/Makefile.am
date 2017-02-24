@@ -42,6 +42,7 @@ define _setenv =
  export MDSIP_SSH_OPTIONS=${MDSIP_SSH_OPTIONS}
  export USE_NO_DISK=${USE_NO_DISK}
  export TARGET_SPOOL=${TARGET_SPOOL}
+ # [ -n ${TCP_WINDOW_SIZE} ] && export TCP_WINDOW_SIZE=${TCP_WINDOW_SIZE}
 endef
 
 

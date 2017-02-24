@@ -101,6 +101,27 @@ public:
             m_h[i] << ((__u32*)&d)[i];
     }
 };
+
+
+
+
+class SocketOptMonitor {
+public:
+    SocketOptMonitor();
+
+    void SetFromMdsConnection(const mds::Connection *cnx);
+
+    int Update();
+
+    struct SocketInfo {
+        int id;
+        int rcvbuf;
+        int sndbuf;
+    } d;
+};
+
+
+
 } // mdsip_tests
 
 #endif // BANDUTILS_H

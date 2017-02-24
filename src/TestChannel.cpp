@@ -1,5 +1,5 @@
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "SerializeUtils.h"
 #include "DataUtils.h"
@@ -25,6 +25,8 @@ public:
     virtual void Open(TestTree &tree) = 0;
     virtual void Close() = 0;
     virtual void PutSegment(Content::Element &el) = 0;
+    virtual int RcvBuf() { return 0; }
+    virtual int SndBuf() { return 0; }
 
     bool     m_nodisk;
     const Channel *p;
@@ -78,12 +80,20 @@ class ChannelTC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
     ChannelTC(const Channel *parent) :
-        BaseClass(parent)
+        BaseClass(parent),
+        cnx(NULL)
     {}
 
     void Open(TestTree &tree) {
         m_tree = tree;
         m_tree.Open();
+        cnx = m_tree.GetMdsConnection();
+        if(!cnx) {
+            std::cout << "error connection\n";
+            exit (1); // TODO: FIX this !!!
+        }
+        // Set connection to Socket monitor //
+        mon.SetFromMdsConnection(cnx);
     }
 
     void Close() {
@@ -91,27 +101,23 @@ public:
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
-
         Data * args[1];
         args[0] = el.data;
 
-        mds::Connection * cnx = m_tree.GetMdsConnection();
-        if(!cnx) {
-            std::cout << "error connection\n";
-            exit (1);
-        }
-
         if(m_nodisk) {
             // write only into memory simply getting the size of sent array
-            cnx->get("size($1)",args,1);
+            ////////////////////////////////////////////////////////////////////
+            cnx->get("size($1)",args,1); ///////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
         }
         else {
+            m_parent->m_timer.Pause(); /////////////////////////////////////////
             // write to disk making segment into parse file
             char * begin = el.dim->getBegin()->getString();
-            char * end = el.dim->getEnding()->getString();
+            char * end   = el.dim->getEnding()->getString();
             char * delta = el.dim->getDeltaVal()->getString();
             std::stringstream ss;
-            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, 
+            // TDI: public fun MakeSegment(as_is _node, in _start, in _end,
             //          as_is _dim, in _array, optional _idx, in _rows_filled)
             ss << "MakeSegment(" 
                << el.path << "," 
@@ -119,16 +125,23 @@ public:
                << end << ","
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
-               << el.data->getSize() << ")";            
-            cnx->get(ss.str().c_str(),args,1);
+               << el.data->getSize() << ")";
+            m_parent->m_timer.Resume(); ////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            cnx->get(ss.str().c_str(),args,1); /////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
             delete[] begin;
             delete[] end;
             delete[] delta;
         }
     }
 
+    int RcvBuf() { mon.Update(); return mon.d.rcvbuf; }
+    int SndBuf() { mon.Update(); return mon.d.sndbuf; }
+
 private:
-    //    mds::Connection *m_cnx;
+    mds::Connection *cnx;
+    SocketOptMonitor mon;
     TestTree m_tree;
     Channel *m_parent;
 };
@@ -167,6 +180,7 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
 
 Channel::~Channel()
 {
+    // std::cout << "ch delete\n";
     delete d;
 }
 
@@ -222,7 +236,7 @@ void Channel::PutSegment(Content::Element &el) {
             }
             d->PutSegment(el);
             {
-                TIMER_PAUSE(m_timer);
+                TIMER_PAUSE(m_timer);                
                 m_netlink_stats.Stop();
                 struct rtnl_link_stats stats = m_netlink_stats.GetDiff();
                 double dt = m_netlink_stats.GetTimer().GetElapsed_s();
@@ -256,6 +270,16 @@ void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
 
 void Channel::SetInterfaceName(const std::string &name) {
     m_netlink_stats.SetName(name);
+}
+
+int Channel::GetSocketRcvBuf()
+{
+    return d->RcvBuf();
+}
+
+int Channel::GetSocketSndBuf()
+{
+    return d->SndBuf();
 }
 
 

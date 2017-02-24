@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "TreeUtils.h"
 #include "DataUtils.h"

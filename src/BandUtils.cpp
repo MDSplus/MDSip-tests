@@ -9,8 +9,20 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 
+
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+
+
 #include <linux/if_link.h>
 #include "ext_tools/nl_link.h"
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  NLSTATS  ///////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
 // struct rtnl_link_stats //
 //	__u32	rx_packets;		/* total packets received	*/
 //	__u32	tx_packets;		/* total packets transmitted	*/
@@ -67,3 +79,104 @@ int mdsip_test::NLStats::get_link_stats(const char *_iface, struct rtnl_link_sta
     freeifaddrs(ifaddr);
     return 0;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  CONNECTION MONITOR  ////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+// #include <mdsip_connections.h> //////////////////////////////////////////////
+
+#define MDSIP_MAX_ARGS 256
+extern "C" typedef struct _treecontext { void *tree; } TreeContext;
+extern "C" typedef struct _connection {
+  int id; /* unique connection id */
+  char *protocol;
+  char *info_name;
+  void *info;
+  size_t info_len;
+  TreeContext context;
+  unsigned char message_id;
+  int client_type;
+  int nargs;
+  struct descriptor *descrip[MDSIP_MAX_ARGS]; ///< list of descriptors for the
+  /// message arguments
+  struct _eventlist *event;
+  void *tdicontext[6];
+  int addr;
+  int compression_level;
+  int readfd;
+  struct _io_routines *io;
+  char deleted;
+  struct _connection *next;
+} Connection;
+
+extern "C" Connection *FindConnection(int id, Connection ** prev);
+
+
+////////////////////////////////////////////////////////////////////////////////
+//  CONNECTION DEBUG ACCESS  ///////////////////////////////////////////////////
+namespace mdsip_test {
+template <> struct debug_access<mds::Connection> {
+    static int getSockId(const mds::Connection *cnx) { return cnx->sockId; }
+};
+} // mdsip_test
+////////////////////////////////////////////////////////////////////////////////
+
+
+mdsip_test::SocketOptMonitor::SocketOptMonitor()
+    : d{0,0,0}
+{}
+
+void mdsip_test::SocketOptMonitor::SetFromMdsConnection(const MDSplus::Connection *cnx)
+{
+    // ADD AC_DEFINE to check for getSockId() //
+    // int c_id = cnx->getSockId();
+    int c_id = debug_access<mds::Connection>::getSockId(cnx);
+    Connection * c = FindConnection(c_id,0);
+    if(c)
+        d.id = c->readfd;
+}
+
+int mdsip_test::SocketOptMonitor::Update()
+{
+    socklen_t len;
+    int status = 0;
+    status |= getsockopt(d.id, SOL_SOCKET, SO_RCVBUF, &d.rcvbuf, &len);
+    status |= getsockopt(d.id, SOL_SOCKET, SO_SNDBUF, &d.sndbuf, &len);
+    return status;
+}
+
+template< typename C, typename Event, typename = void >
+struct has_receive
+        : std::false_type
+{};
+
+template< typename C, typename Event >
+struct has_receive< C, Event, typename std::enable_if<
+        std::is_same<
+        decltype( std::declval<C>().receive( std::declval<const Event&>() ) ),
+void
+>::value
+>::type >
+    : std::true_type
+{};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

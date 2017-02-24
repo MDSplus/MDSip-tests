@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <pthread.h>
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "ClassUtils.h"
 

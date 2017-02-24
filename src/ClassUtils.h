@@ -11,8 +11,8 @@
 #include <deque>
 #include <string>
 
-#include <mdsobjects.h>
-namespace mds = MDSplus;
+#include <MDSTest.h>
+// namespace mds = MDSplus;
 
 
 namespace mdsip_test {

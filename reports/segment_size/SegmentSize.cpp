@@ -1,6 +1,7 @@
 
 
 #include <iostream>
+#include <string>
 #include <stdio.h> // itoa
 
 #include <fstream>
@@ -17,6 +18,7 @@
 
 #include "DataUtils.h"
 
+#include <math.h>
 
 using namespace MDSplus;
 using namespace mdsip_test;
@@ -97,35 +99,42 @@ static void count_down(int sec, const char *msg=0) {
 class TestProbe {
 public:
 
-    typedef Histogram<double> T;
+    typedef Histogram<double>    H;
+    typedef Curve2D C;
 
+    template < class T >
     class Probe_T : public std::vector<T> {
     public:
         typedef std::vector<T> BaseClass;
         Probe_T() : BaseClass() {}
-        Probe_T(size_t size, const T &defh) :
-            BaseClass(0)
-        {
-            for(int i=0; i<size; ++i)
-                this->push_back(defh);
-        }
+        Probe_T(size_t size, const T &defh)
+            : BaseClass(0)
+        { for(int i=0; i<size; ++i) this->push_back(defh); }
     };
+
+    typedef Probe_T<H> Probe_H;
+    typedef Probe_T<C> Probe_C;
+
 
     size_t m_size;
     Vector2d lim_s, lim_t;
     Vector2d lim_n;
 
-    Probe_T h_speed;
-    Probe_T h_time;
-    std::vector<Plot2D>  time_curve;
+    Probe_H h_speed;
+    Probe_H h_time;
 
-    Probe_T h_rx;
-    Probe_T h_tx;
-    Probe_T h_rx_d;
-    Probe_T h_tx_d;
-    Probe_T h_rx_e;
-    Probe_T h_tx_e;
-    Probe_T h_c;
+    std::vector<Probe_C> c_time;
+    std::vector<Probe_C> c_speed;
+    std::vector<Probe_C> c_rcvbuf;
+    std::vector<Probe_C> c_sndbuf;
+
+    Probe_H h_rx;
+    Probe_H h_tx;
+    Probe_H h_rx_d;
+    Probe_H h_tx_d;
+    Probe_H h_rx_e;
+    Probe_H h_tx_e;
+    Probe_H h_c;
 
     TestProbe() : m_size(0) {}
 
@@ -137,17 +146,23 @@ public:
         lim_n(g_options.h_numeric_limits),
 
         // standard //
-        h_speed (size, T("ch speed",100,lim_s(0),lim_s(1))),
-        h_time  (size, T("ch times",100,lim_t(0),lim_t(1))),
+        h_speed (size, H("ch speed",100,lim_s(0),lim_s(1))),
+        h_time  (size, H("ch times",100,lim_t(0),lim_t(1))),
+
+        // curves //
+        c_time  (size),
+        c_speed (size),
+        c_rcvbuf (size),
+        c_sndbuf (size),
 
         // statistics //
-        h_rx    (size, T("lnk rx",100,lim_s(0),lim_s(1))),
-        h_tx    (size, T("lnk tx",100,lim_s(0),lim_s(1))),
-        h_rx_d  (size, T("rx drp",100,lim_n(0),lim_n(1))),
-        h_tx_d  (size, T("tx drp",100,lim_n(0),lim_n(1))),
-        h_rx_e  (size, T("rx err",100,lim_n(0),lim_n(1))),
-        h_tx_e  (size, T("tx err",100,lim_n(0),lim_n(1))),
-        h_c     (size, T("collis",100,lim_n(0),lim_n(1)))
+        h_rx    (size, H("lnk rx",100,lim_s(0),lim_s(1))),
+        h_tx    (size, H("lnk tx",100,lim_s(0),lim_s(1))),
+        h_rx_d  (size, H("rx drp",100,lim_n(0),lim_n(1))),
+        h_tx_d  (size, H("tx drp",100,lim_n(0),lim_n(1))),
+        h_rx_e  (size, H("rx err",100,lim_n(0),lim_n(1))),
+        h_tx_e  (size, H("tx err",100,lim_n(0),lim_n(1))),
+        h_c     (size, H("collis",100,lim_n(0),lim_n(1)))
     {
         ;
     }
@@ -163,6 +178,7 @@ public:
             ch->m_rate_rx_error = h_rx_e[0];
             ch->m_rate_tx_error = h_tx_e[0];
             ch->m_rate_collisions = h_c[0];
+
             ch->Times().Clear();
             ch->Speeds().Clear();
             ch->m_rate_rx.Clear();
@@ -179,7 +195,7 @@ public:
         h_speed[id] += ch->Speeds();
         h_time[id] += ch->Times();
 
-        h_rx[id] += ch->m_rate_rx;
+        h_rx[id]   += ch->m_rate_rx;
         h_tx[id]   += ch->m_rate_tx;
         h_rx_d[id] += ch->m_rate_rx_drop;
         h_tx_d[id] += ch->m_rate_tx_drop;
@@ -187,6 +203,14 @@ public:
         h_tx_e[id] += ch->m_rate_tx_error;
         h_c[id]    += ch->m_rate_collisions;
     }
+
+    void ReadCurves(Channel *ch, int id) {
+        c_time[id].push_back(ch->Time_Curve());
+        c_speed[id].push_back(ch->Speed_Curve());
+        c_rcvbuf[id].push_back(ch->RcvBuf_Curve());
+        c_sndbuf[id].push_back(ch->SndBuf_Curve());
+    }
+
 
 };
 
@@ -243,7 +267,12 @@ double segment_size_throughput_MT(size_t size_KB,
     foreach (Channel *ch, channels) {
         ch->Time_Curve().XAxis().limits[0] = 0.;
         ch->Time_Curve().XAxis().limits[1] = total_connection_time;
+        ch->RcvBuf_Curve().XAxis().limits[0] = 0.;
+        ch->RcvBuf_Curve().XAxis().limits[1] = total_connection_time;
+        ch->RcvBuf_Curve().XAxis().limits[0] = 0.;
+        ch->RcvBuf_Curve().XAxis().limits[1] = total_connection_time;
         probe->ReadFromChannel(ch,seg_id);
+        probe->ReadCurves(ch,seg_id);
     }
 
     { // PRINT TIME ENVELOPES //
@@ -252,6 +281,12 @@ double segment_size_throughput_MT(size_t size_KB,
             Channel *ch = channels[i];
             std::cout << "TimeEnv";
             ch->Time_Curve().PrintSelf_abs(std::cout,100);
+            std::cout << "\n";
+            std::cout << "RcvBuf ";
+            ch->RcvBuf_Curve().PrintSelf_abs(std::cout,100);
+            std::cout << "\n";
+            std::cout << "SndBuf ";
+            ch->SndBuf_Curve().PrintSelf_abs(std::cout,100);
             std::cout << "\n";
         }
     }
@@ -314,9 +349,6 @@ int main(int argc, char *argv[])
 
     std::cout << "CONNECTING TARGET: "
               << TestTree::TreePath::toString(g_target_tree.Path()) << "\n";
-    
-    
-
 
     // ranges //
     Vector3i &range = g_options.seg_range;
@@ -540,6 +572,148 @@ int main(int argc, char *argv[])
 
         }
     }
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //  PLOT EV CURVES  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    {
+        // GET CURVES //
+
+        for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+        {
+            Curve2D curve("ev speed");
+            int seg_id = 0;
+            for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                const TestProbe &probe = *probes[nch_id];
+
+                // CREATE PLOT //
+                int nch = g_options.n_channels[nch_id];
+                // "prova_evspeed_4_seg"
+                // FileUtils::CreateDir("ev_speed");
+                std::string filename = /*"ev_speed/"+*/filename_out+"_evspeed_"+to_string(nch)+"_"+to_string(seg);
+                std::string title = "Evolution of per ch throughput [ch="+to_string(nch)+"]";
+                Plot2D plot(title.c_str());
+
+                { // ADD CURVES //
+                    int i = 0;
+                    foreach(Curve2D c, probe.c_speed[seg_id]) {
+                        std::string name = "ch"+to_string(i++);
+                        c.SetName(name);
+                        plot.AddCurve(c);
+                    }
+                }
+
+                // PRINT TO CSV FILE //
+                plot.XAxis().name = "time ev";
+                plot.PrintToCsv(filename);
+
+                // SET PLOT TITLES AND LABELS //
+                {
+                    std::string prtcl = "tcp";
+                    if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
+                    plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+                    std::string subtitle;
+                    subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+                    const char * hostname = FileUtils::GetEnv("HOSTNAME");
+                    if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
+                    plot.SetSubtitle(subtitle);
+                    plot.XAxis().name = "Time envelope of channel throughput";
+                    plot.YAxis().name = "Total Link Troughput [MB/s]";
+                    plot.YAxis().limits[0] = 0;
+                    plot.YAxis().limits[1] = NAN;
+                }
+
+                // PRINT PLOT TO GNUPLOT FILE //
+                plot.PrintToGnuplotFile(filename);
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //  PLOT EV CURVES  ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    {
+        for(int prb = 0; prb < g_options.probes; ++prb )
+            for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
+            {
+                int seg_id = 0;
+                for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
+                    const TestProbe &probe = *probes[nch_id];
+                    int nch = g_options.n_channels[nch_id];
+
+                    // CREATE PLOT //
+                    // FileUtils::CreateDir("ev_speed");
+                    std::string filename = filename_out
+                            +"_ev_"+to_string(nch)
+                            +"_seg"+to_string(seg)
+                            +"_p"+to_string(prb);
+                    std::string title = "Evolution of Sockets Buffer [ch="+to_string(nch)+"]";
+                    Plot2D plot(title.c_str());
+
+                    // { // ADD RCVBUF CURVES //
+                    //   int i = 0;
+                    //   foreach(Curve2D c, probe.c_rcvbuf[seg_id]) {
+                    //    std::string name = "rcv ch"+to_string(i++);
+                    //    c.SetName(name);
+                    //    plot.AddCurve(c);
+                    //   }
+                    // }
+
+                    { // ADD CURVES //
+                        int i = 0;
+                        for(int pc=nch*prb; pc<nch*(prb+1); ++pc ) {
+                            Curve2D c = probe.c_speed[seg_id].at(pc);
+                            std::string name = "bwt ch"+to_string(i++);
+                            c.SetName(name);
+                            plot.AddCurve(c,0);
+                        }
+                    }
+
+                    { // ADD SNDBUF CURVES //
+                        int i = 0;
+                        for(int pc=nch*prb; pc<nch*(prb+1); ++pc ) {
+                            Curve2D c = probe.c_sndbuf[seg_id].at(pc);
+                            std::string name = "buf ch"+to_string(i++);
+                            c.SetName(name);
+                            plot.AddCurve(c,1);
+                        }
+                    }
+
+
+                    // PRINT TO CSV FILE //
+                    plot.XAxis(0).name = "socket bufev";
+                    plot.XAxis(1).name = "socket bufev";
+                    plot.PrintToCsv(filename);
+
+                    // SET PLOT TITLES AND LABELS //
+                    {
+                        std::string prtcl = "tcp";
+                        if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
+                        plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+                        std::string subtitle;
+                        subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+                        const char * hostname = FileUtils::GetEnv("HOSTNAME");
+                        if(hostname) subtitle += " " + std::string(hostname) + "  -->  "
+                                + g_target_tree.Path().server;
+                        plot.SetSubtitle(subtitle);
+                        plot.XAxis(0).name = "Time envelope of socket buffer";
+                        plot.XAxis(1).name = "Time envelope of socket buffer";
+                        plot.YAxis(0).name = "Total Link Troughput [MB/s]";
+                        plot.YAxis(1).name = "Buffer Size [KB]";
+                        plot.YAxis(0).limits[0] = 0;
+                        plot.YAxis(0).limits[1] = NAN;
+                        plot.YAxis(1).limits[0] = 0;
+                        plot.YAxis(1).limits[1] = NAN;
+                    }
+
+                    // PRINT PLOT TO GNUPLOT FILE //
+                    plot.PrintToGnuplotFile(filename);
+                }
+            }
+    }
+
+
 
 
     return 0;
