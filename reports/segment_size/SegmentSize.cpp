@@ -282,12 +282,12 @@ double segment_size_throughput_MT(size_t size_KB,
             std::cout << "TimeEnv";
             ch->Time_Curve().PrintSelf_abs(std::cout,100);
             std::cout << "\n";
-            std::cout << "RcvBuf ";
-            ch->RcvBuf_Curve().PrintSelf_abs(std::cout,100);
-            std::cout << "\n";
-            std::cout << "SndBuf ";
-            ch->SndBuf_Curve().PrintSelf_abs(std::cout,100);
-            std::cout << "\n";
+            //            std::cout << "RcvBuf ";
+            //            ch->RcvBuf_Curve().PrintSelf_abs(std::cout,100);
+            //            std::cout << "\n";
+            //            std::cout << "SndBuf ";
+            //            ch->SndBuf_Curve().PrintSelf_abs(std::cout,100);
+            //            std::cout << "\n";
         }
     }
 
@@ -579,25 +579,27 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////////////
     {
         // GET CURVES //
-
+        for(int prb = 0; prb < g_options.probes; ++prb )
         for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
         {
-            Curve2D curve("ev speed");
             int seg_id = 0;
             for(int seg = range(0); seg < range(2); seg += range(1), ++seg_id ) {
                 const TestProbe &probe = *probes[nch_id];
 
                 // CREATE PLOT //
                 int nch = g_options.n_channels[nch_id];
-                // "prova_evspeed_4_seg"
-                // FileUtils::CreateDir("ev_speed");
-                std::string filename = /*"ev_speed/"+*/filename_out+"_evspeed_"+to_string(nch)+"_"+to_string(seg);
+                std::string filename = filename_out
+                        +"_evspeed_"+to_string(nch)
+                        +"_seg"+to_string(seg)
+                        +"_p"+to_string(prb);
+
                 std::string title = "Evolution of per ch throughput [ch="+to_string(nch)+"]";
                 Plot2D plot(title.c_str());
 
                 { // ADD CURVES //
                     int i = 0;
-                    foreach(Curve2D c, probe.c_speed[seg_id]) {
+                    for(int pc=nch*prb; pc<nch*(prb+1); ++pc ) {
+                        Curve2D c = probe.c_speed[seg_id].at(pc);
                         std::string name = "ch"+to_string(i++);
                         c.SetName(name);
                         plot.AddCurve(c);
@@ -613,12 +615,18 @@ int main(int argc, char *argv[])
                     std::string prtcl = "tcp";
                     if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
                     plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+
+                    // SUBTITLE //
                     std::string subtitle;
-                    subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+                    subtitle += " seg="+to_string(seg);
+                    subtitle += " prb="+to_string(prb);
+                    subtitle += " " + FileUtils::CurrentDateTime() + ")";
                     const char * hostname = FileUtils::GetEnv("HOSTNAME");
-                    if(hostname) subtitle += " " + std::string(hostname) + "  -->  " + g_target_tree.Path().server;
+                    if(hostname) subtitle += " " + std::string(hostname)
+                            + "  -->  " + g_target_tree.Path().server;
                     plot.SetSubtitle(subtitle);
-                    plot.XAxis().name = "Time envelope of channel throughput";
+
+                    plot.XAxis().name = "Connection time";
                     plot.YAxis().name = "Total Link Troughput [MB/s]";
                     plot.YAxis().limits[0] = 0;
                     plot.YAxis().limits[1] = NAN;
@@ -633,6 +641,7 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////////////
     //  PLOT EV CURVES  ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////
+    if(g_target_tree.Path().protocol == "tcp")
     {
         for(int prb = 0; prb < g_options.probes; ++prb )
             for(int nch_id = 0; nch_id < g_options.n_channels.size(); nch_id++)
@@ -691,14 +700,19 @@ int main(int argc, char *argv[])
                         std::string prtcl = "tcp";
                         if(!g_target_tree.Path().protocol.empty()) prtcl = g_target_tree.Path().protocol;
                         plot.SetName( plot.GetName() + " in " + g_target_tree.Path().protocol );
+
+                        // SUBTITLE
                         std::string subtitle;
-                        subtitle = "(local time: " + FileUtils::CurrentDateTime() + ")";
+                        subtitle += " seg="+to_string(seg);
+                        subtitle += " prb="+to_string(prb);
+                        subtitle += " " + FileUtils::CurrentDateTime() + ")";
                         const char * hostname = FileUtils::GetEnv("HOSTNAME");
-                        if(hostname) subtitle += " " + std::string(hostname) + "  -->  "
-                                + g_target_tree.Path().server;
+                        if(hostname) subtitle += " " + std::string(hostname)
+                                + "  -->  " + g_target_tree.Path().server;
                         plot.SetSubtitle(subtitle);
-                        plot.XAxis(0).name = "Time envelope of socket buffer";
-                        plot.XAxis(1).name = "Time envelope of socket buffer";
+
+                        plot.XAxis(0).name = "Connection time";
+                        plot.XAxis(1).name = "Connection time";
                         plot.YAxis(0).name = "Total Link Troughput [MB/s]";
                         plot.YAxis(1).name = "Buffer Size [KB]";
                         plot.YAxis(0).limits[0] = 0;

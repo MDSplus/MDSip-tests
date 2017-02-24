@@ -188,7 +188,6 @@ void Plot2D::print_plot_range(std::ofstream &o) const {
             o << "]\n";
         }
 
-
         if( set && d[set].m_Xaxis.name != d[0].m_Xaxis.name)
             setstr = to_string(set+1);
         else setstr = "";
@@ -373,7 +372,8 @@ void Plot2D::print_plot_style2(const std::string &name, std::ofstream &o) const
         foreach (const Curve2D &curve, m_curves) {
             const OptionFlags &flags = m_curves_flags[count];
 
-            if(count==0) o << "plot \"" << name+".dat" << "\"";
+            // PLOT COMMAND and go new line ! //
+            if(count==0) o << "plot \"" << name+".dat" << "\" \\\n    ";
             else o << ", \\\n  ''";
 
             // MULTIAXES //
