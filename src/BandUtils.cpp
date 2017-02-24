@@ -126,8 +126,12 @@ template <> struct debug_access<mds::Connection> {
 
 
 mdsip_test::SocketOptMonitor::SocketOptMonitor()
-    : d{0,0,0}
-{}
+{
+    d.id = 0;
+    d.rcvbuf = 0;
+    d.sndbuf = 0;
+}
+
 
 void mdsip_test::SocketOptMonitor::SetFromMdsConnection(const MDSplus::Connection *cnx)
 {
