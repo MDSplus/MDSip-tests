@@ -116,12 +116,26 @@ int main(int argc, char *argv[])
         t.Start();
         sleep(1);
         std::cout << " timer: " << t.StopWatch() << "\n";
-        t.Pause();
-        usleep(110000);
+
+        std::cout << " TRY TO PAUSE Timer \n";
         t.Start();
-        std::cout << " timer: " << t.StopWatch() << "\n";
-        usleep(110000);
-        std::cout << " timer: " << t.StopWatch() << "\n";
+        t.Pause();
+        usleep(5000);
+        for (int i=0; i<100000000; ++i) {
+            volatile double a;
+            a = sqrt(i*a*a);
+            if((char)a) {
+                volatile int q=(int)a;
+                (void)q;
+            }
+        }
+        t.Stop();
+        std::cout << " timer: " << t.GetElapsed_ms() << "\n";
+        t.Resume();
+        usleep(5000);
+        t.Stop();
+        std::cout << " timer: " << t.GetElapsed_ms() << "\n";
+        TEST1_P( AreSame ( floor(t.GetElapsed_ms()), 10. )  );
     }
 
     END_TESTING;

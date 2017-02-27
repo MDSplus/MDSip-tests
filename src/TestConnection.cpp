@@ -184,9 +184,6 @@ public:
         time.Clear();
         speed.Clear();
         double t1 = 0,t2 = 0;
-        // timespec ts1,ts2;
-        // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts1); // POSIX
-        // clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts2); // POSIX
         try {
             m_integrity = true;
             m_channel->Open(m_connection->Tree());

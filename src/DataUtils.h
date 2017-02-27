@@ -91,70 +91,80 @@ private:
 //  Timer  /////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+#define TIME_INLINE __attribute__((always_inline))
 
 class Timer
 {        
 public:
     typedef struct timeval TI;
+    typedef struct timespec TS;
 
     Timer() { Start(); }
 
-    void Start() __attribute__((always_inline)) {
-        //  m_elapsed = {0,0};
-        m_elapsed.tv_sec = 0;
-        m_elapsed.tv_usec = 0;
-        gettimeofday(&m_start, NULL);
+    void Start() TIME_INLINE {
+        m_tvel.tv_sec = 0;
+        m_tvel.tv_usec = 0;
+        m_tsel.tv_sec = 0;
+        m_tsel.tv_nsec = 0;
+        gettimeofday(&m_tvs, NULL);
     }
 
-    double StopWatch() __attribute__((always_inline)) {
-        gettimeofday(&m_end, NULL);
-        return GetElapsed_s();
+    void Stop()  TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
     }
 
-    double StopWatch_ms() __attribute__((always_inline)) {
-        gettimeofday(&m_end, NULL);
-        return GetElapsed_ms();
-    }
-
-    void Pause() __attribute__((always_inline)) {
-        gettimeofday(&m_end, NULL);
-        m_elapsed = GetElapsed();
-    }
-
-    void Resume()  __attribute__((always_inline)) {
-        gettimeofday(&m_start, NULL);
-    }
-
-    TI GetElapsed() __attribute__((always_inline)) {
-        TI dt;
-        // dt = {m_end.tv_sec-m_start.tv_sec,m_end.tv_usec-m_start.tv_usec};
-        // dt = {dt.tv_sec+m_elapsed.tv_sec,dt.tv_usec+m_elapsed.tv_usec};
-        dt.tv_sec = m_end.tv_sec-m_start.tv_sec+m_elapsed.tv_sec;
-        dt.tv_usec = m_end.tv_usec-m_start.tv_usec+m_elapsed.tv_usec;
-        return dt;
-    }
-
-    double GetElapsed_s() __attribute__((always_inline)) {
+    double StopWatch() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
         return to_s(GetElapsed());
     }
 
-    double GetElapsed_ms() __attribute__((always_inline)) {
+    double StopWatch_ms() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
         return to_ms(GetElapsed());
     }
 
-    const TI & GetStartTime() const { return m_start; }
-    const TI & GetLastTime()  const { return m_end; }
+    void Pause() TIME_INLINE {
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tss);
+        //        gettimeofday(&m_tve, NULL);
+        //        m_tvel = GetElapsed();
+    }
+
+    void Resume()  TIME_INLINE {
+        //        gettimeofday(&m_tvs, NULL);
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tse);
+        m_tsel.tv_sec  = m_tse.tv_sec-m_tss.tv_sec+m_tsel.tv_sec;
+        m_tsel.tv_nsec = m_tse.tv_nsec-m_tss.tv_nsec+m_tsel.tv_nsec;
+    }
+
+    TI GetElapsed() TIME_INLINE {
+        TI dt;
+        dt.tv_sec  = m_tve.tv_sec-m_tvs.tv_sec
+                + (m_tvel.tv_sec-m_tsel.tv_sec);
+        dt.tv_usec = m_tve.tv_usec-m_tvs.tv_usec
+                + (m_tvel.tv_usec-m_tsel.tv_nsec*1E-3);
+        return dt;
+    }
+
+    double GetElapsed_s() TIME_INLINE {
+        return to_s(GetElapsed());
+    }
+
+    double GetElapsed_ms() TIME_INLINE {
+        return to_ms(GetElapsed());
+    }
 
 private:
 
-    static inline double to_s(const TI &t) {
+    static double to_s(const TI &t) TIME_INLINE {
         return t.tv_sec + t.tv_usec*1E-6;
     }
-    static inline double to_ms(const TI &t) {
+
+    static double to_ms(const TI &t) TIME_INLINE {
         return t.tv_sec*1E3 + t.tv_usec*1E-3;
     }
 
-    TI m_start, m_end, m_elapsed;
+    TI m_tvs, m_tve, m_tvel;
+    TS m_tss, m_tse, m_tsel;
 };
 
 
