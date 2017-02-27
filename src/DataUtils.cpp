@@ -214,7 +214,8 @@ void Plot2D::print_plot_style1(const std::string &name, std::ofstream &o) const 
     int count = 0;
     foreach (const Curve2D &curve, m_curves) {
         (void)curve;
-        const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
+        std::vector<ColorRGBList::Entry> &clist = s_chart_colors->ColorList();
+        const ColorRGB &color = clist.at(count%clist.size()).color;
         o << "set style line " << count+1 << " lc rgb '" << color.ToString()
           << "' lt 1 lw 4 pt 7 ps 1.3" << std::endl;
         count ++;
@@ -344,7 +345,8 @@ void Plot2D::print_plot_style2(const std::string &name, std::ofstream &o) const
     int count = 0;
     foreach (const Curve2D &curve, m_curves) {
         (void)curve;
-        const ColorRGB &color = s_chart_colors->ColorList().at(count).color;
+        std::vector<ColorRGBList::Entry> &clist = s_chart_colors->ColorList();
+        const ColorRGB &color = clist.at(count%clist.size()).color;
         o << "set style line " << count+1 << " lc rgb '" << color.ToString()
           << "' lw 4 pt " << ((count==0)?0:7) << " "
           << "ps 1.3 " << "dashtype " << (count%4)+1 << "\n";

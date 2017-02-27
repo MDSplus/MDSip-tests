@@ -448,6 +448,8 @@ int main(int argc, char *argv[])
             plot.SetSubtitle(subtitle);
             plot.XAxis().name = "Segment size [KB] of signal data";
             plot.YAxis().name = "Total speed [MB/s]";
+            plot.YAxis().limits[0] = 0;
+            plot.YAxis().limits[1] = NAN;
         }
 
         // PRINT PLOT TO GNUPLOT FILE //
