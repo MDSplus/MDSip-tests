@@ -59,8 +59,8 @@ _recipe_command_
 
 \begin{reportTabItem}{Plotted results}
 \centerline{
-\includegraphics[[width=0.49\textwidth]]{size-tcp.eps}
-\includegraphics[[width=0.49\textwidth]]{size-udt.eps}
+\includegraphics[[width=0.49\textwidth]]{size-tcp.pdf}
+\includegraphics[[width=0.49\textwidth]]{size-udt.pdf}
 }
 \end{reportTabItem}
 
