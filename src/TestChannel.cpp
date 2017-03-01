@@ -20,7 +20,7 @@ namespace mdsip_test {
 
 class ChannelImpl {
 public:
-    ChannelImpl(const Channel *parent) : p(parent), m_nodisk(0) {}
+    ChannelImpl(Channel *parent) : p(parent), m_nodisk(0) {}
     virtual ~ChannelImpl() {}
     virtual void Open(TestTree &tree) = 0;
     virtual void Close() = 0;
@@ -29,7 +29,7 @@ public:
     virtual int SndBuf() { return 0; }
 
     bool     m_nodisk;
-    const Channel *p;
+    Channel *p;
 };
         
 ////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ public:
 class ChannelDC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
-    ChannelDC(const Channel *parent) :
+    ChannelDC(Channel *parent) :
         BaseClass(parent),
         m_tree(NULL)
     {}
@@ -79,7 +79,7 @@ private:
 class ChannelTC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
-    ChannelTC(const Channel *parent) :
+    ChannelTC(Channel *parent) :
         BaseClass(parent),
         cnx(NULL)
     {}
@@ -111,7 +111,7 @@ public:
             ////////////////////////////////////////////////////////////////////
         }
         else {
-            m_parent->m_timer.Pause(); /////////////////////////////////////////
+            p->m_timer.Pause(); /////////////////////////////////////////
             // write to disk making segment into parse file
             char * begin = el.dim->getBegin()->getString();
             char * end   = el.dim->getEnding()->getString();
@@ -126,7 +126,7 @@ public:
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
                << el.data->getSize() << ")";
-            m_parent->m_timer.Resume(); ////////////////////////////////////////
+            p->m_timer.Resume(); ////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////
             cnx->get(ss.str().c_str(),args,1); /////////////////////////////////
             ////////////////////////////////////////////////////////////////////
@@ -143,7 +143,6 @@ private:
     mds::Connection *cnx;
     SocketOptMonitor mon;
     TestTree m_tree;
-    Channel *m_parent;
 };
 
 
@@ -176,6 +175,7 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
         d = new ChannelTC(this);
         break;
     }
+    m_timer.Start();
 }
 
 Channel::~Channel()
