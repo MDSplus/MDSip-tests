@@ -125,15 +125,21 @@ public:
 
     void Pause() TIME_INLINE {
         clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tss);
-        //        gettimeofday(&m_tve, NULL);
-        //        m_tvel = GetElapsed();
     }
 
     void Resume()  TIME_INLINE {
-        //        gettimeofday(&m_tvs, NULL);
         clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tse);
         m_tsel.tv_sec  = m_tse.tv_sec-m_tss.tv_sec+m_tsel.tv_sec;
         m_tsel.tv_nsec = m_tse.tv_nsec-m_tss.tv_nsec+m_tsel.tv_nsec;
+    }
+
+    void PauseAll() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
+        m_tvel = GetElapsed();
+    }
+
+    void ResumeAll() TIME_INLINE {
+        gettimeofday(&m_tvs, NULL);
     }
 
     TI GetElapsed() TIME_INLINE {
