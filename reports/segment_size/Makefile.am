@@ -10,31 +10,30 @@ setup:
 TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
-PROTOCOLS = ssh tcp udt
+PROTOCOLS ?= ssh tcp udt
+
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 
-define size_command =
-function cmd {
- $(builddir)/SegmentSize $$1://${TARGET} size-$$1 \
- --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
- }
-endef
 
 define COMMAND =
 ${size_tcp_command}
 ${size_udt_command}
+${size_ssh_command}
 endef
 
 define _setenv =
@@ -64,12 +63,10 @@ LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
 # //////////////////////////////////////////////////////////////////////////// #
 
 
-CLEANFILES += size-tcp.sh size-udt.sh
 
-IMAGES = \
-	size-tcp.eps \
-	size-udt.eps
-# // size-ssh.eps
+IMAGES = ${addprefix size-,${addsuffix .pdf,$(PROTOCOLS)}}
+CLEANFILES += $(IMAGES:.pdf=.sh)
+
 
 size-tcp.dat: SegmentSize
 	@ $(_setenv)
@@ -86,6 +83,13 @@ size-ssh.dat: SegmentSize
 	  ${addfunc_dialog_bar}
 	  ${size_ssh_command} 2>&1 | tee -a SegmentSize-ssh.log | dialog_bar "SegmentSize Test SSH"
 
+$(PROTOCOLS): SegmentSize
+	@ $(_setenv)
+	  ${addfunc_dialog_bar}
+	  $(builddir)/SegmentSize $@://$(TARGET_USER)@${TARGET} size-$@ \
+	   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+	   --link_iface ${link_iface} --compression $(COMPRESSION) \
+	   | tee -a SegmentSize-$@.log | dialog_bar "SegmentSize Test $@"
 
 PHONY: all_images
 all_images: ${IMAGES}

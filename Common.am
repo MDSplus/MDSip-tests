@@ -43,7 +43,7 @@ define addfunc_dialog_bar
    (stdbuf -oL awk '/Completed:/ {print "XXX\n"$$2"\n"$$0"\nXXX"}' \
    | dialog --title "$$1" --gauge "Please wait" 7 70);
   else
-   cat; 
+   cat;
   fi
   }
 endef
@@ -58,7 +58,7 @@ CLEANFILES =
 SUFFIXES   =
 
 CLEANFILES += *.csv *.dat *.plt
-SUFFIXES   += .csv .dat .plt .eps
+SUFFIXES   += .csv .dat .plt .eps .pdf
 .PRECIOUS: %.csv %.dat %.plt
 
 
@@ -72,6 +72,8 @@ SUFFIXES   += .csv .dat .plt .eps
 .plt.eps:
 	@gnuplot $<
 
+.plt.pdf:
+	@gnuplot $<
 
 
 

@@ -15,7 +15,7 @@ PROTOCOL     ?= udt
 time_range = 10,2
 
 # List of the parallel channels to be used in connection
-channels = "1 2"
+channels = 1 2
 
 # Segment size [KB]
 segments = 64

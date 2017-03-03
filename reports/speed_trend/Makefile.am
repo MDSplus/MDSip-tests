@@ -36,12 +36,12 @@ LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
 
 define COMMAND =
   $(builddir)/SpeedTrend ${TARGET} "distr-" \
-  --channels ${channels} --segments ${segments} --samples ${samples} \
+  --channels "${channels}" --segments "${segments}" --samples "${samples}" \
   --speed_limits ${speed_limits} --time_range ${time_range}
 endef
 
-IMAGES = distr-speed.eps \
-         distr-trend.eps
+IMAGES = distr-speed.pdf \
+	 distr-trend.pdf
 
 distr-speed.dat distr-trend.dat: SpeedTrend
 	@${addfunc_dialog_bar}

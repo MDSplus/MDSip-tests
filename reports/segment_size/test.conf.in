@@ -8,9 +8,14 @@
   TARGET_SPOOL ?= deafault_spool_dir
 
 #
+# List of protocols to be tested
+#
+  PROTOCOLS = tcp udt ssh
+
+#
 # List of the parallel channels to be used in connection
 #
-  channels = "1 2 4"
+  channels = 1 2 4
 
 #
 # Range of tested mdsplus segment sizes [start,delta,end]

@@ -634,7 +634,7 @@ LD_LIBRARY_PATH = $(MDS_LIBDIR)
 # ////  IMAGES   ///////////////////////////////////////////////////////////// #
 # //////////////////////////////////////////////////////////////////////////// #
 CLEANFILES = *.csv *.dat *.plt *.log *.idx *.out *.toc *.aux
-SUFFIXES = .csv .dat .plt .eps .pdf .dvi
+SUFFIXES = .csv .dat .plt .eps .pdf .pdf .dvi
 
 # //////////////////////////////////////////////////////////////////////////// #
 # ///  TEX REPORTS  ////////////////////////////////////////////////////////// #
@@ -649,7 +649,7 @@ LDADD = $(AM_LIBS) ../libMDSipTest.la ../ext_tools/libnllink.la
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .csv .dat .plt .eps .pdf .dvi .cpp .lo .log .o .obj .test .test$(EXEEXT) .tex .trs
+.SUFFIXES: .csv .dat .plt .eps .pdf .pdf .dvi .cpp .lo .log .o .obj .test .test$(EXEEXT) .tex .trs
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/Common.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -1246,7 +1246,7 @@ define addfunc_dialog_bar
    (stdbuf -oL awk '/Completed:/ {print "XXX\n"$$2"\n"$$0"\nXXX"}' \
    | dialog --title "$$1" --gauge "Please wait" 7 70);
   else
-   cat; 
+   cat;
   fi
   }
 endef
@@ -1260,6 +1260,9 @@ endef
 	@echo $<
 
 .plt.eps:
+	@gnuplot $<
+
+.plt.pdf:
 	@gnuplot $<
 .PRECIOUS: %.pdf %.dvi
 
