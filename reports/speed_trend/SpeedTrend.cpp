@@ -223,7 +223,7 @@ Vector2d segment_speed_distr_MT(size_t size_KB,
     
     
     conn.StartConnection();
-        
+
     Vector2d speed;
     
     for(int i=0; i<nch; ++i) {

@@ -99,10 +99,11 @@ std::string TestTree::TreePath::toString(const TestTree::TreePath &tn)
 ////////////////////////////////////////////////////////////////////////////////
 
 
-TestTree::TestTree(const char *name, const char *path, const TestTree::ClientType cl) :
+TestTree::TestTree(const char *name, const char *path, const TestTree::ClientType cl, int clevel) :
     m_client(cl),
     m_name(name),
-    m_path(path)
+    m_path(path),
+    m_compression(clevel)
 {
     if(m_path.path.empty()) m_client = TC;
     //    else if(m_path.server.empty()) {
@@ -116,7 +117,7 @@ TestTree::TestTree(const char *name, const char *path, const TestTree::ClientTyp
     //    }
     if(m_client == TC) {
         // setup connection //
-        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str());
+        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str(),m_compression);
     }
 }
 
@@ -125,11 +126,12 @@ TestTree::TestTree(const TestTree &other) :
     m_name(other.m_name),
     m_path(other.m_path),
     m_tree(0),
-    m_cnx(0)
+    m_cnx(0),
+    m_compression(other.m_compression)
 {
     //    std::cout << "OPEN COPY CONSTRUCTOR\n";
     if(m_client == TC) {
-        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str());
+        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str(),m_compression);
     }
 }
 
@@ -143,9 +145,10 @@ TestTree &TestTree::operator =(const TestTree &other)
     this->m_client = other.m_client;
     this->m_name = other.m_name;
     this->m_path = other.m_path;
+    this->m_compression = other.m_compression;
 
     if(other.m_cnx)
-        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str());
+        m_cnx = new mds::Connection((char *)TreePath::toString(m_path).c_str(),m_compression);
 }
 
 

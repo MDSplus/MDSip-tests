@@ -14,15 +14,15 @@ PROTOCOLS = ssh tcp udt
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
 		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
-		   --link_iface ${link_iface}
+		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
 		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
-		   --link_iface ${link_iface}
+		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
 		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
-		   --link_iface ${link_iface}
+		   --link_iface ${link_iface} --compression $(COMPRESSION)
 
 
 define size_command =
@@ -67,9 +67,9 @@ LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
 CLEANFILES += size-tcp.sh size-udt.sh
 
 IMAGES = \
-	size-ssh.eps \
 	size-tcp.eps \
 	size-udt.eps
+# // size-ssh.eps
 
 size-tcp.dat: SegmentSize
 	@ $(_setenv)

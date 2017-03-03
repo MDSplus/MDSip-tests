@@ -35,6 +35,8 @@ struct Parameters : Options {
     size_t probes;
     std::string   env_no_disk;
 
+    int compression;
+
     struct {
         std::string iface;
     } link;
@@ -51,7 +53,8 @@ struct Parameters : Options {
         h_speed_limits(0,4),
         h_time_limits(0,1),
         h_numeric_limits(0,100),
-        env_no_disk("no")
+        env_no_disk("no"),
+        compression(0)
     {
         n_channels << 1,2,4;
         if(const char *env = getenv("USE_NO_DISK")) env_no_disk = env;
@@ -67,6 +70,7 @@ struct Parameters : Options {
                 ("dump_speeds",&dump.speeds,true,"dump speeds histogram (bool)")
                 ("dump_stats",&dump.stats,true,"dump stats histogram (bool)")
                 ("link_iface",&link.iface,"link device interface name (see comand \"ip a\")")
+                ("compression", &compression, "Set the MDSplus connection compression level (0-9)")
                 ;
     }
 
@@ -347,10 +351,10 @@ int main(int argc, char *argv[])
     g_options.SetUsage(program_name + " target_path plot_filename [options]");
     g_options.Parse(argc,argv);
 
-    if(argc > 1) g_target_tree = TestTree("segment_size", argv[1]);
+    if(argc > 1) g_target_tree = TestTree("segment_size", argv[1],TestTree::TC, g_options.compression);
     else {
         char *path = TestTree::GetEnvPath("segment_size");
-        if(path) { g_target_tree = TestTree("segment_size",path); }
+        if(path) { g_target_tree = TestTree("segment_size",path,TestTree::TC, g_options.compression); }
     }
     std::string filename_out = "test_segment_size";
     if(argc > 2) filename_out = argv[2];

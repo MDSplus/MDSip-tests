@@ -54,9 +54,9 @@ public:
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    TestTree() : m_tree(0), m_cnx(0), m_client(TC) {}
+    TestTree() : m_tree(0), m_cnx(0), m_client(TC), m_compression(0) {}
 
-    TestTree(const char *name, const char *path = NULL, const ClientType cl=DC);
+    TestTree(const char *name, const char *path = NULL, const ClientType cl=DC, int clevel=0);
 
     TestTree(const TestTree &other);
 
@@ -131,6 +131,7 @@ private:
     TreePath    m_path;
     unique_ptr<mds::Tree> m_tree;
     unique_ptr<mds::Connection> m_cnx;
+    int m_compression;
 };
 
 
