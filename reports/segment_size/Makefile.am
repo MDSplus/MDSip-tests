@@ -16,17 +16,20 @@ PROTOCOLS ?= ssh tcp udt
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
-		   --link_iface ${link_iface} --compression $(COMPRESSION)
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
-		   --link_iface ${link_iface} --compression $(COMPRESSION)
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
 
 size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
-		   --link_iface ${link_iface} --compression $(COMPRESSION)
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
 
 
 
@@ -87,8 +90,10 @@ $(PROTOCOLS): SegmentSize
 	@ $(_setenv)
 	  ${addfunc_dialog_bar}
 	  $(builddir)/SegmentSize $@://$(TARGET_USER)@${TARGET} size-$@ \
-	   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes} \
+	   --channels "${channels}" --segments "${segments}" \
+	   --samples "${samples}" --probes ${probes} \
 	   --link_iface ${link_iface} --compression $(COMPRESSION) \
+	   --gen_function $(gen_function) \
 	   | tee -a SegmentSize-$@.log | dialog_bar "SegmentSize Test $@"
 
 PHONY: all_images

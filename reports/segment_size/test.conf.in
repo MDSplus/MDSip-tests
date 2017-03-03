@@ -32,6 +32,10 @@
 #
   probes = 5
 
+#
+# Generating signal function (sine, noiseW, noiseG)
+#
+  gen_function = sine
 
 # link interface to scan for actual device troughput. Tipically it should be
 # eth0 or similar, leave it empty to override the mdsip vs link plots. To

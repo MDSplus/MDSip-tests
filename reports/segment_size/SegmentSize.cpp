@@ -34,6 +34,7 @@ struct Parameters : Options {
     size_t samples;
     size_t probes;
     std::string   env_no_disk;
+    std::string   gen_function;
 
     int compression;
 
@@ -54,7 +55,8 @@ struct Parameters : Options {
         h_time_limits(0,1),
         h_numeric_limits(0,100),
         env_no_disk("no"),
-        compression(0)
+        compression(0),
+        gen_function("sine")
     {
         n_channels << 1,2,4;
         if(const char *env = getenv("USE_NO_DISK")) env_no_disk = env;
@@ -71,6 +73,7 @@ struct Parameters : Options {
                 ("dump_stats",&dump.stats,true,"dump stats histogram (bool)")
                 ("link_iface",&link.iface,"link device interface name (see comand \"ip a\")")
                 ("compression", &compression, "Set the MDSplus connection compression level (0-9)")
+                ("gen_function", &gen_function, "Generating function (sine,noiseG,noiseW)")
                 ;
     }
 
@@ -249,7 +252,12 @@ double segment_size_throughput_MT(size_t size_KB,
         std::stringstream name;
         name << "sine" << i;
         ContentFunction *cnt = new ContentFunction(name.str().c_str(),tot_size);
-        // cnt->SetGenFunction(ContentFunction::NoiseW);
+        if(g_options.gen_function == "noiseW")
+            cnt->SetGenFunction(ContentFunction::NoiseW);
+        else if(g_options.gen_function == "noiseG")
+            cnt->SetGenFunction(ContentFunction::NoiseG);
+        else
+            cnt->SetGenFunction(ContentFunction::Sine);
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
         ch->SetInterfaceName(g_options.link.iface);
