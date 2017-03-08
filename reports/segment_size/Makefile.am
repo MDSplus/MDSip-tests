@@ -10,7 +10,8 @@ setup:
 TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
-PROTOCOLS ?= ssh tcp udt
+ALL_PROTOCOLS = tcp udt ssh
+PROTOCOLS ?= tcp udt
 
 
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
@@ -86,7 +87,7 @@ size-ssh.dat: SegmentSize
 	  ${addfunc_dialog_bar}
 	  ${size_ssh_command} 2>&1 | tee -a SegmentSize-ssh.log | dialog_bar "SegmentSize Test SSH"
 
-$(PROTOCOLS): SegmentSize
+$(ALL_PROTOCOLS): SegmentSize
 	@ $(_setenv)
 	  ${addfunc_dialog_bar}
 	  $(builddir)/SegmentSize $@://$(TARGET_USER)@${TARGET} size-$@ \
@@ -121,6 +122,14 @@ dnl # substitutions
 define([_HOSTNAME_],[${HOSTNAME}])
 define([_TARGET_HOST_],[${TARGET_HOST}])
 define([_TARGET_PORT_],[${TARGET_PORT}])
+define([_TARGET_USER_],[${TARGET_USER}])
+define([_PROTOCOLS_],[$(PROTOCOLS)])
+
+define([_USE_NO_DISK_],[$(USE_NO_DISK)])
+define([_COMPRESSION_],[$(COMPRESSION)])
+define([_MDSIP_SSH_OPTIONS_],[$(MDSIP_SSH_OPTIONS)])
+define([_gen_function_],[$(gen_function)])
+
 define([_LOCAL_TIME_], [esyscmd([date])])
 define([_route_tcp_],[esyscmd([traceroute ${TARGET_HOST}])])
 define([_route_udp_],[esyscmd([traceroute -U ${TARGET_HOST}])])
@@ -137,6 +146,11 @@ define([_udt_max_pt_],[esyscmd([. ./size-udt.sh; printf \$${max_pt} ])])
 define([_udt_max_x_],[esyscmd([. ./size-udt.sh; printf  \$${max_x} ])])
 define([_udt_max_y_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_y} ])])
 define([_udt_max_e_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_e} ])])
+
+define([_ssh_max_pt_],[esyscmd([. ./size-ssh.sh; printf \$${max_pt} ])])
+define([_ssh_max_x_],[esyscmd([. ./size-ssh.sh; printf  \$${max_x} ])])
+define([_ssh_max_y_],[esyscmd([. ./size-ssh.sh; printf "%.2f" \$${max_y} ])])
+define([_ssh_max_e_],[esyscmd([. ./size-ssh.sh; printf "%.2f" \$${max_e} ])])
 
 define([_channels_],[${channels}])
 define([_segments_],[${segments}])
