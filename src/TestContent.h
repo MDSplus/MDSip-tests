@@ -71,7 +71,10 @@ public:
     enum FunctionEnum {
         Sine,
         NoiseG,
-        NoiseW
+        NoiseW,
+        zero,
+        one,
+        ident
     };
     void SetGenFunction(const enum FunctionEnum funt);
 

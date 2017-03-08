@@ -30,6 +30,20 @@ static inline double _noise_white(double x) {
     return StatisticGen::noiseWhite();
 }
 
+static inline double _zero(double x) {
+    (void)x;
+    return 0.;
+}
+
+static inline double _one(double x) {
+    (void)x;
+    return 1.;
+}
+
+static inline double _ident(double x) {
+    return x;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //  Time Function Generated Content  ///////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +71,15 @@ size_t ContentFunction::GetSize() const
 void ContentFunction::SetGenFunction(const ContentFunction::FunctionEnum funt)
 {
     switch (funt) {
+    case mdsip_test::ContentFunction::zero:
+        m_func = &_zero;
+        break;
+    case mdsip_test::ContentFunction::one:
+        m_func = &_one;
+        break;
+    case mdsip_test::ContentFunction::ident:
+        m_func = &_ident;
+        break;
     case ContentFunction::Sine:
         m_func = &sin;
         break;
