@@ -9,7 +9,7 @@ TARGET_PORT  ?= default_port
 TARGET_SPOOL ?= deafault_spool_dir
 
 # List of the parallel channels to be used in connection
-channels = "1 2 4"
+channels = 1 2 4
 
 # Segment size [KB]
 segments = 64

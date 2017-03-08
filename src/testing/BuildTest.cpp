@@ -2,7 +2,7 @@
 #include <fstream>
 #include <time.h>
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "FileUtils.h"
 #include "TreeUtils.h"

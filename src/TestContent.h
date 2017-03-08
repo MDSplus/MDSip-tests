@@ -1,7 +1,7 @@
 #ifndef TESTCONTENT_H
 #define TESTCONTENT_H
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "ClassUtils.h"
 #include "TreeUtils.h"
@@ -71,7 +71,10 @@ public:
     enum FunctionEnum {
         Sine,
         NoiseG,
-        NoiseW
+        NoiseW,
+        zero,
+        one,
+        ident
     };
     void SetGenFunction(const enum FunctionEnum funt);
 

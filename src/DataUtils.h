@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 
+#include <time.h>
+
 #include <sys/time.h>
 #include <utility>
 #include <vector>
@@ -48,9 +50,11 @@ public:
 
     const std::string & operator()() const { return m_name; }
 
-    void SetName(std::string name) { m_name = name; }
+    void SetName(std::string name) {
+        m_name = trim(name);
+    }
 
-    std::string GetName() const { return m_name; }
+    const std::string & GetName() const { return m_name; }
 
     template < class Archive >
     friend void serialize(Archive &ar, Named &n) {
@@ -59,6 +63,25 @@ public:
 
 private:
     std::string m_name;
+
+    inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
+    {
+        s.erase(0, s.find_first_not_of(t));
+        return s;
+    }
+
+    // trim from right
+    inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
+    {
+        s.erase(s.find_last_not_of(t) + 1);
+        return s;
+    }
+
+    // trim from left & right
+    inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+    {
+        return ltrim(rtrim(s, t), t);
+    }
 };
 
 
@@ -68,21 +91,101 @@ private:
 //  Timer  /////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-class Timer
-{
-public:
-    void Start() { gettimeofday(&m_start, NULL); }
+#define TIME_INLINE __attribute__((always_inline))
 
-    double StopWatch() {
-        gettimeofday(&m_end, NULL);
-        double timeSec = m_end.tv_sec - m_start.tv_sec +
-                (m_end.tv_usec - m_start.tv_usec)*1E-6;
-        return timeSec;
+class Timer
+{        
+public:
+    typedef struct timeval TI;
+    typedef struct timespec TS;
+
+    Timer() { Start(); }
+
+    void Start() TIME_INLINE {
+        m_tvel.tv_sec = 0;
+        m_tvel.tv_usec = 0;
+        m_tsel.tv_sec = 0;
+        m_tsel.tv_nsec = 0;
+        gettimeofday(&m_tvs, NULL);
+    }
+
+    void Stop()  TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
+    }
+
+    double StopWatch() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
+        return to_s(GetElapsed());
+    }
+
+    double StopWatch_ms() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
+        return to_ms(GetElapsed());
+    }
+
+    void Pause() TIME_INLINE {
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tss);
+    }
+
+    void Resume()  TIME_INLINE {
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID,&m_tse);
+        m_tsel.tv_sec  = m_tse.tv_sec-m_tss.tv_sec+m_tsel.tv_sec;
+        m_tsel.tv_nsec = m_tse.tv_nsec-m_tss.tv_nsec+m_tsel.tv_nsec;
+    }
+
+    void PauseAll() TIME_INLINE {
+        gettimeofday(&m_tve, NULL);
+        m_tvel = GetElapsed();
+    }
+
+    void ResumeAll() TIME_INLINE {
+        gettimeofday(&m_tvs, NULL);
+    }
+
+    TI GetElapsed() TIME_INLINE {
+        TI dt;
+        dt.tv_sec  = m_tve.tv_sec-m_tvs.tv_sec
+                + (m_tvel.tv_sec-m_tsel.tv_sec);
+        dt.tv_usec = m_tve.tv_usec-m_tvs.tv_usec
+                + (m_tvel.tv_usec-m_tsel.tv_nsec*1E-3);
+        return dt;
+    }
+
+    double GetElapsed_s() TIME_INLINE {
+        return to_s(GetElapsed());
+    }
+
+    double GetElapsed_ms() TIME_INLINE {
+        return to_ms(GetElapsed());
     }
 
 private:
-    struct timeval m_start, m_end;
+
+    static double to_s(const TI &t) TIME_INLINE {
+        return t.tv_sec + t.tv_usec*1E-6;
+    }
+
+    static double to_ms(const TI &t) TIME_INLINE {
+        return t.tv_sec*1E3 + t.tv_usec*1E-3;
+    }
+
+    TI m_tvs, m_tve, m_tvel;
+    TS m_tss, m_tse, m_tsel;
 };
+
+
+class TimerPause {
+    Timer &timer;
+public:
+    TimerPause(const Timer &t) : timer(const_cast<Timer&>(t)) { timer.Pause(); }
+    ~TimerPause() { timer.Resume(); }
+private:
+    TimerPause(const TimerPause &other) : timer(other.timer) {}
+};
+
+#ifndef TIMER_PAUSE
+# define TIMER_PAUSE(timer) TimerPause _auto_timer_pause_##timer(timer); (void)_auto_timer_pause_##timer;
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,8 +202,6 @@ public:
         m_expected_time_sec(0),
         m_count(0)
     { time(&m_starttime); }
-
-
     
     void SetExpectedCount(size_t count) { this->m_expected_count = count; }
     void SetExpectedTime(float time) { this->m_expected_time_sec = time; }
@@ -314,10 +415,6 @@ typedef Vector3d Point2D;
 
 
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //  Curve2D  ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -340,6 +437,20 @@ public:
         std::string name;
         double limits[2];
         double ticks;
+
+        bool empty() const {
+            return name == ""
+                    && limits[0] == 0
+                    && limits[1] == 0
+                    && ticks == 1;
+        }
+
+        bool operator == (const Axis &other) const {
+            return this->name == other.name
+                    && this->limits[0] == other.limits[0]
+                    && this->limits[1] == other.limits[1]
+                    && this->ticks == other.ticks;
+        }
     };
 
     Curve2D() {}
@@ -389,7 +500,7 @@ public:
     Point & operator[](size_t id) { return m_data[id]; }
     const Point & operator[](size_t id) const { return m_data[id]; }
 
-
+    void PrintSelf_abs(std::ostream &o, int nbins) const;
 
 private:
     std::vector<Point> m_data;
@@ -517,11 +628,28 @@ public:
         else if (bin >= (int)BinSize())
             ++m_overf;
         else {
-            ++m_bins.at( bin );
+            //            ++m_bins.at( bin );
+            m_bins.at( bin ) += 1.;
             m_stat << data;
         }
         BaseClass::Push(data);
     }
+
+    void Push(const T x, const T y) {
+        int bin = this->get_bin(x);
+        if(bin < 0)
+            ++m_underf;
+        else if (bin >= (int)BinSize())
+            ++m_overf;
+        else {
+            m_bins.at( bin ) += y;
+            // WARNING ... not weitgh here //
+            m_stat << x;
+        }
+        // WARNING ... not weitgh here //
+        BaseClass::Push(x);
+    }
+
 
     void Clear() {
         std::fill(m_bins.begin(), m_bins.end(), 0);
@@ -536,10 +664,11 @@ public:
 
     inline void operator<<(const T data) { Push(data); }
 
-    inline std::pair<T,size_t> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }
+    //    inline std::pair<T,size_t> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }`
+    inline std::pair<T,double> operator[](unsigned int bin) const { return std::make_pair(get_pos(bin),m_bins.at(bin)); }
 
-    inline size_t operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
-
+    //    inline size_t operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
+    inline double operator()(const T pos) const { return m_bins.at(get_bin(pos)); }
 
     double Mean() const { return m_stat.mean(); }
 
@@ -559,18 +688,21 @@ public:
             o << this->get_pos(i) << _c << this->m_bins[i] << "\n";
     }
 
-    void PrintSelfInline(std::ostream &o) const {
-        static const char *lut = "_,.-''"; // 5 levels histogram //
-        double max = *std::max_element(m_bins.begin(), m_bins.end());        
-        o << "Histogram(\"" << this->GetName() << "\"," << this->BinSize() << "," << m_limits[0] << "," << m_limits[1] << ")";
-        o << "  " << m_underf << " [";
+    void PrintSelfInline(std::ostream &o, const char *lut = "_,.-~'`")
+    const {
+        double max = *std::max_element(m_bins.begin(), m_bins.end());
+        o << "(\"" << this->GetName()
+          << "\"," << this->BinSize()
+          << "," << m_limits[0] << "," << m_limits[1] << ")";
+        o << "\t" << m_underf << " [";
         for(size_t i=0; i<this->BinSize(); ++i) {
             double val = (double)m_bins[i];
-            unsigned int lid = max > 0 ? (int)floor(val/max * 5) : 0;
+            unsigned int lid = max > 0 ? (int)floor(val/max * (strlen(lut)-1)) : 0;
             o << lut[lid];
         }
         o << "] " << m_overf << " ";
-        o << " visible -> mean:" << this->Mean() << " rms:" << this->Rms();
+        o << " card: " << this->Size()
+          << " mean:" << this->MeanAll() << " rms:" << this->RmsAll();
     }
 
     /// Convert to a Curve object
@@ -660,7 +792,8 @@ private:
     }
 
     std::string m_value_name;
-    std::vector<size_t> m_bins;
+    //    std::vector<size_t> m_bins;
+    std::vector<double> m_bins;
     T m_limits[2];
     size_t m_underf, m_overf;
     StatUtils::IncrementalOrder2 m_stat;
@@ -747,40 +880,53 @@ public:
     typedef Curve2D::Axis  AxisType;
     typedef Curve2D::Point PointType;
 
-    Plot2D(const char *name) : Named(name) {}
 
-    size_t GetNumberOfPlots() const { return m_curves.size(); }
 
-    void AddCurve(const Curve2D &curve) {
-         m_curves.push_back(curve);
-         m_curves_flags.push_back( OptionFlags(ShowLines | ShowPoints | Smoothed) );
-         if(m_Xaxis.empty()) m_Xaxis.push_back(curve.XAxis());
-         if(m_Yaxis.empty()) m_Yaxis.push_back(curve.YAxis());
+    static const size_t SET_SIZE = 2;
+
+    Plot2D(const char *name)
+        : Named(name)
+    {}
+
+    size_t GetNumberOfPlots(int set = 0) const { return d[set].m_curves.size(); }
+
+    void AddCurve(const Curve2D &curve, int set = 0) {
+        // do not change axes if they were touched //
+        if(d[set].m_curves.empty() && d[set].m_Xaxis.empty() && d[set].m_Yaxis.empty()) {
+            d[set].m_Xaxis = curve.XAxis(); // first curve Axis is plot axis //
+            d[set].m_Yaxis = curve.YAxis(); // first curve Axis is plot axis //
+        }
+        d[set].m_curves.push_back(curve);
+        d[set].m_curves_flags.push_back( OptionFlags(ShowLines | ShowPoints | Smoothed) );
     }
 
-    inline AxisType & XAxis(unsigned int i = 0) { return m_Xaxis.at(i); }
-    inline const AxisType & XAxis(unsigned int i = 0) const { return m_Xaxis.at(i); }
-    inline AxisType & YAxis(unsigned int i = 0) { return m_Yaxis.at(i); }
-    inline const AxisType & YAxis(unsigned int i = 0) const { return m_Yaxis.at(i); }
+    inline AxisType & XAxis(size_t set = 0) { return d[set].m_Xaxis; }
+    inline const AxisType & XAxis(size_t set = 0) const { return d[set].m_Xaxis; }
+    inline AxisType & YAxis(size_t set = 0) { return d[set].m_Yaxis; }
+    inline const AxisType & YAxis(size_t set = 0) const { return d[set].m_Yaxis; }
 
     std::string GetSubtitle() const { return m_subtitle; }
     void SetSubtitle(const std::string &subtitle) { m_subtitle = subtitle; }
 
-    Curve2D & Curve(int i) { return m_curves[i]; }
-    const Curve2D & Curve(int i) const { return m_curves[i]; }
+    Curve2D & Curve(size_t i, size_t set = 0) { return d[set].m_curves[i]; }
+    const Curve2D & Curve(size_t i, size_t set = 0) const { return d[set].m_curves[i]; }
     
-    std::vector<Curve2D> & Curves() { return m_curves; }
-    const std::vector<Curve2D> & Curves() const { return m_curves; }
+    std::vector<Curve2D> & Curves(size_t set = 0) { return d[set].m_curves; }
+    const std::vector<Curve2D> & Curves(size_t set = 0) const { return d[set].m_curves; }
 
     void PrintToCsv( std::string file_name, const char sep = ';' );
 
-    void PrintToGnuplotFile(std::string file_name = "") const;
 
-//    friend CsvDataFile &
-//    operator << (CsvDataFile &csv, Plot2D &plot) {
-//        plot.PrintToCsv(csv, csv.Separator());
-//        return csv;
-//    }
+    enum GnuplotStyle {
+        GnuplotStyle1,
+        GnuplotStyle2,
+    };
+    void PrintToGnuplotFile(std::string file_name = "", enum GnuplotStyle = GnuplotStyle2) const;
+    //    friend CsvDataFile &
+    //    operator << (CsvDataFile &csv, Plot2D &plot) {
+    //        plot.PrintToCsv(csv, csv.Separator());
+    //        return csv;
+    //    }
 
     enum OptionEnum {
         Smoothed    = 1 << 0,
@@ -790,19 +936,24 @@ public:
     };
     typedef Flags<enum OptionEnum> OptionFlags;
 
-    OptionFlags & CurveFlags(unsigned int i) { return m_curves_flags[i]; }
-    const OptionFlags & CurveFlags(unsigned int i) const { return m_curves_flags[i]; }
+    OptionFlags & CurveFlags(size_t i, size_t set = 0) { return d[set].m_curves_flags[i]; }
+    const OptionFlags & CurveFlags(size_t i, size_t set = 0) const { return d[set].m_curves_flags[i]; }
 
 private:
-    std::vector<AxisType> m_Xaxis;
-    std::vector<AxisType> m_Yaxis;
-    std::vector<Curve2D>     m_curves;
-    std::vector<OptionFlags> m_curves_flags;
+    typedef struct {
+        AxisType                 m_Xaxis;
+        AxisType                 m_Yaxis;
+        std::vector<Curve2D>     m_curves;
+        std::vector<OptionFlags> m_curves_flags;
+    } PlotSet;
 
+    PlotSet d[SET_SIZE];
     std::string m_subtitle;
-
     static Singleton<ColorRGBList> s_chart_colors;
 
+    void print_plot_range(std::ofstream &o) const;
+    void print_plot_style1(const std::string &name, std::ofstream &o) const;
+    void print_plot_style2(const std::string &name, std::ofstream &o) const;
 };
 
 DEFINE_OPERATORS_FOR_FLAGS(Plot2D::OptionFlags)

@@ -816,8 +816,7 @@ main(argc, argv)
  * Do NOT call finish() from here, since finish() does far too much
  * to be called from a signal handler.
  */
-void
-stopit(sig)
+void stopit(int sig)
 //	int sig __unused;
 {
 
@@ -1231,8 +1230,7 @@ tvsub(out, in)
  *	Print out statistics when SIGINFO is received.
  */
 
-static void
-status(sig)
+static void status(int sig)
 //	int sig __unused;
 {
 

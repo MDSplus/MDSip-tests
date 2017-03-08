@@ -95,8 +95,9 @@ Point2D segment_size_throughput_MP(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
         conn.AddChannel(functions[i],channels[i]);
-        conn.ChannelTime(channels.back()) = time_h;
-        conn.ChannelSpeed(channels.back()) = speed_h;
+        Channel *ch = channels.back();
+        ch->Times() = time_h;
+        ch->Speeds() = speed_h;
     }
 
     std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
@@ -107,8 +108,8 @@ Point2D segment_size_throughput_MP(size_t size_KB,
     Point2D time, speed;
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
-        TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
+        TestConnection::TimeHistogram &time_h = ch->Times();
+        TestConnection::TimeHistogram &speed_h = ch->Speeds();
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
         time(0) += time_h.MeanAll();

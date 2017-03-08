@@ -23,7 +23,8 @@ bin_PROGRAMS = write_stream
 
 write_stream_SOURCES = write_stream.cpp
 
-LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
+	$(top_builddir)/src/ext_tools/libnllink.la
 
 
 .PHONY: jscope_streamtest

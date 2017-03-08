@@ -100,8 +100,9 @@ Vector2d content_read_throughput_MP(size_t size_KB,
         channels[i]->SetNoDisk(g_options.no_disk);
                 
         conn.AddChannel(contents[i],channels[i]);
-        conn.ChannelTime(channels.back()) = g_time_h;
-        conn.ChannelSpeed(channels.back()) = g_speed_h;
+        Channel *ch = channels.back();
+        ch->Times() = g_time_h;
+        ch->Speeds() = g_speed_h;
     }
 
     std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
@@ -112,8 +113,8 @@ Vector2d content_read_throughput_MP(size_t size_KB,
     Vector2d time, speed;
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        Histogram<double> &time_h = conn.ChannelTime(ch);
-        Histogram<double> &speed_h = conn.ChannelSpeed(ch);
+        Histogram<double> &time_h = ch->Times();
+        Histogram<double> &speed_h = ch->Speeds();
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
         time(0) += time_h.MeanAll();
@@ -157,11 +158,11 @@ Vector2d content_function_throughput_MP(size_t size_KB,
         cnt->SetGenFunction(ftype);
         contents.push_back( cnt );
         
-        channels.push_back( Channel::NewTC(size_KB) );
-                
+        channels.push_back( Channel::NewTC(size_KB) );                
         conn.AddChannel(contents[i],channels[i]);
-        conn.ChannelTime(channels.back()) = g_time_h;
-        conn.ChannelSpeed(channels.back()) = g_speed_h;
+        Channel *ch = channels.back();
+        ch->Times() = g_time_h;
+        ch->Speeds() = g_speed_h;
     }
 
     std::cout << "\n /////// connecting " << nch << " channels [" << size_KB << " KB]: //////// \n" << std::flush;
@@ -172,8 +173,8 @@ Vector2d content_function_throughput_MP(size_t size_KB,
     Vector2d time, speed;
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        TestConnection::TimeHistogram &time_h = conn.ChannelTime(ch);
-        TestConnection::TimeHistogram &speed_h = conn.ChannelSpeed(ch);
+        TestConnection::TimeHistogram &time_h = ch->Times();
+        TestConnection::TimeHistogram &speed_h = ch->Speeds();
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
         time(0) += time_h.MeanAll();

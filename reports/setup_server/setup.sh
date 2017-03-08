@@ -35,6 +35,8 @@ Usage: $SCRIPTNAME -- [options] [command]
        xinetd             start server session using xinetd server
        stop               stop server session
        clean              empty the server spool directory
+       gui                start dialog gui
+
 EOF
 }
 
@@ -123,27 +125,27 @@ function start() {
 XINETD_CONF="
 defaults
 {
-        log_type                = FILE ${TARGET_SPOOL}/log/mdsip_xinetd.log
-        log_on_success          = HOST PID
-        log_on_failure          = HOST
+	log_type                = FILE \${TARGET_SPOOL}/log/mdsip_xinetd.log
+	log_on_success          = HOST PID
+	log_on_failure          = HOST
 }
 
 service mdsip_tcp
 {
-        disable          = no
-        protocol         = tcp
-        socket_type      = stream
-        wait             = no
-        cps              = 10000 1
-        instances        = UNLIMITED
-        per_source       = UNLIMITED
-        type             = UNLISTED
-        flags            = KEEPALIVE NODELAY NOLIBWRAP
+	disable          = no
+	protocol         = tcp
+	socket_type      = stream
+	wait             = no
+	cps              = 10000 1
+	instances        = UNLIMITED
+	per_source       = UNLIMITED
+	type             = UNLISTED
+	flags            = KEEPALIVE NODELAY NOLIBWRAP
 
-        user             = ${USER}
-	port             = ${TARGET_PORT}
-        server           = ${TARGET_SPOOL}/mdsipd
-	server_args      = ${TARGET_PORT} tcp ${TARGET_SPOOL}/mdsip.hosts ${TARGET_SPOOL}/log
+	user             = \${USER}
+	port             = \${TARGET_PORT}
+	server           = \${TARGET_SPOOL}/mdsipd
+	server_args      = \${TARGET_PORT} tcp \${TARGET_SPOOL}/mdsip.hosts \${TARGET_SPOOL}/log
 }
 
 # Currently UDT is not supported in xinetd connection #
@@ -155,10 +157,10 @@ service mdsip_tcp
 #        wait             = yes
 #        type             = UNLISTED
 
-#        user             = ${USER}
-#        port             = ${TARGET_PORT}
-#        server           = ${TARGET_SPOOL}/mdsipd
-#        server_args      = ${TARGET_PORT} udt ${TARGET_SPOOL}/mdsip.hosts ${TARGET_SPOOL}/log
+#        user             = \${USER}
+#        port             = \${TARGET_PORT}
+#        server           = \${TARGET_SPOOL}/mdsipd
+#        server_args      = \${TARGET_PORT} udt \${TARGET_SPOOL}/mdsip.hosts \${TARGET_SPOOL}/log
 # }
 "
 
@@ -194,22 +196,27 @@ MDSIPD_SCRIPT="#!/bin/sh
 export LD_LIBRARY_PATH=${MDS_LIBRARY_PATH}:${LD_LIBRARY_PATH}
 export MDSPLUS_DIR=${MDSPLUS_DIR}
 export MDS_PATH=${MDS_PATH}
-export test_spool_path=${TARGET_SPOOL}
-export segment_size_path=${TARGET_SPOOL}
-export speed_spread_path=${TARGET_SPOOL}
-export speed_trend_path=${TARGET_SPOOL}
-export stream_path=${TARGET_SPOOL}
-export huge_path=${TARGET_SPOOL}
-exec   ${MDSIP} -p \$1 -P \$2 -h \$3 -c 0 >> \$4/tcp.access 2>> \$4/tcp.errors
+export test_spool_path=\${TARGET_SPOOL}
+export segment_size_path=\${TARGET_SPOOL}
+export speed_spread_path=\${TARGET_SPOOL}
+export speed_trend_path=\${TARGET_SPOOL}
+export stream_path=\${TARGET_SPOOL}
+export huge_path=\${TARGET_SPOOL}
+if test \\\$2 = \"ssh\"; then
+ exec ${MDSIP} -P ssh 2>> \\\$4/\\\$2.errors
+else
+ exec ${MDSIP} -p \\\$1 -P \\\$2 -h \\\$3 -c 0 >> \\\$4/\\\$2.access 2>> \\\$4/\\\$2.errors
+fi
 "
+
 
 
 
 function xinetd() {
   eval set_path
-  echo "${XINETD_CONF}" > ${TARGET_SPOOL}/mdsipd.xinetd
-  echo "${MDSIP_HOSTS}" > ${TARGET_SPOOL}/mdsip.hosts
-  echo "${MDSIPD_SCRIPT}" > ${TARGET_SPOOL}/mdsipd
+  eval "echo \"${XINETD_CONF}\""   > ${TARGET_SPOOL}/mdsipd.xinetd
+  eval "echo \"${MDSIP_HOSTS}\""   > ${TARGET_SPOOL}/mdsip.hosts
+  eval "echo \"${MDSIPD_SCRIPT}\"" > ${TARGET_SPOOL}/mdsipd
   chmod +x ${TARGET_SPOOL}/mdsipd
   
   mkdir -p ${TARGET_SPOOL}/log
@@ -314,7 +321,7 @@ VALUES=$(${DIALOG} --cancel-label "Exit" \
 	  --menu "\n\
 Navigate options using [UP] [DOWN],[Enter] to Select items.\n\
 \n\
-${TARGET_HOST}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
+${HOSTNAME}:${TARGET_PORT} [${TARGET_SPOOL}] \n\
 \n\
 ${IS_SERVER_RUNNING} \n\
 	  \n " \

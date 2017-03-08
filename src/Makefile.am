@@ -1,4 +1,4 @@
-SUBDIRS = . testing
+SUBDIRS = ext_tools
 
 include $(top_srcdir)/Common.am
 
@@ -30,9 +30,11 @@ StatisticsUtils.cpp \
 TestConnection.cpp \
 TestChannel.cpp \
 TestContent.cpp \
-TreeUtils.cpp
+TreeUtils.cpp \
+BandUtils.cpp
 
 
 noinst_LTLIBRARIES = libMDSipTest.la
 libMDSipTest_la_SOURCES = ${_CORE_SOURCES}
+libMDSipTest_la_LIBADD = ext_tools/libnllink.la
 

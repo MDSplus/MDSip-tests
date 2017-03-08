@@ -1,5 +1,5 @@
 
-#include <mdsobjects.h>
+#include <MDSTest.h>
 
 #include "SerializeUtils.h"
 #include "DataUtils.h"
@@ -20,14 +20,16 @@ namespace mdsip_test {
 
 class ChannelImpl {
 public:
-    ChannelImpl(const Channel *parent) : p(parent), m_nodisk(0) {}
+    ChannelImpl(Channel *parent) : p(parent), m_nodisk(0) {}
     virtual ~ChannelImpl() {}
     virtual void Open(TestTree &tree) = 0;
     virtual void Close() = 0;
     virtual void PutSegment(Content::Element &el) = 0;
+    virtual int RcvBuf() { return 0; }
+    virtual int SndBuf() { return 0; }
 
     bool     m_nodisk;
-    const Channel *p;
+    Channel *p;
 };
         
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +41,7 @@ public:
 class ChannelDC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
-    ChannelDC(const Channel *parent) :
+    ChannelDC(Channel *parent) :
         BaseClass(parent),
         m_tree(NULL)
     {}
@@ -48,7 +50,8 @@ public:
 
     void Open(TestTree &tree) {
         Close();
-        m_tree = tree.Open();
+        tree.Open();
+        m_tree = tree.GetMdsTree();
     }
 
     void Close() {
@@ -62,7 +65,7 @@ public:
     }
     
 private:
-    Tree  *m_tree;    
+    Tree  *m_tree;
 };
 
 
@@ -76,39 +79,45 @@ private:
 class ChannelTC : public ChannelImpl {
     typedef ChannelImpl BaseClass;
 public:
-    ChannelTC(const Channel *parent) :
+    ChannelTC(Channel *parent) :
         BaseClass(parent),
-        m_cnx(NULL)
+        cnx(NULL)
     {}
 
     void Open(TestTree &tree) {
-        if(m_cnx) Close();
-        std::string cnx_path = TestTree::TreePath::toString(tree.Path());
-        m_cnx = new mds::Connection((char *)cnx_path.c_str());
-        m_cnx->openTree((char*)tree.Name().c_str(), 0);
+        m_tree = tree;
+        m_tree.Open();
+        cnx = m_tree.GetMdsConnection();
+        if(!cnx) {
+            std::cout << "error connection\n";
+            exit (1); // TODO: FIX this !!!
+        }
+        // Set connection to Socket monitor //
+        mon.SetFromMdsConnection(cnx);
     }
 
     void Close() {
-        if(m_cnx) m_cnx->closeAllTrees();
-        delete m_cnx;
-        m_cnx = NULL;
+        m_tree.Close();
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
         Data * args[1];
-        args[0] = el.data;            
-            
+        args[0] = el.data;
+
         if(m_nodisk) {
             // write only into memory simply getting the size of sent array
-            m_cnx->get("size($1)",args,1); 
+            ////////////////////////////////////////////////////////////////////
+            cnx->get("size($1)",args,1); ///////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
         }
         else {
+            p->m_timer.Pause(); /////////////////////////////////////////
             // write to disk making segment into parse file
             char * begin = el.dim->getBegin()->getString();
-            char * end = el.dim->getEnding()->getString();
+            char * end   = el.dim->getEnding()->getString();
             char * delta = el.dim->getDeltaVal()->getString();
             std::stringstream ss;
-            // TDI: public fun MakeSegment(as_is _node, in _start, in _end, 
+            // TDI: public fun MakeSegment(as_is _node, in _start, in _end,
             //          as_is _dim, in _array, optional _idx, in _rows_filled)
             ss << "MakeSegment(" 
                << el.path << "," 
@@ -116,17 +125,24 @@ public:
                << end << ","
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
-               << el.data->getSize() << ")";            
-            m_cnx->get(ss.str().c_str(),args,1);
+               << el.data->getSize() << ")";
+            p->m_timer.Resume(); ////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
+            cnx->get(ss.str().c_str(),args,1); /////////////////////////////////
+            ////////////////////////////////////////////////////////////////////
             delete[] begin;
             delete[] end;
             delete[] delta;
         }
     }
 
-private:
-    mds::Connection *m_cnx;
+    int RcvBuf() { mon.Update(); return mon.d.rcvbuf; }
+    int SndBuf() { mon.Update(); return mon.d.sndbuf; }
 
+private:
+    mds::Connection *cnx;
+    SocketOptMonitor mon;
+    TestTree m_tree;
 };
 
 
@@ -139,7 +155,16 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
     m_cnxerr_count(0), 
     m_cnxerr_threshold(MAX_CONNECTION_ATTEMPTS), 
     m_cnxerr_usleep(WAIT_CONNECTION_USECONDS),
-    m_size(size_KB)
+    m_size(size_KB),
+
+    m_rate_rx("rate rx",100,0,10),
+    m_rate_tx("rate tx",100,0,10),
+    m_rate_rx_drop("rx drop",100,0,400),
+    m_rate_tx_drop("tx drop",100,0,400),
+    m_rate_rx_error("rx error",100,0,400),
+    m_rate_tx_error("tx error",100,0,400),
+    m_rate_collisions("collisions",100,0,400)
+
 {
     switch (kind) {
     case DC:
@@ -150,10 +175,12 @@ Channel::Channel(int size_KB, const ChannelTypeEnum &kind) :
         d = new ChannelTC(this);
         break;
     }
+    m_timer.Start();
 }
 
 Channel::~Channel()
 {
+    // std::cout << "ch delete\n";
     delete d;
 }
 
@@ -202,8 +229,29 @@ size_t Channel::Size()
 
 void Channel::PutSegment(Content::Element &el) {
     for(int count = 0;; ++count, ++m_cnxerr_count) {
-        try{ d->PutSegment(el); break; }
+        try{
+            {
+                TIMER_PAUSE(m_timer);
+                m_netlink_stats.Start();
+            }
+            d->PutSegment(el);
+            {
+                TIMER_PAUSE(m_timer);                
+                m_netlink_stats.Stop();
+                struct rtnl_link_stats stats = m_netlink_stats.GetDiff();
+                double dt = m_netlink_stats.GetTimer().GetElapsed_s();
+                m_rate_rx << stats.rx_bytes/dt/1024/1024;
+                m_rate_tx << stats.tx_bytes/dt/1024/1024;
+                m_rate_rx_drop << stats.rx_dropped;
+                m_rate_tx_drop << stats.tx_dropped;
+                m_rate_rx_error << stats.rx_errors;
+                m_rate_tx_error << stats.tx_errors;
+                m_rate_collisions << stats.collisions;
+            }
+            break;
+        }
         catch (MdsException &e) {
+            std::cout << " ERROR - Putsegment: " << e.what() << "\n";
             if(count > m_cnxerr_threshold) { throw e;  }
             usleep(m_cnxerr_usleep);
         }
@@ -219,6 +267,20 @@ void Channel::Reset()
 }
 
 void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
+
+void Channel::SetInterfaceName(const std::string &name) {
+    m_netlink_stats.SetName(name);
+}
+
+int Channel::GetSocketRcvBuf()
+{
+    return d->RcvBuf();
+}
+
+int Channel::GetSocketSndBuf()
+{
+    return d->SndBuf();
+}
 
 
 

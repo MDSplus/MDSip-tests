@@ -10,17 +10,43 @@ setup:
 TARGET  = $(TARGET_HOST):$(TARGET_PORT)
 recipes = ${top_builddir}/recipes
 
+ALL_PROTOCOLS = tcp udt ssh
+PROTOCOLS ?= tcp udt
+
+
 size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
-		   --channels ${channels} --segments ${segments} --samples ${samples} --probes ${probes}
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
+
+size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
+		   --channels "${channels}" --segments "${segments}" \
+		   --samples "${samples}" --probes ${probes} \
+		   --link_iface ${link_iface} --compression $(COMPRESSION) \
+		   --gen_function $(gen_function)
+
+
 
 define COMMAND =
 ${size_tcp_command}
 ${size_udt_command}
+${size_ssh_command}
 endef
 
+define _setenv =
+ export PATH=${abs_top_srcdir}/conf:${PATH}
+ export MDSIP_SSH_OPTIONS=${MDSIP_SSH_OPTIONS}
+ export USE_NO_DISK=${USE_NO_DISK}
+ export TARGET_SPOOL=${TARGET_SPOOL}
+ # [ -n ${TCP_WINDOW_SIZE} ] && export TCP_WINDOW_SIZE=${TCP_WINDOW_SIZE}
+endef
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -32,7 +58,8 @@ bin_PROGRAMS = \
 
 SegmentSize_SOURCES = SegmentSize.cpp
 
-LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
+	$(top_builddir)/src/ext_tools/libnllink.la
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -40,25 +67,38 @@ LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 # //////////////////////////////////////////////////////////////////////////// #
 
 
-CLEANFILES += size-tcp.sh size-udt.sh
 
-IMAGES = \
-	size-tcp.eps \
-	size-udt.eps 
+IMAGES = ${addprefix size-,${addsuffix .pdf,$(PROTOCOLS)}}
+CLEANFILES += $(IMAGES:.pdf=.sh)
+
 
 size-tcp.dat: SegmentSize
-	@${addfunc_dialog_bar}
-	${size_tcp_command} 2>&1 | tee -a SegmentSize-tcp.log | dialog_bar "SegmentSize Test TCP"
+	@ $(_setenv)
+	  ${addfunc_dialog_bar}
+	  ${size_tcp_command} 2>&1 | tee -a SegmentSize-tcp.log | dialog_bar "SegmentSize Test TCP"
 
 size-udt.dat: SegmentSize
-	@${addfunc_dialog_bar}
-	${size_udt_command} 2>&1 | tee -a SegmentSize-udt.log | dialog_bar "SegmentSize Test UDT"
+	@ $(_setenv)
+	  ${addfunc_dialog_bar}
+	  ${size_udt_command} 2>&1 | tee -a SegmentSize-udt.log | dialog_bar "SegmentSize Test UDT"
 
+size-ssh.dat: SegmentSize
+	@ $(_setenv)
+	  ${addfunc_dialog_bar}
+	  ${size_ssh_command} 2>&1 | tee -a SegmentSize-ssh.log | dialog_bar "SegmentSize Test SSH"
+
+$(ALL_PROTOCOLS): SegmentSize
+	@ $(_setenv)
+	  ${addfunc_dialog_bar}
+	  $(builddir)/SegmentSize $@://$(TARGET_USER)@${TARGET} size-$@ \
+	   --channels "${channels}" --segments "${segments}" \
+	   --samples "${samples}" --probes ${probes} \
+	   --link_iface ${link_iface} --compression $(COMPRESSION) \
+	   --gen_function $(gen_function) \
+	   | tee -a SegmentSize-$@.log | dialog_bar "SegmentSize Test $@"
 
 PHONY: all_images
 all_images: ${IMAGES}
-
-
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -82,6 +122,14 @@ dnl # substitutions
 define([_HOSTNAME_],[${HOSTNAME}])
 define([_TARGET_HOST_],[${TARGET_HOST}])
 define([_TARGET_PORT_],[${TARGET_PORT}])
+define([_TARGET_USER_],[${TARGET_USER}])
+define([_PROTOCOLS_],[$(PROTOCOLS)])
+
+define([_USE_NO_DISK_],[$(USE_NO_DISK)])
+define([_COMPRESSION_],[$(COMPRESSION)])
+define([_MDSIP_SSH_OPTIONS_],[$(MDSIP_SSH_OPTIONS)])
+define([_gen_function_],[$(gen_function)])
+
 define([_LOCAL_TIME_], [esyscmd([date])])
 define([_route_tcp_],[esyscmd([traceroute ${TARGET_HOST}])])
 define([_route_udp_],[esyscmd([traceroute -U ${TARGET_HOST}])])
@@ -98,6 +146,11 @@ define([_udt_max_pt_],[esyscmd([. ./size-udt.sh; printf \$${max_pt} ])])
 define([_udt_max_x_],[esyscmd([. ./size-udt.sh; printf  \$${max_x} ])])
 define([_udt_max_y_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_y} ])])
 define([_udt_max_e_],[esyscmd([. ./size-udt.sh; printf "%.2f" \$${max_e} ])])
+
+define([_ssh_max_pt_],[esyscmd([. ./size-ssh.sh; printf \$${max_pt} ])])
+define([_ssh_max_x_],[esyscmd([. ./size-ssh.sh; printf  \$${max_x} ])])
+define([_ssh_max_y_],[esyscmd([. ./size-ssh.sh; printf "%.2f" \$${max_y} ])])
+define([_ssh_max_e_],[esyscmd([. ./size-ssh.sh; printf "%.2f" \$${max_e} ])])
 
 define([_channels_],[${channels}])
 define([_segments_],[${segments}])

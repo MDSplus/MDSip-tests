@@ -88,9 +88,9 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
         functions.push_back( new ContentFunction(name.str().c_str(),tot_size) );
         channels.push_back( Channel::NewTC(size_KB) );
         conn.AddChannel(functions.back(),channels.back());
-
-        Histogram &time_h = conn.ChannelTime(channels.back());
-        Histogram &speed_h = conn.ChannelSpeed(channels.back());
+        Channel *ch = channels.back();
+        Histogram &time_h = ch->Times();
+        Histogram &speed_h = ch->Speeds();
         time_h = time_h_sum;
         speed_h = speed_h_sum;
     }
@@ -105,8 +105,8 @@ Vector2d segment_speed_distr_MP(size_t size_KB,
 
     for(int i=0; i<nch; ++i) {
         Channel *ch = channels[i];
-        Histogram &time_h = conn.ChannelTime(ch);
-        Histogram &speed_h = conn.ChannelSpeed(ch);
+        Histogram &time_h = ch->Times();
+        Histogram &speed_h = ch->Speeds();
         std::cout << "times dist: " << time_h << "\n";
         std::cout << "speed dist: " << speed_h << "\n";
 

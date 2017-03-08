@@ -76,7 +76,7 @@
 %  REPORTCSVFILE COMMAND TO PRINT TABLE
 %
 \newcommand{\reportcsvfile}[[1]]{
-\footnotesize
+{\footnotesize
 \pgfplotstabletypeset[[
                       col sep=semicolon,
                       verbatim,
@@ -91,7 +91,7 @@
 %                      every last column/.style={
 %                        column type/.add={}{|}
 %                      }
-                     ]]{#1}
+		     ]]{#1}}
 }
 
 % ////////////////////////////////////////////////////////////////////////////

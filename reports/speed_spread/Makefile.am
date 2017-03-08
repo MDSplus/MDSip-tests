@@ -21,7 +21,8 @@ bin_PROGRAMS = \
 
 SpeedSpread_SOURCES = SpeedSpread.cpp
 
-LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
+	$(top_builddir)/src/ext_tools/libnllink.la
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -29,17 +30,17 @@ LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la
 # //////////////////////////////////////////////////////////////////////////// #
 
 IMAGES = \
-	distr-tcp-speed.eps \
-	distr-tcp-time.eps \
-	distr-udt-speed.eps \
-	distr-udt-time.eps
+	distr-tcp-speed.pdf \
+	distr-tcp-time.pdf \
+	distr-udt-speed.pdf \
+	distr-udt-time.pdf
 
 distr_tcp_command = $(builddir)/SpeedSpread tcp://${TARGET} "distr-tcp-" \
-		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --channels "${channels}" --segments "${segments}" --samples "${samples}" \
 		    --speed_limits ${speed_limits_tcp} 
 
 distr_udt_command = $(builddir)/SpeedSpread udt://${TARGET} "distr-udt-" \
-		    --channels ${channels} --segments ${segments} --samples ${samples} \
+		    --channels "${channels}" --segments "${segments}" --samples "${samples}" \
 		    --speed_limits ${speed_limits_udt} 
 
 

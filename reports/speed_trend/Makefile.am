@@ -23,7 +23,10 @@ bin_PROGRAMS = \
 SpeedTrend_SOURCES = SpeedTrend.cpp
 
 
-LDADD = $(top_builddir)/libMDSipTest.la -lrt
+LDADD = $(AM_LIBS) $(top_builddir)/libMDSipTest.la \
+	$(top_builddir)/src/ext_tools/libnllink.la \
+	-lrt
+
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -33,12 +36,12 @@ LDADD = $(top_builddir)/libMDSipTest.la -lrt
 
 define COMMAND =
   $(builddir)/SpeedTrend ${TARGET} "distr-" \
-  --channels ${channels} --segments ${segments} --samples ${samples} \
+  --channels "${channels}" --segments "${segments}" --samples "${samples}" \
   --speed_limits ${speed_limits} --time_range ${time_range}
 endef
 
-IMAGES = distr-speed.eps \
-         distr-trend.eps
+IMAGES = distr-speed.pdf \
+	 distr-trend.pdf
 
 distr-speed.dat distr-trend.dat: SpeedTrend
 	@${addfunc_dialog_bar}

@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     try {
         std::string cnx_path = TestTree::TreePath::toString(g_target_tree.Path());
         MDSplus::Connection *cnx = new MDSplus::Connection((char *)cnx_path.c_str());
-        cnx->openTree("stream",1);
+        cnx->openTree((char *)"stream",1);
         int64_t currTimeVal = 0;
         while(true)
 		{

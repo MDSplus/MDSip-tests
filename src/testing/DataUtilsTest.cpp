@@ -1,4 +1,6 @@
 
+#include <unistd.h>
+
 #include "DataUtils.h"
 #include "testing-prototype.h"
 
@@ -68,7 +70,7 @@ int main(int argc, char *argv[])
         curve2.Update();
         curve3.Update();
 
-        Plot2D plot("Test plot");
+        Plot2D plot("Test_plot");
         plot.AddCurve(curve1);
         plot.AddCurve(curve2);
         plot.AddCurve(curve3);
@@ -109,7 +111,32 @@ int main(int argc, char *argv[])
         plot.PrintToGnuplotFile("test_histogram");
     }
 
+    { // TIMER //
+        Timer t;
+        t.Start();
+        sleep(1);
+        std::cout << " timer: " << t.StopWatch() << "\n";
 
+        std::cout << " TRY TO PAUSE Timer \n";
+        t.Start();
+        t.Pause();
+        usleep(5000);
+        for (int i=0; i<100000000; ++i) {
+            volatile double a;
+            a = sqrt(i*a*a);
+            if((char)a) {
+                volatile int q=(int)a;
+                (void)q;
+            }
+        }
+        t.Stop();
+        std::cout << " timer: " << t.GetElapsed_ms() << "\n";
+        t.Resume();
+        usleep(5000);
+        t.Stop();
+        std::cout << " timer: " << t.GetElapsed_ms() << "\n";
+        TEST1_P( AreSame ( floor(t.GetElapsed_ms()), 10. )  );
+    }
 
     END_TESTING;
 }

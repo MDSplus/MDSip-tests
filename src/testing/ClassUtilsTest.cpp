@@ -37,7 +37,6 @@ DEFINE_OPERATORS_FOR_FLAGS(MyFlags)
 
 
 
-
 int main(int argc, char *argv[])
 {
     BEGIN_TESTING(Class Utils);
@@ -156,6 +155,8 @@ int main(int argc, char *argv[])
         TEST1_P(f.testFlag(F2));
         TEST0_P(f.testFlag(F3));
     }
+
+
 
     END_TESTING;
 }

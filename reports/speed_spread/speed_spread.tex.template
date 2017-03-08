@@ -47,8 +47,8 @@ _recipe_command_
 
 \begin{reportTabItem}{Plotted results}
 \centerline{
- \includegraphics[[width=0.49\textwidth]]{distr-tcp-speed.eps}
- \includegraphics[[width=0.49\textwidth]]{distr-udt-speed.eps}
+ \includegraphics[[width=0.49\textwidth]]{distr-tcp-speed.pdf}
+ \includegraphics[[width=0.49\textwidth]]{distr-udt-speed.pdf}
 }
 \end{reportTabItem}
 
