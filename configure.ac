@@ -314,6 +314,8 @@ AC_CONFIG_FILES([
 	reports/setup_server/Makefile
 	reports/segment_size/Makefile
 	reports/segment_size/test.conf
+	reports/segment_content/Makefile
+	reports/segment_content/test.conf
 	reports/speed_trend/Makefile
 	reports/speed_trend/test.conf
 	reports/speed_spread/Makefile
