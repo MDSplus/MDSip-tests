@@ -85,7 +85,57 @@ function set_path() {
    export speed_trend_path=${TARGET_SPOOL}
    export stream_path=${TARGET_SPOOL}
    export huge_path=${TARGET_SPOOL}
-   
+
+   export rfx_path=/home/andrea/rfxdata
+   export mhd_ac_path=/home/andrea/rfxdata
+   export mhd_bc_path=/home/andrea/rfxdata
+   export mhd_br_path=/home/andrea/rfxdata
+   export eda1_path=/home/andrea/rfxdata
+   export eda2_path=/home/andrea/rfxdata
+   export eda3_path=/home/andrea/rfxdata
+   export edam_path=/home/andrea/rfxdata
+   export edav_path=/home/andrea/rfxdata
+   export edag_path=/home/andrea/rfxdata
+
+   export dequ_raw_path=/home/andrea/rfxdata
+   export dflu_raw_path=/home/andrea/rfxdata
+   export dico28_raw_path=/home/andrea/rfxdata
+   export dtsr_raw_path=/home/andrea/rfxdata
+   export dtse_raw_path=/home/andrea/rfxdata
+   export dssp_raw_path=/home/andrea/rfxdata
+   export dsxm_raw_path=/home/andrea/rfxdata
+   export dsfm_raw_path=/home/andrea/rfxdata
+   export a_raw_path=/home/andrea/rfxdata
+   export dbol_raw_path=/home/andrea/rfxdata
+   export dbot_raw_path=/home/andrea/rfxdata
+   export dedg_raw_path=/home/andrea/rfxdata
+   export dmwr_raw_path=/home/andrea/rfxdata
+   export dofl_raw_path=/home/andrea/rfxdata
+   export dpel_raw_path=/home/andrea/rfxdata
+   export dpfr_raw_path=/home/andrea/rfxdata
+   export dsct_raw_path=/home/andrea/rfxdata
+   export dscv_raw_path=/home/andrea/rfxdata
+   export dstc_raw_path=/home/andrea/rfxdata
+   export dstcj_raw_path=/home/andrea/rfxdata
+   export dstcu_raw_path=/home/andrea/rfxdata
+   export dsxt_raw_path=/home/andrea/rfxdata
+   export dsxv_raw_path=/home/andrea/rfxdata
+   export dtof_raw_path=/home/andrea/rfxdata
+   export dccd_raw_path=/home/andrea/rfxdata
+   export dter_raw_path=/home/andrea/rfxdata
+   export disis_raw_path=/home/andrea/rfxdata
+   export dgpi_raw_path=/home/andrea/rfxdata
+   export dgpi2_raw_path=/home/andrea/rfxdata
+   export dsxc_raw_path=/home/andrea/rfxdata
+   export dmoss_raw_path=/home/andrea/rfxdata
+   export dftc_raw_path=/home/andrea/rfxdata
+   export deso_raw_path=/home/andrea/rfxdata
+   export dnbi_raw_path=/home/andrea/rfxdata
+   export dnpa_raw_path=/home/andrea/rfxdata
+   export dli3_raw_path=/home/andrea/rfxdata
+   export dirc_raw_path=/home/andrea/rfxdata
+   export dgpi2_raw_path=/home/andrea/rfxdata
+
    # write huge file making target in current directory
    make write_huge && LD_LIBRARY_PATH=${LD_LIBRARY_PATH} ./write_huge
 }
@@ -202,6 +252,57 @@ export speed_spread_path=\${TARGET_SPOOL}
 export speed_trend_path=\${TARGET_SPOOL}
 export stream_path=\${TARGET_SPOOL}
 export huge_path=\${TARGET_SPOOL}
+
+export rfx_path=/home/andrea/rfxdata
+export mhd_ac_path=/home/andrea/rfxdata
+export mhd_bc_path=/home/andrea/rfxdata
+export mhd_br_path=/home/andrea/rfxdata
+export eda1_path=/home/andrea/rfxdata
+export eda2_path=/home/andrea/rfxdata
+export eda3_path=/home/andrea/rfxdata
+export edam_path=/home/andrea/rfxdata
+export edav_path=/home/andrea/rfxdata
+export edag_path=/home/andrea/rfxdata
+
+export dequ_raw_path=/home/andrea/rfxdata
+export dflu_raw_path=/home/andrea/rfxdata
+export dico28_raw_path=/home/andrea/rfxdata
+export dtsr_raw_path=/home/andrea/rfxdata
+export dtse_raw_path=/home/andrea/rfxdata
+export dssp_raw_path=/home/andrea/rfxdata
+export dsxm_raw_path=/home/andrea/rfxdata
+export dsfm_raw_path=/home/andrea/rfxdata
+export a_raw_path=/home/andrea/rfxdata
+export dbol_raw_path=/home/andrea/rfxdata
+export dbot_raw_path=/home/andrea/rfxdata
+export dedg_raw_path=/home/andrea/rfxdata
+export dmwr_raw_path=/home/andrea/rfxdata
+export dofl_raw_path=/home/andrea/rfxdata
+export dpel_raw_path=/home/andrea/rfxdata
+export dpfr_raw_path=/home/andrea/rfxdata
+export dsct_raw_path=/home/andrea/rfxdata
+export dscv_raw_path=/home/andrea/rfxdata
+export dstc_raw_path=/home/andrea/rfxdata
+export dstcj_raw_path=/home/andrea/rfxdata
+export dstcu_raw_path=/home/andrea/rfxdata
+export dsxt_raw_path=/home/andrea/rfxdata
+export dsxv_raw_path=/home/andrea/rfxdata
+export dtof_raw_path=/home/andrea/rfxdata
+export dccd_raw_path=/home/andrea/rfxdata
+export dter_raw_path=/home/andrea/rfxdata
+export disis_raw_path=/home/andrea/rfxdata
+export dgpi_raw_path=/home/andrea/rfxdata
+export dgpi2_raw_path=/home/andrea/rfxdata
+export dsxc_raw_path=/home/andrea/rfxdata
+export dmoss_raw_path=/home/andrea/rfxdata
+export dftc_raw_path=/home/andrea/rfxdata
+export deso_raw_path=/home/andrea/rfxdata
+export dnbi_raw_path=/home/andrea/rfxdata
+export dnpa_raw_path=/home/andrea/rfxdata
+export dli3_raw_path=/home/andrea/rfxdata
+export dirc_raw_path=/home/andrea/rfxdata
+export dgpi2_raw_path=/home/andrea/rfxdata
+
 if test \\\$2 = \"ssh\"; then
  exec ${MDSIP} -P ssh 2>> \\\$4/\\\$2.errors
 else
