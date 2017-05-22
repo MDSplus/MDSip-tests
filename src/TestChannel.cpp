@@ -231,12 +231,12 @@ void Channel::PutSegment(Content::Element &el) {
     for(int count = 0;; ++count, ++m_cnxerr_count) {
         try{
             {
-                TIMER_PAUSE(m_timer);
+                //TIMER_PAUSE(m_timer);
                 m_netlink_stats.Start();
             }
             d->PutSegment(el);
             {
-                TIMER_PAUSE(m_timer);                
+                //TIMER_PAUSE(m_timer);
                 m_netlink_stats.Stop();
                 struct rtnl_link_stats stats = m_netlink_stats.GetDiff();
                 double dt = m_netlink_stats.GetTimer().GetElapsed_s();
