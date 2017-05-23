@@ -26,6 +26,7 @@ Scope.reversed: false
 Scope.global_1_1.experiment: EAST_1
 Scope.global_1_1.horizontal_offset: 1
 Scope.global_1_1.vertical_offset: 1
+Scope.global_1_1.shot: 39391
 
 Scope.columns: 1
 Scope.rows_in_column_1: 3
