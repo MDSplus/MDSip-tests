@@ -322,6 +322,8 @@ AC_CONFIG_FILES([
 	reports/speed_spread/test.conf
 	reports/jscope_streamtest/Makefile
 	reports/jscope_streamtest/test.conf
+	reports/jscope_unvdpr/Makefile
+	reports/jscope_unvdpr/test.conf
 	reports/jscope_hugefile/Makefile
 	reports/jscope_hugefile/test.conf
 	])
