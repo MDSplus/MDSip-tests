@@ -21,15 +21,16 @@ LD_LIBRARY_PATH=@MDS_LIBDIR@:${LD_LIBRARY_PATH}
 # adds path for mdsip-client-x scripts overload
 PATH=${SRCDIR}/conf:${PATH}
 
-TESTS="segment_size speed_spread speed_trend jscope_streamtest jscope_hugefile"
+TESTS="segment_size speed_spread speed_trend jscope_unvdpr jscope_streamtest jscope_hugefile"
 TESTS_ACTIVE="segment_size"
 
 
 segment_size_desc=" TCP/UDT Throughput vs segment size "
 speed_spread_desc=" Bandwidth distribution "
 speed_trend_desc=" Throughput time trend "
+jscope_unvdpr_desc=" jScope remote experiment example "
 jscope_streamtest_desc=" Test streaming singnal example "
-jscope_hugefile_desc=" Test streaming singnal example "
+jscope_hugefile_desc=" Test huge singnal example "
 
 
 # /////////////////////////////////////////////////////////////////////////// #
@@ -51,7 +52,7 @@ function select_tests() {
 _TESTS_ACTIVE=${TESTS_ACTIVE}
 _TESTS_ACTIVE=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		  --title "Tests selection" --checklist \
-		  "Choose preferred tests to be launched" 15 60 5 \
+		  "Choose preferred tests to be launched" 15 60 10 \
 		  $(for i in ${TESTS}; do
 		     echo "$i $(test_desc $i) $(test_active $i)"
 		    done) \
@@ -75,7 +76,7 @@ function config_tests() {
 VALUES=$(${DIALOG} --backtitle "${BACKTITLE}" \
 		   --ok-label "Edit config" --cancel-label "Finish" \
 		   --title "Tests selection" --menu \
-		   "Choose test to edit configuration" 15 60 5 \
+		   "Choose test to edit configuration" 15 60 10 \
 		   $(for i in ${TESTS_ACTIVE}; do
 		      echo "$i $(test_desc $i)"
 		     done) \

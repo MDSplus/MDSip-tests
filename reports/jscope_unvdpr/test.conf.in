@@ -4,7 +4,9 @@ TARGET_HOST  ?= default_selected_target
 TARGET_PORT  ?= default_port
 TARGET_SPOOL ?= deafault_spool_dir
 
-JSCP_FILES ?= \
-	      EAST.jscp \
-	      rt_camere.jscp \
-	      rt_reference.jscp
+JSCP ?= \
+	rt_camere.jscp \
+	rt_reference.jscp \
+	JET.jscp \
+	EAST.jscp \
+	universal.jscp

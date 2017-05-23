@@ -26,10 +26,9 @@ JSCP ?= \
 start_jscope: $(JSCP)
 	@ \
 	  ${_envset}; \
-	  for j in $(JSCP_FILES); do \
-	   java jScope ${builddir}/$$j & \
+	  for j in $^; do \
+	   java jScope $$j & \
 	  done
-
 
 
 # //////////////////////////////////////////////////////////////////////////// #
@@ -49,7 +48,9 @@ define([_TARGET_SPOOL_],[${TARGET_SPOOL}])
 dnl ------------------------------------------------------------------------
 endef
 
-MOSTLYCLEANFILES = $(JSCP)
+
+JSCP_CLEAN = $(patsubst ${srcdir}/%.jscp.m4, ${builddir}/%.jscp, $(wildcard ${srcdir}/*.jscp.m4))
+MOSTLYCLEANFILES = $(JSCP_CLEAN)
 
 SUFFIXES += .jscp.m4 .jscp
 .jscp.m4.jscp:
