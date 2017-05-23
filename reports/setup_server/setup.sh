@@ -99,7 +99,7 @@ function set_path() {
    export dstc_path=${TARGET_SPOOL}/rfxdata
    export dequ_path=${TARGET_SPOOL}/rfxdata
    export dflu_path=${TARGET_SPOOL}/rfxdata
-
+   export a_path=${TARGET_SPOOL}/rfxdata
 
    export dequ_raw_path=${TARGET_SPOOL}/rfxdata
    export dflu_raw_path=${TARGET_SPOOL}/rfxdata
@@ -270,6 +270,7 @@ export edag_path=\${TARGET_SPOOL}/rfxdata
 export dstc_path=\${TARGET_SPOOL}/rfxdata
 export dequ_path=\${TARGET_SPOOL}/rfxdata
 export dflu_path=\${TARGET_SPOOL}/rfxdata
+export a_path=\${TARGET_SPOOL}/rfxdata
 
 
 export dequ_raw_path=\${TARGET_SPOOL}/rfxdata
