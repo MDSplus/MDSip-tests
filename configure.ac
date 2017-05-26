@@ -259,7 +259,17 @@ AC_SUBST([DIALOG])
 
 AC_CHECK_PROG([GNUPLOT], gnuplot, gnuplot)
 AC_SUBST([GNUPLOT])
-
+AS_VAR_SET_IF([GNUPLOT],[
+ AS_VAR_SET([GNUPLOT_VERSION],[$(${GNUPLOT} -V | ${AWK} '{print $[]2}')])
+ AS_VAR_SET([GNUPLOT_MAJOR],[$(echo ${GNUPLOT_VERSION} | cut -d. -f1)])
+ AS_VAR_SET([GNUPLOT_MINOR],[$(echo ${GNUPLOT_VERSION} | cut -d. -f2)])
+ AC_SUBST(GNUPLOT_VERSION)
+ AS_ECHO("GNUPLOT_VERSION = ${GNUPLOT_VERSION}")
+ AC_SUBST(GNUPLOT_MAJOR)
+ AC_SUBST(GNUPLOT_MINOR)
+ AS_IF([test "${GNUPLOT_MAJOR}" -ge "5"],
+	AC_DEFINE(GNUPLOT_MAJOR_5,[1],[gnuplot version greater than 5]))
+])
 
 
 # //////////////////////////////////////////////////////////////////////////// #

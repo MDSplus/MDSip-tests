@@ -2,6 +2,7 @@
 
 #include "stdio.h"
 #include "math.h"
+#include "config.h"
 
 namespace mdsip_test {
   
@@ -348,11 +349,15 @@ void Plot2D::print_plot_style2(const std::string &name, std::ofstream &o) const
         std::vector<ColorRGBList::Entry> &clist = s_chart_colors->ColorList();
         const ColorRGB &color = clist.at(count%clist.size()).color;
         o << "set style line " << count+1 << " lc rgb '" << color.ToString()
-          << "' lw 6 "
           << "pt " << ((count==0)?0:7)
           << "ps 1.3 "
+#         if GNUPLOT_MAJOR_5
+          << "' lw 4 "
+          << "dashtype " << (count%4)+1 << "\n";
+#         else
+          << "' lw 6 "
           << "lt " << (count%4)+1 << "\n";
-          //<< "dashtype " << (count%4)+1 << "\n";
+#         endif
         count ++;
     }
 
