@@ -413,8 +413,12 @@ int main(int argc, char *argv[])
             std::string subtitle;
             subtitle = "(started at: " + g_start_date + " -- ended at: " + FileUtils::CurrentDateTime() + ")";
             plot.SetSubtitle(subtitle);
-            plot.XAxis().name = "Time [min]";
+            plot.XAxis().name = "Connection time from " + g_start_date + " [min]";
             plot.YAxis().name = "Transmission speed";
+            plot.YAxis(0).limits[0] = 0;
+            plot.YAxis(0).limits[1] = NAN;
+            plot.YAxis(1).limits[0] = 0;
+            plot.YAxis(1).limits[1] = NAN;
         }
         
         plot.PrintToCsv(filename_out + "trend");

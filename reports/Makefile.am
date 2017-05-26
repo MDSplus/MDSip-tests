@@ -161,6 +161,11 @@ jscope_hugefile:
 	@$(MAKE) -k -C jscope_hugefile $@;
 
 
+.PHONY: jscope_unvdpr
+jscope_unvdpr:
+	@echo "Making remote experiment jScope example "
+	@$(MAKE) -k -C jscope_unvdpr;
+
 
 #.PHONY: segment_size speed_spread speed_trend
 segment_size: segment_size.pdf
@@ -171,7 +176,10 @@ speed_trend: speed_trend.pdf
 TESTS = segment_size \
 	speed_spread \
 	speed_trend \
-	jscope_streamtest
+	jscope_hugefile \
+	jscope_streamtest \
+	jscope_unvdpr
+
 
 
 

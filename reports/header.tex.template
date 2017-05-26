@@ -5,10 +5,10 @@
 \usepackage[[english]]{babel}
 
 
+%\usepackage{fetamont}
+%\pdfmapfile{=fetamont.map}
+\newcommand{\ffmfamily}{}
 
-
-\usepackage{fetamont}
-\pdfmapfile{=fetamont.map}
 
 \usepackage[[sfdefault,light]]{roboto}
 \pdfmapfile{=roboto.map}

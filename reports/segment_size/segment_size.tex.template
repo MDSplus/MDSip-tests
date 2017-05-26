@@ -20,9 +20,7 @@
 \begin{reportTabItem}{Description} 
 
 This test measures the data transfer troughput between two MDSplus endpoints
-using protocols: "_PROTOCOLS_". The latter was introduced in the mdsip MDSplus
-server to ease the effect of large RTT levels that characterize long distant
-connections.
+using protocols: "_PROTOCOLS_".
 The transmission content is here represented by signal segments. Segments are
 MDSplus objects that were designed to cluster signals in many shorter fragments
 and they are particularly suited to be network handled.

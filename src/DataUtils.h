@@ -569,7 +569,7 @@ public:
             m_min = other.m_min;
             m_max = other.m_max;
         }
-        m_sum += other.m_sum;
+        m_sum  += other.m_sum;
         m_stat += other.m_stat; // see stat operator //
     }
 
