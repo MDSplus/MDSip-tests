@@ -60,7 +60,7 @@ define mds_envset
   export CLASSPATH=$(MDS_CLASSPATH)
   export LD_LIBRARY_PATH=$(MDS_LIBDIR):${LD_LIBRARY_PATH}
   export MDSPLUS_DIR=$(MDSPLUS_DIR)
-  export PYTHONPATH=$(abs_top_builddir):${PYTHONPATH}
+  export PYTHONPATH=${HOME}/lib/python2.7/site-packages:$(abs_top_builddir):${PYTHONPATH}
 endef
 
 mdshell:
