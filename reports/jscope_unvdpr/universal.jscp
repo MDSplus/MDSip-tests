@@ -23,6 +23,7 @@ Scope.reversed: false
 Scope.global_1_1.experiment: rfx
 Scope.global_1_1.horizontal_offset: 0
 Scope.global_1_1.vertical_offset: 0
+Scope.global_1_1.shot: 1
 
 Scope.columns: 2
 Scope.rows_in_column_1: 2
