@@ -24,7 +24,7 @@ Scope.global_1_1.horizontal_offset: 0
 Scope.global_1_1.vertical_offset: 0
 
 Scope.columns: 1
-Scope.rows_in_column_1: 1
+Scope.rows_in_column_1: 2
 
 
 Scope.plot_1_1.height: 448
@@ -50,3 +50,26 @@ Scope.plot_1_1.color_1_1: 0
 Scope.plot_1_1.marker_1_1: 0
 Scope.plot_1_1.step_marker_1_1: 1
 
+
+Scope.plot_2_1.height: 448
+Scope.plot_2_1.grid_mode: 0
+Scope.plot_2_1.x_log: false
+Scope.plot_2_1.y_log: false
+Scope.plot_2_1.update_limits: true
+Scope.plot_2_1.palette: Green scale
+Scope.plot_2_1.bitShift: 0
+Scope.plot_2_1.bitClip: false
+Scope.plot_2_1.experiment: stream
+Scope.plot_2_1.num_shot: 1
+Scope.plot_2_1.num_expr: 1
+Scope.plot_2_1.shot: 1
+Scope.plot_2_1.ymin: -1
+Scope.plot_2_1.ymax: 1
+Scope.plot_2_1.continuous_update: 0
+Scope.plot_2_1.global_defaults: 212481
+Scope.plot_2_1.y_expr_1: stream_1
+Scope.plot_2_1.mode_1D_1_1: Line
+Scope.plot_2_1.mode_2D_1_1: xz(y)
+Scope.plot_2_1.color_1_1: 0
+Scope.plot_2_1.marker_1_1: 0
+Scope.plot_2_1.step_marker_1_1: 1
