@@ -33,6 +33,7 @@ struct Parameters : Options {
     Vector2d h_numeric_limits;
     size_t samples;
     size_t probes;
+    int pack_many;
     std::string   env_no_disk;
     std::string   gen_function;
 
@@ -54,7 +55,8 @@ struct Parameters : Options {
         h_speed_limits(0,4),
         h_time_limits(0,1),
         h_numeric_limits(0,100),
-        env_no_disk("no"),
+        env_no_disk("yes"),
+        pack_many(0),
         compression(0),
         gen_function("sine")
     {
@@ -68,6 +70,7 @@ struct Parameters : Options {
                 ("speed_limits",&h_speed_limits,"speed histogram limits [MB/s] (begin,end)")
                 ("time_limits",&h_time_limits,"time histogram limits [MB/s] (begin,end)")
                 ("no_disk",&env_no_disk,"no_disk_option (yes/no)")
+                ("pack_many",&pack_many,"number of subsequent segments to pack in a GetMany instance")
                 ("dump_times",&dump.times,true,"dump times histogram (bool)")
                 ("dump_speeds",&dump.speeds,true,"dump speeds histogram (bool)")
                 ("dump_stats",&dump.stats,true,"dump stats histogram (bool)")
@@ -260,6 +263,7 @@ double segment_size_throughput_MT(size_t size_KB,
             cnt->SetGenFunction(ContentFunction::Sine);
         Channel *ch = Channel::NewTC(size_KB);
         if(g_options.env_no_disk == "yes") ch->SetNoDisk(true);
+        if(g_options.pack_many > 0) ch->SetPackMany(g_options.pack_many);
         ch->SetInterfaceName(g_options.link.iface);
         probe->ChannelSetup(ch);
         conn.AddChannel(cnt,ch);

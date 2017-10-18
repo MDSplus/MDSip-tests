@@ -18,19 +18,19 @@ size_tcp_command = $(builddir)/SegmentSize tcp://${TARGET} size-tcp \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION) \
-		   --gen_function $(gen_function)
+		   --gen_function $(gen_function) --pack_many $(pack_many)
 
 size_udt_command = $(builddir)/SegmentSize udt://${TARGET} size-udt \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION) \
-		   --gen_function $(gen_function)
+		   --gen_function $(gen_function) --pack_many $(pack_many)
 
 size_ssh_command = $(builddir)/SegmentSize ssh://$(TARGET_USER)@${TARGET} size-ssh \
 		   --channels "${channels}" --segments "${segments}" \
 		   --samples "${samples}" --probes ${probes} \
 		   --link_iface ${link_iface} --compression $(COMPRESSION) \
-		   --gen_function $(gen_function)
+		   --gen_function $(gen_function) --pack_many $(pack_many)
 
 
 
@@ -94,7 +94,7 @@ $(ALL_PROTOCOLS): SegmentSize
 	   --channels "${channels}" --segments "${segments}" \
 	   --samples "${samples}" --probes ${probes} \
 	   --link_iface ${link_iface} --compression $(COMPRESSION) \
-	   --gen_function $(gen_function) \
+	   --gen_function $(gen_function) --pack_many $(pack_many) \
 	   | tee -a SegmentSize-$@.log | dialog_bar "SegmentSize Test $@"
 
 PHONY: all_images

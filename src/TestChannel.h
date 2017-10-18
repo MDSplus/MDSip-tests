@@ -45,6 +45,7 @@ public:
     void Reset();
 
     void SetNoDisk(bool value);
+    void SetPackMany(int value);
 
     void SetInterfaceName(const std::string &name);
 

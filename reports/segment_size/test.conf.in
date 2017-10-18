@@ -26,6 +26,7 @@
 # Number of samples to collect per segment size
 #
   samples = 50
+  pack_many = 0
 
 #
 # Number of probes to collect per channel

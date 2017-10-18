@@ -20,7 +20,7 @@ namespace mdsip_test {
 
 class ChannelImpl {
 public:
-    ChannelImpl(Channel *parent) : p(parent), m_nodisk(0) {}
+    ChannelImpl(Channel *parent) : p(parent), m_nodisk(0), m_pack_many(0) {}
     virtual ~ChannelImpl() {}
     virtual void Open(TestTree &tree) = 0;
     virtual void Close() = 0;
@@ -29,6 +29,7 @@ public:
     virtual int SndBuf() { return 0; }
 
     bool     m_nodisk;
+    int      m_pack_many;
     Channel *p;
 };
         
@@ -81,8 +82,12 @@ class ChannelTC : public ChannelImpl {
 public:
     ChannelTC(Channel *parent) :
         BaseClass(parent),
-        cnx(NULL)
-    {}
+        cnx(NULL),
+        mny(NULL),
+        howmny(0)
+    {
+        for (int i=0; i<10; ++i) args[i] = 0x0;
+    }
 
     void Open(TestTree &tree) {
         m_tree = tree;
@@ -92,26 +97,48 @@ public:
             std::cout << "error connection\n";
             exit (1); // TODO: FIX this !!!
         }
+        // create many
+        mny = new mds::GetMany(cnx);
         // Set connection to Socket monitor //
         mon.SetFromMdsConnection(cnx);
     }
 
     void Close() {
         m_tree.Close();
+        // delete mny;
     }
     
     void PutSegment(Content::Element &el) /*const*/ {
-        Data * args[1];
-        args[0] = el.data;
 
         if(m_nodisk) {
-            // write only into memory simply getting the size of sent array
             ////////////////////////////////////////////////////////////////////
-            cnx->get("size($1)",args,1); ///////////////////////////////////////
+            // write only into memory simply getting the size of sent array
+            if(!m_pack_many){
+                args[0] = el.data;
+                cnx->get("size($1)",args,1);
+            }
+            else {
+                assert(m_pack_many < 256);
+                if(!mny) mny = new mds::GetMany(cnx);
+                //                std::cout << "AP\n" << std::flush;
+                std::stringstream es;
+                es << "exp" << howmny;
+                mnyels.push_back(el.data->clone());
+                args[howmny] = mnyels.back();
+                mny->append((char *)es.str().c_str(),"size($1)",&args[howmny],1);
+                ++howmny;
+                howmny %= m_pack_many;
+                if (howmny == 0) {
+                    //                    std::cout << "EX\n";
+                    mny->execute();
+                    mny._delete();
+                    mnyels.clear();
+                }
+            }
             ////////////////////////////////////////////////////////////////////
         }
         else {
-            p->m_timer.Pause(); /////////////////////////////////////////
+            p->m_timer.Pause(); // PAUSE //
             // write to disk making segment into parse file
             char * begin = el.dim->getBegin()->getString();
             char * end   = el.dim->getEnding()->getString();
@@ -119,16 +146,29 @@ public:
             std::stringstream ss;
             // TDI: public fun MakeSegment(as_is _node, in _start, in _end,
             //          as_is _dim, in _array, optional _idx, in _rows_filled)
-            ss << "MakeSegment(" 
-               << el.path << "," 
+            ss << "MakeSegment("
+               << el.path << ","
                << begin << ","
                << end << ","
                << "make_range(" << begin << "," << end << "," << delta << ")" << ","
                << "$1" << ",,"
                << el.data->getSize() << ")";
-            p->m_timer.Resume(); ////////////////////////////////////////
-            ////////////////////////////////////////////////////////////////////
-            cnx->get(ss.str().c_str(),args,1); /////////////////////////////////
+            p->m_timer.Resume(); // RESUME //
+            if(!m_pack_many) {
+                args[0] = el.data;
+                cnx->get(ss.str().c_str(),args,1);
+            }
+            else {
+                p->m_timer.Pause(); // PAUSE //
+                std::stringstream es;
+                es << "exp" << howmny;
+                mny->append((char *)es.str().c_str(),(char *)ss.str().c_str(),args,1);
+                ++howmny %= m_pack_many;
+                p->m_timer.Resume(); // RESUME //
+                if (howmny == 0) {
+                    mny->execute();
+                }
+            }
             ////////////////////////////////////////////////////////////////////
             delete[] begin;
             delete[] end;
@@ -136,10 +176,16 @@ public:
         }
     }
 
+
     int RcvBuf() { mon.Update(); return mon.d.rcvbuf; }
     int SndBuf() { mon.Update(); return mon.d.sndbuf; }
 
 private:
+    unique_ptr<mds::GetMany> mny;
+    std::vector<mds::Data *> mnyels;
+    Data * args[256];
+
+    int      howmny;
     mds::Connection *cnx;
     SocketOptMonitor mon;
     TestTree m_tree;
@@ -267,6 +313,7 @@ void Channel::Reset()
 }
 
 void Channel::SetNoDisk(bool value) { d->m_nodisk = value; }
+void Channel::SetPackMany(int value) { d->m_pack_many = value; }
 
 void Channel::SetInterfaceName(const std::string &name) {
     m_netlink_stats.SetName(name);

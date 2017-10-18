@@ -28,10 +28,17 @@ public:
 
     virtual ~Content() {}
 
-    struct Element {        
+    class Element {
+    public:
         std::string                   path;
         unique_ptr<mds::Float32Array> data;
         unique_ptr<mds::Range>        dim;
+        Element() {}
+        Element(const Element &o) :
+            path(o.path),
+            data( (mds::Float32Array *)o.data->clone() ),
+            dim( (mds::Range *)o.data->clone() )
+        {}
     };
 
     virtual std::string GetName() const { return m_name; }

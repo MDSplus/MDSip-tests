@@ -4,8 +4,8 @@
 
 #include "testing-prototype.h"
 
-using namespace mdsip_test;
 
+using namespace mdsip_test;
 
 int main()
 {
@@ -20,6 +20,18 @@ int main()
 //        Content::Element el;
 //        while ( reader.GetNextElement(128,el) );
 
+    const float array[2] = { 0, 1 };
+    Content::Element el;
+    el.data = new MDSplus::Float32Array(array,2);
+
+
+
+    Content::Element &el_ref = el;
+    Content::Element el2(el_ref);
+
+//    std::cout << "el.data  = " << el.data.base() << "\n";
+    TEST1_P( el.data == NULL );
+    std::cout << "el2.data = " << el2.data.base() << "\n";
 
     END_TESTING;
 }
